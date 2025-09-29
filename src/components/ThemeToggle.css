@@ -1,0 +1,109 @@
+/* Theme Toggle Component */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  white-space: nowrap;
+}
+
+.theme-options {
+  display: flex;
+  gap: 4px;
+  background: #f0f0f0;
+  border-radius: 20px;
+  padding: 4px;
+}
+
+.theme-option {
+  background: none;
+  border: none;
+  font-size: 16px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+}
+
+.theme-option:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.theme-option.active {
+  background: #4CAF50;
+  color: white;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.theme-option.active:hover {
+  background: #45a049;
+  transform: scale(1.05);
+}
+
+/* Sizes */
+.theme-toggle-small .theme-option {
+  font-size: 14px;
+  padding: 6px 10px;
+  min-width: 32px;
+  height: 32px;
+}
+
+.theme-toggle-large .theme-option {
+  font-size: 18px;
+  padding: 10px 14px;
+  min-width: 48px;
+  height: 48px;
+}
+
+/* Dark theme */
+[data-theme="dark"] .theme-label {
+  color: #ccc;
+}
+
+[data-theme="dark"] .theme-options {
+  background: #3d3d3d;
+}
+
+[data-theme="dark"] .theme-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .theme-toggle {
+    gap: 6px;
+  }
+  
+  .theme-label {
+    font-size: 12px;
+  }
+  
+  .theme-option {
+    font-size: 14px;
+    padding: 6px 8px;
+    min-width: 36px;
+    height: 36px;
+  }
+}
+
+/* Animation */
+@keyframes themeSwitch {
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+
+.theme-option:active {
+  animation: themeSwitch 0.3s ease;
+}
