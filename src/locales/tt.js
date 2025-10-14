@@ -18,6 +18,8 @@ export const tt = {
     title: 'Керү',
     email: 'Email',
     password: 'Серсүз',
+    loginWithGoogle: 'Google аша керү',
+    chefLoginWithGoogle: 'Повар буларак Google аша керү',
     submit: 'Керү',
     noAccount: 'Хисап юкмы?',
     registerLink: 'Теркәлү',

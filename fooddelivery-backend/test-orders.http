@@ -1,0 +1,153 @@
+### ============================================
+### ТЕСТИРОВАНИЕ ORDERS MODULE
+### ============================================
+
+### 1. ПОЛУЧИТЬ ВСЕ ЗАКАЗЫ (без авторизации)
+GET http://localhost:3001/api/orders
+
+### 2. ПОЛУЧИТЬ СТАТИСТИКУ ЗАКАЗОВ (без авторизации)
+GET http://localhost:3001/api/orders/stats/overview
+
+### ============================================
+### СОЗДАНИЕ ЗАКАЗА КЛИЕНТОМ
+### ============================================
+
+### 3. СОЗДАТЬ ЗАКАЗ (как клиент)
+POST http://localhost:3001/api/orders
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMDFiYmRiNC04ZjY4LTQ1NGMtOWIzNS1lOWM5MTk0YWNhZmEiLCJlbWFpbCI6ImNsaWVudEB0ZXN0LmNvbSIsInJvbGUiOiJDTElFTlQiLCJpYXQiOjE3NjAxMDY3NTEsImV4cCI6MTc2MDcxMTU1MX0.LDw5LLrlDynZqMiGRl8aEqt_-M96Lmvxe0NMjyfOTUQ
+
+{
+  "items": [
+    {
+      "dishId": "4b4d0d57-9978-419c-9c53-a36bcc0ed1d5",
+      "quantity": 2,
+      "notes": "Без лука"
+    },
+    {
+      "dishId": "84bceda4-f159-4689-8ca7-31c29568426f",
+      "quantity": 1
+    }
+  ],
+  "deliveryAddress": "ул. Пушкина, д. 10, кв. 5",
+  "notes": "Доставить до 18:00"
+}
+
+@orderId = {{jsonPath $.id}}
+
+### 4. СОЗДАТЬ ВТОРОЙ ЗАКАЗ (как клиент)
+POST http://localhost:3001/api/orders
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMDFiYmRiNC04ZjY4LTQ1NGMtOWIzNS1lOWM5MTk0YWNhZmEiLCJlbWFpbCI6ImNsaWVudEB0ZXN0LmNvbSIsInJvbGUiOiJDTElFTlQiLCJpYXQiOjE3NjAxMDY3NTEsImV4cCI6MTc2MDcxMTU1MX0.LDw5LLrlDynZqMiGRl8aEqt_-M96Lmvxe0NMjyfOTUQ
+
+{
+  "items": [
+    {
+      "dishId": "40e4ef80-4921-413f-a694-e41d25545b34",
+      "quantity": 1,
+      "notes": "Острая"
+    },
+    {
+      "dishId": "d8445eae-b477-44f2-9398-0e7f734ce107",
+      "quantity": 2
+    }
+  ],
+  "deliveryAddress": "ул. Ленина, д. 25, кв. 12",
+  "notes": "Позвонить за 15 минут до доставки"
+}
+
+@orderId2 = {{jsonPath $.id}}
+
+### ============================================
+### ПОЛУЧЕНИЕ ЗАКАЗОВ
+### ============================================
+
+### 5. ПОЛУЧИТЬ МОИ ЗАКАЗЫ (как клиент)
+GET http://localhost:3001/api/orders/my/orders
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMDFiYmRiNC04ZjY4LTQ1NGMtOWIzNS1lOWM5MTk0YWNhZmEiLCJlbWFpbCI6ImNsaWVudEB0ZXN0LmNvbSIsInJvbGUiOiJDTElFTlQiLCJpYXQiOjE3NjAxMDY3NTEsImV4cCI6MTc2MDcxMTU1MX0.LDw5LLrlDynZqMiGRl8aEqt_-M96Lmvxe0NMjyfOTUQ
+
+### 6. ПОЛУЧИТЬ ЗАКАЗЫ ДЛЯ ПОВАРА (как повар)
+GET http://localhost:3001/api/orders/chef/orders
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5NTZiZjYzZi00ODJiLTQ3MWYtOGE4ZC0zY2ZiMGRhZmZiMmEiLCJlbWFpbCI6ImNoZWZAdGVzdC5jb20iLCJyb2xlIjoiQ0hFRiIsImlhdCI6MTc2MDEwNzE3OSwiZXhwIjoxNzYwNzExOTc5fQ.l4w-wvX6wUFq8MWqUPmgSamSEF-09Shz_MSeiKP2iK8
+
+### 7. ПОЛУЧИТЬ ЗАКАЗ ПО ID (без авторизации)
+GET http://localhost:3001/api/orders/{{orderId}}
+
+### ============================================
+### УПРАВЛЕНИЕ СТАТУСАМИ ЗАКАЗОВ
+### ============================================
+
+### 8. ПОДТВЕРДИТЬ ЗАКАЗ (как повар)
+PATCH http://localhost:3001/api/orders/{{orderId}}/status
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5NTZiZjYzZi00ODJiLTQ3MWYtOGE4ZC0zY2ZiMGRhZmZiMmEiLCJlbWFpbCI6ImNoZWZAdGVzdC5jb20iLCJyb2xlIjoiQ0hFRiIsImlhdCI6MTc2MDEwNzE3OSwiZXhwIjoxNzYwNzExOTc5fQ.l4w-wvX6wUFq8MWqUPmgSamSEF-09Shz_MSeiKP2iK8
+
+{
+  "status": "CONFIRMED"
+}
+
+### 9. НАЧАТЬ ПРИГОТОВЛЕНИЕ (как повар)
+PATCH http://localhost:3001/api/orders/{{orderId}}/status
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5NTZiZjYzZi00ODJiLTQ3MWYtOGE4ZC0zY2ZiMGRhZmZiMmEiLCJlbWFpbCI6ImNoZWZAdGVzdC5jb20iLCJyb2xlIjoiQ0hFRiIsImlhdCI6MTc2MDEwNzE3OSwiZXhwIjoxNzYwNzExOTc5fQ.l4w-wvX6wUFq8MWqUPmgSamSEF-09Shz_MSeiKP2iK8
+
+{
+  "status": "PREPARING"
+}
+
+### 10. ГОТОВ К ВЫДАЧЕ (как повар)
+PATCH http://localhost:3001/api/orders/{{orderId}}/status
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5NTZiZjYzZi00ODJiLTQ3MWYtOGE4ZC0zY2ZiMGRhZmZiMmEiLCJlbWFpbCI6ImNoZWZAdGVzdC5jb20iLCJyb2xlIjoiQ0hFRiIsImlhdCI6MTc2MDEwNzE3OSwiZXhwIjoxNzYwNzExOTc5fQ.l4w-wvX6wUFq8MWqUPmgSamSEF-09Shz_MSeiKP2iK8
+
+{
+  "status": "READY"
+}
+
+### 11. ДОСТАВЛЕН (как повар)
+PATCH http://localhost:3001/api/orders/{{orderId}}/status
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5NTZiZjYzZi00ODJiLTQ3MWYtOGE4ZC0zY2ZiMGRhZmZiMmEiLCJlbWFpbCI6ImNoZWZAdGVzdC5jb20iLCJyb2xlIjoiQ0hFRiIsImlhdCI6MTc2MDEwNzE3OSwiZXhwIjoxNzYwNzExOTc5fQ.l4w-wvX6wUFq8MWqUPmgSamSEF-09Shz_MSeiKP2iK8
+
+{
+  "status": "DELIVERED"
+}
+
+### ============================================
+### ОТМЕНА ЗАКАЗА
+### ============================================
+
+### 12. ОТМЕНИТЬ ЗАКАЗ (как клиент)
+PATCH http://localhost:3001/api/orders/{{orderId2}}/cancel
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMDFiYmRiNC04ZjY4LTQ1NGMtOWIzNS1lOWM5MTk0YWNhZmEiLCJlbWFpbCI6ImNsaWVudEB0ZXN0LmNvbSIsInJvbGUiOiJDTElFTlQiLCJpYXQiOjE3NjAxMDY3NTEsImV4cCI6MTc2MDcxMTU1MX0.LDw5LLrlDynZqMiGRl8aEqt_-M96Lmvxe0NMjyfOTUQ
+
+### ============================================
+### ФИЛЬТРАЦИЯ ЗАКАЗОВ
+### ============================================
+
+### 13. ФИЛЬТР: Заказы со статусом PENDING
+GET http://localhost:3001/api/orders?status=PENDING
+
+### 14. ФИЛЬТР: Заказы со статусом CONFIRMED
+GET http://localhost:3001/api/orders?status=CONFIRMED
+
+### 15. ФИЛЬТР: Заказы со статусом PREPARING
+GET http://localhost:3001/api/orders?status=PREPARING
+
+### 16. ФИЛЬТР: Заказы со статусом DELIVERED
+GET http://localhost:3001/api/orders?status=DELIVERED
+
+### 17. ФИЛЬТР: Заказы со статусом CANCELLED
+GET http://localhost:3001/api/orders?status=CANCELLED
+
+### 18. ФИЛЬТР: Заказы конкретного клиента
+GET http://localhost:3001/api/orders?clientId=f01bbdb4-8f68-454c-9b35-e9c9194acafa
+
+### 19. ФИЛЬТР: Заказы с блюдами конкретного повара
+GET http://localhost:3001/api/orders?chefId=f1398163-1f70-4070-8d72-84ef4b626666
+
+### 20. ПАГИНАЦИЯ: Страница 1, по 2 заказа
+GET http://localhost:3001/api/orders?page=1&limit=2
+
+### 21. ПАГИНАЦИЯ: Страница 2, по 2 заказа
+GET http://localhost:3001/api/orders?page=2&limit=2

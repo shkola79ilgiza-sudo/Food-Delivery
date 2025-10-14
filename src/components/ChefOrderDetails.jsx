@@ -89,6 +89,13 @@ function ChefOrderDetails({ orderId, onClose, onStatusUpdate }) {
       
       showSuccess(`Статус заказа изменен на: ${getStatusText(newStatus)}`);
       
+      // Обновляем счетчик неподтвержденных заказов в localStorage
+      if (newStatus === 'confirmed') {
+        const currentCount = parseInt(localStorage.getItem('pendingOrdersCount') || '0');
+        const newCount = Math.max(0, currentCount - 1);
+        localStorage.setItem('pendingOrdersCount', newCount.toString());
+      }
+      
       if (onStatusUpdate) {
         onStatusUpdate(orderId, newStatus);
       }

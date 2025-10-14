@@ -7,7 +7,7 @@ const ClientNotifications = ({ onClose, onSwitchToSection }) => {
   const navigate = useNavigate();
   const { showSuccess } = useToast();
   
-  // Используем хук для уведомлений
+  // Используем хук для уведомлений с обработкой ошибок
   const {
     notifications,
     loading,
@@ -16,6 +16,12 @@ const ClientNotifications = ({ onClose, onSwitchToSection }) => {
     clearAll,
     addNotification
   } = useNotifications('client');
+
+  // Обработка ошибок
+  const handleError = (error) => {
+    console.error('ClientNotifications error:', error);
+    showSuccess('Произошла ошибка. Попробуйте обновить страницу.');
+  };
 
   // Обработка клавиши Escape для закрытия модального окна
   useEffect(() => {
@@ -232,7 +238,11 @@ const ClientNotifications = ({ onClose, onSwitchToSection }) => {
             Создать тестовое уведомление
           </button>
           <button
-            onClick={markAllAsRead}
+            onClick={() => {
+              markAllAsRead();
+              // Отправляем событие для обновления бейджей
+              window.dispatchEvent(new CustomEvent('clientNotificationsUpdated'));
+            }}
             style={{
               background: '#6c757d',
               color: 'white',
@@ -246,7 +256,11 @@ const ClientNotifications = ({ onClose, onSwitchToSection }) => {
             Отметить все как прочитанные
           </button>
           <button
-            onClick={clearAll}
+            onClick={() => {
+              clearAll();
+              // Отправляем событие для обновления бейджей
+              window.dispatchEvent(new CustomEvent('clientNotificationsUpdated'));
+            }}
             style={{
               background: '#dc3545',
               color: 'white',

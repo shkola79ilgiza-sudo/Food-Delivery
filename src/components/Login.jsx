@@ -1,110 +1,122 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import "../App.css";
-import { login as apiLogin, getProfile } from "../api";
-import { useLanguage } from "../contexts/LanguageContext";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import './Login.css';
 
-function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+const Login = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { login } = useAuth();
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    
-    // Демо-логин для тестирования без бэкенда
-    const savedEmail = localStorage.getItem("chefEmail");
-    const savedPassword = localStorage.getItem("chefPassword");
-    
-    if (email === savedEmail && password === savedPassword) {
-      // Создаем демо-токен и профиль
-      const demoToken = `demo-token-${Date.now()}`;
-      const demoChefId = email;
-      const demoRole = "chef";
-      
-      localStorage.setItem("authToken", demoToken);
-      localStorage.setItem("chefId", demoChefId);
-      localStorage.setItem("role", demoRole);
-      
-      navigate(`/chef/${encodeURIComponent(demoChefId)}/menu`);
-      return;
-    }
-    
-    // Реальный API логин (если есть бэкенд)
+    setError('');
+    setLoading(true);
+
     try {
-      const res = await apiLogin(email, password);
-      const accessToken = res?.accessToken || res?.token || res?.data?.accessToken;
-      if (!accessToken) throw new Error("Токен не получен");
-      localStorage.setItem("authToken", accessToken);
-      const profile = await getProfile();
-      if (profile?.id) localStorage.setItem("chefId", profile.id);
-      if (profile?.role) localStorage.setItem("role", profile.role);
-      const chefId = localStorage.getItem("chefId");
-      navigate(chefId ? `/chef/${encodeURIComponent(chefId)}/menu` : "/chef");
+      const data = await login(formData.email, formData.password);
+      
+      // Перенаправляем в зависимости от роли
+      if (data.user.role === 'CHEF') {
+        navigate('/chef');
+      } else if (data.user.role === 'CLIENT') {
+        navigate('/client');
+      } else if (data.user.role === 'ADMIN') {
+        navigate('/admin');
+      }
     } catch (err) {
-      setError(err?.message || "Неверный email или пароль");
+      setError(err.message || 'Ошибка входа');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div
-      style={{
-        backgroundImage: 'url(/backgrounds/login-pattern.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '20px'
-      }}
-    >
-      <div className="ContentWrapper">
-        <h2>{t.login.title}</h2>
-        <form onSubmit={handleLogin} className="formBox">
-          <input
-            type="email"
-            placeholder={t.login.email}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder={t.login.password}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button type="submit">{t.login.submit}</button>
-        </form>
+    <div className="login-container">
+      <div className="login-card">
+        <h1>🍽️ Food Delivery</h1>
+        <h2>Вход в систему</h2>
 
         {error && (
-          <p style={{ color: "#d32f2f" }}>{error}</p>
+          <div className="error-message">
+            ❌ {error}
+          </div>
         )}
 
-        <p>
-          {t.login.noAccount} <Link to="/register" className="link">{t.login.registerLink}</Link>
-        </p>
-
-        <div className="FeaturesSection">
-          <div className="FeatureCard">
-            <h4>{t.features.chefSupport}</h4>
-            <p>{t.features.chefSupportDesc}</p>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Email:</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="example@mail.com"
+              required
+            />
           </div>
-          <div className="FeatureCard">
-            <h4>{t.features.process}</h4>
-            <p>{t.features.processDesc}</p>
+
+          <div className="form-group">
+            <label>Пароль:</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Введите пароль"
+              required
+            />
+          </div>
+
+          <button type="submit" disabled={loading}>
+            {loading ? 'Вход...' : 'Войти'}
+          </button>
+        </form>
+
+        <div className="login-footer">
+          <p>Нет аккаунта?</p>
+          <button 
+            className="register-link"
+            onClick={() => navigate('/register')}
+          >
+            Зарегистрироваться
+          </button>
+        </div>
+
+        <div className="test-accounts">
+          <h3>Тестовые аккаунты:</h3>
+          <div className="test-account">
+            <strong>Клиент:</strong>
+            <br />
+            Email: client@test.com
+            <br />
+            Пароль: password123
+          </div>
+          <div className="test-account">
+            <strong>Повар:</strong>
+            <br />
+            Email: chef@test.com
+            <br />
+            Пароль: password123
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default Login;

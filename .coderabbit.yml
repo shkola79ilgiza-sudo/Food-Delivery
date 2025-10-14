@@ -1,0 +1,106 @@
+# 🤖 CodeRabbit Configuration for Food Delivery Platform
+
+coderabbit:
+  # Общие настройки
+  language: "en"
+  temperature: 0.1
+  max_review_patches: 15
+  
+  # Правила для React компонентов
+  rules:
+    - name: "React Components Best Practices"
+      patterns: ["src/components/**/*.jsx", "src/components/**/*.tsx"]
+      checks:
+        - "react-hooks-exhaustive-deps"
+        - "no-unused-vars"
+        - "prefer-const"
+        - "no-console-in-production"
+        - "prop-types-validation"
+        - "component-naming-convention"
+    
+    - name: "API and Data Layer"
+      patterns: ["src/api/**/*.js", "src/services/**/*.js"]
+      checks:
+        - "error-handling"
+        - "async-await-pattern"
+        - "no-hardcoded-urls"
+        - "proper-error-messages"
+        - "request-timeout-handling"
+    
+    - name: "Security Checks"
+      patterns: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"]
+      checks:
+        - "no-eval"
+        - "no-innerhtml"
+        - "no-localstorage-sensitive"
+        - "input-sanitization"
+        - "xss-prevention"
+    
+    - name: "Performance Optimization"
+      patterns: ["src/**/*.jsx", "src/**/*.tsx"]
+      checks:
+        - "react-memo-usage"
+        - "useCallback-optimization"
+        - "useMemo-optimization"
+        - "avoid-inline-functions"
+        - "component-splitting"
+    
+    - name: "Food Delivery Specific"
+      patterns: ["src/components/**/*", "src/pages/**/*"]
+      checks:
+        - "accessibility-food-menu"
+        - "mobile-responsive"
+        - "loading-states"
+        - "error-boundaries"
+        - "form-validation"
+
+# Настройки для разных типов файлов
+file_patterns:
+  components:
+    - "src/components/**/*.jsx"
+    - "src/components/**/*.tsx"
+    patterns:
+      - "Check for proper prop validation"
+      - "Ensure accessibility features"
+      - "Verify mobile responsiveness"
+      - "Check for proper error handling"
+  
+  api:
+    - "src/api/**/*.js"
+    - "src/services/**/*.js"
+    patterns:
+      - "Verify proper error handling"
+      - "Check for request timeouts"
+      - "Ensure proper authentication"
+      - "Validate response data"
+  
+  utils:
+    - "src/utils/**/*.js"
+    - "src/helpers/**/*.js"
+    patterns:
+      - "Check for pure functions"
+      - "Verify input validation"
+      - "Ensure proper error handling"
+      - "Check for performance optimization"
+
+# Игнорировать определенные файлы
+ignore:
+  - "node_modules/**"
+  - "build/**"
+  - "dist/**"
+  - "coverage/**"
+  - "*.config.js"
+  - "public/**"
+
+# Настройки комментариев
+comments:
+  style: "friendly"
+  include_suggestions: true
+  include_examples: true
+  max_comments_per_file: 5
+  
+# Настройки для обучения
+learning:
+  explain_concepts: true
+  provide_links: true
+  suggest_alternatives: true

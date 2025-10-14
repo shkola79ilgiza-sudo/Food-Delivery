@@ -21,14 +21,47 @@ const DishPassport = () => {
     try {
       setLoading(true);
       
-      // Загружаем данные блюда
-      const dishes = JSON.parse(localStorage.getItem(`demo_menu_${chefId}`) || '[]');
-      const foundDish = dishes.find(d => d.id === dishId);
+      // Загружаем данные блюда из разных источников
+      let foundDish = null;
       
-      if (foundDish) {
-        setDish(foundDish);
-        
-        // Генерируем QR-код
+      // 1. Пробуем загрузить из demo_menu
+      const demoDishes = JSON.parse(localStorage.getItem(`demo_menu_${chefId}`) || '[]');
+      foundDish = demoDishes.find(d => d.id === dishId);
+      
+      // 2. Если не найдено, пробуем загрузить из общего меню
+      if (!foundDish) {
+        const allDishes = JSON.parse(localStorage.getItem('allDishes') || '[]');
+        foundDish = allDishes.find(d => d.id === dishId);
+      }
+      
+      // 3. Если не найдено, пробуем загрузить из блюд повара
+      if (!foundDish) {
+        const chefDishes = JSON.parse(localStorage.getItem(`chef_${chefId}_dishes`) || '[]');
+        foundDish = chefDishes.find(d => d.id === dishId);
+      }
+      
+      // 4. Если не найдено, создаем демо-блюдо
+      if (!foundDish) {
+        foundDish = {
+          id: dishId,
+          name: 'Демо блюдо',
+          description: 'Описание демо блюда',
+          price: 500,
+          calories: 300,
+          protein: 20,
+          carbs: 30,
+          fat: 15,
+          ingredients: 'Ингредиенты демо блюда',
+          category: 'mainDishes',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+      
+      setDish(foundDish);
+      
+      // Генерируем QR-код
+      try {
         const qrData = JSON.stringify({
           dishId: foundDish.id,
           name: foundDish.name,
@@ -38,23 +71,25 @@ const DishPassport = () => {
         
         const qrCodeUrl = await QRCode.toDataURL(qrData);
         setQrCode(qrCodeUrl);
-        
-        // Загружаем отзывы (демо-данные)
-        const reviews = JSON.parse(localStorage.getItem(`dish_reviews_${dishId}`) || '[]');
-        setReviews(reviews);
-        
-        // Вычисляем средний рейтинг
-        if (reviews.length > 0) {
-          const avgRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
-          setDishRating(avgRating);
-          setDishReviewsCount(reviews.length);
-        }
-      } else {
-        console.error('Блюдо не найдено');
-        navigate('/chef/menu');
+      } catch (qrError) {
+        console.warn('Ошибка генерации QR-кода:', qrError);
+        setQrCode('');
       }
+      
+      // Загружаем отзывы (демо-данные)
+      const reviews = JSON.parse(localStorage.getItem(`dish_reviews_${dishId}`) || '[]');
+      setReviews(reviews);
+      
+      // Вычисляем средний рейтинг
+      if (reviews.length > 0) {
+        const avgRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+        setDishRating(avgRating);
+        setDishReviewsCount(reviews.length);
+      }
+      
     } catch (error) {
       console.error('Ошибка загрузки данных блюда:', error);
+      setError('Ошибка загрузки данных блюда');
     } finally {
       setLoading(false);
     }
@@ -177,7 +212,7 @@ const DishPassport = () => {
         <button onClick={() => navigate(-1)} className="back-button">
           ← Назад
         </button>
-        <h1>📋 Паспорт блюда</h1>
+        <h1 style={{ color: '#000000' }}>📋 Паспорт блюда</h1>
         <div className="qr-code-section">
           <img src={qrCode} alt="QR-код блюда" className="qr-code" />
           <p className="qr-note">Отсканируйте QR-код для получения информации о блюде</p>

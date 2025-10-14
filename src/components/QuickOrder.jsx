@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../contexts/ToastContext';
 import { placeOrder } from '../api';
+import storageManager from '../utils/storageManager';
 
-const QuickOrder = ({ dishes, onClose }) => {
+const QuickOrder = ({ dishes = [], onClose }) => {
   const [selectedDishes, setSelectedDishes] = useState([]);
   const [deliveryInfo, setDeliveryInfo] = useState({
     method: 'delivery',
@@ -17,40 +18,80 @@ const QuickOrder = ({ dishes, onClose }) => {
     status: 'pending'
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
 
   // Загружаем сохраненные данные из localStorage
   useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const savedDelivery = JSON.parse(localStorage.getItem('deliveryInfo') || '{}');
-    const savedPayment = JSON.parse(localStorage.getItem('paymentInfo') || '{}');
+    console.log('🔍 QuickOrder: Загрузка данных из localStorage');
+    console.log('🔍 QuickOrder: Получено dishes:', dishes);
     
-    setSelectedDishes(savedCart);
-    if (Object.keys(savedDelivery).length > 0) {
-      setDeliveryInfo(prev => ({ ...prev, ...savedDelivery }));
+    try {
+      const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const savedDelivery = JSON.parse(localStorage.getItem('deliveryInfo') || '{}');
+      const savedPayment = JSON.parse(localStorage.getItem('paymentInfo') || '{}');
+      
+      console.log('🔍 QuickOrder: savedCart:', savedCart);
+      
+      // Проверяем, что savedCart - это массив
+      if (Array.isArray(savedCart)) {
+        setSelectedDishes(savedCart);
+      } else {
+        console.warn('savedCart не является массивом, используем пустой массив');
+        setSelectedDishes([]);
+      }
+      
+      if (Object.keys(savedDelivery).length > 0) {
+        setDeliveryInfo(prev => ({ ...prev, ...savedDelivery }));
+      }
+      if (Object.keys(savedPayment).length > 0) {
+        setPaymentInfo(prev => ({ ...prev, ...savedPayment }));
+      }
+    } catch (err) {
+      console.error('❌ QuickOrder: Ошибка загрузки данных из localStorage:', err);
+      setError('Ошибка загрузки данных. Попробуйте очистить корзину.');
+      setSelectedDishes([]);
     }
-    if (Object.keys(savedPayment).length > 0) {
-      setPaymentInfo(prev => ({ ...prev, ...savedPayment }));
-    }
-  }, []);
+  }, [dishes]);
+
+  // Функция безопасного сохранения в localStorage с защитой от переполнения
+  const safeSetItem = (key, value) => {
+    storageManager.safeSetItem(
+      key,
+      value,
+      () => {
+        // Успешно сохранено
+        console.log(`✅ Сохранено: ${key}`);
+      },
+      (error) => {
+        // Ошибка сохранения
+        console.error(`❌ Ошибка сохранения ${key}:`, error);
+        if (error.name === 'QuotaExceededError') {
+          showError('Недостаточно места. Старые данные были очищены. Попробуйте ещё раз.');
+        } else {
+          showError('Ошибка сохранения данных');
+        }
+      }
+    );
+  };
 
   // Сохраняем данные при изменении
   useEffect(() => {
     if (selectedDishes.length > 0) {
-      localStorage.setItem('cart', JSON.stringify(selectedDishes));
+      safeSetItem('cart', JSON.stringify(selectedDishes));
     }
   }, [selectedDishes]);
 
   useEffect(() => {
     if (deliveryInfo.address) {
-      localStorage.setItem('deliveryInfo', JSON.stringify(deliveryInfo));
+      safeSetItem('deliveryInfo', JSON.stringify(deliveryInfo));
     }
   }, [deliveryInfo]);
 
   useEffect(() => {
     if (paymentInfo.method) {
-      localStorage.setItem('paymentInfo', JSON.stringify(paymentInfo));
+      safeSetItem('paymentInfo', JSON.stringify(paymentInfo));
     }
   }, [paymentInfo]);
 
@@ -186,6 +227,49 @@ const QuickOrder = ({ dishes, onClose }) => {
     return slots;
   };
 
+  // Проверка на ошибки
+  if (error) {
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0,0,0,0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10000
+      }}>
+        <div style={{
+          background: 'white',
+          padding: '30px',
+          borderRadius: '12px',
+          maxWidth: '400px',
+          textAlign: 'center'
+        }}>
+          <h3 style={{ color: '#f44336', marginBottom: '15px' }}>⚠️ Ошибка</h3>
+          <p style={{ marginBottom: '20px' }}>{error}</p>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '10px 20px',
+              background: '#2196f3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            Закрыть
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="quick-order">
       <div className="quick-order-header">
@@ -198,7 +282,7 @@ const QuickOrder = ({ dishes, onClose }) => {
         <div className="dishes-section">
           <h3>🍽️ Выберите блюда</h3>
           <div className="dishes-grid">
-            {dishes.slice(0, 6).map(dish => (
+            {Array.isArray(dishes) && dishes.length > 0 ? dishes.slice(0, 6).map(dish => (
               <div key={dish.id} className="dish-card">
                 <div className="dish-info">
                   <h4>{dish.name}</h4>
@@ -214,7 +298,12 @@ const QuickOrder = ({ dishes, onClose }) => {
                   </button>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+                <p>📭 Нет доступных блюд для быстрого заказа</p>
+                <p style={{ fontSize: '13px' }}>Перейдите в меню, чтобы выбрать блюда</p>
+              </div>
+            )}
           </div>
         </div>
 

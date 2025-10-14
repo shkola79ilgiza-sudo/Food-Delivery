@@ -4,9 +4,10 @@ import "../App.css";
 
 function Home() {
   return (
-    <div
+    <div 
       style={{
-        backgroundImage: 'url(/backgrounds/home-pattern.png)',
+        background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+        backgroundImage: `url(${process.env.PUBLIC_URL}/backgrounds/home-pattern.png)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -18,7 +19,16 @@ function Home() {
         padding: '20px'
       }}
     >
-      <div className="ContentWrapper">
+      <div 
+        style={{
+          background: 'rgba(255, 255, 255, 0.9)',
+          padding: '40px',
+          borderRadius: '12px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+          maxWidth: '800px',
+          width: '100%'
+        }}
+      >
         <h1>Food Delivery</h1>
         <p>
           <Link to="/register">Регистрация</Link> | <Link to="/login">Логин</Link>

@@ -270,8 +270,8 @@ const Checkout = () => {
       const response = await placeOrder(orderData);
       
       if (response.success) {
-        // Сохраняем данные заказа для страницы подтверждения
-        localStorage.setItem('lastOrder', JSON.stringify({
+        // Создаем полный объект заказа
+        const fullOrder = {
           ...response.order,
           items: cart,
           delivery: {
@@ -284,8 +284,18 @@ const Checkout = () => {
           },
           discount: discount,
           deliveryCost: deliveryCost,
-          subtotal: subtotal
-        }));
+          subtotal: subtotal,
+          chefId: cart.length > 0 ? cart[0].chefId : 'demo-chef-1',
+          createdAt: new Date().toISOString()
+        };
+        
+        // Сохраняем данные заказа для страницы подтверждения
+        localStorage.setItem('lastOrder', JSON.stringify(fullOrder));
+        
+        // Сохраняем заказ в clientOrders для истории
+        const existingOrders = JSON.parse(localStorage.getItem('clientOrders') || '[]');
+        const updatedOrders = [fullOrder, ...existingOrders];
+        localStorage.setItem('clientOrders', JSON.stringify(updatedOrders));
         
         // Очищаем корзину
         localStorage.removeItem('cart');

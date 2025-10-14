@@ -8,17 +8,21 @@ const FeedbackModal = ({ orderId, onClose, onSubmit }) => {
   const { showSuccess, showError } = useToast();
 
   const handleSubmit = async () => {
+    console.log('handleSubmit called', { rating, review: review.trim(), submitting });
+    
     if (rating === 0) {
       showError('Пожалуйста, поставьте оценку');
       return;
     }
 
-    if (review.trim().length < 10) {
-      showError('Пожалуйста, напишите отзыв (минимум 10 символов)');
-      return;
-    }
+    // Убираем обязательное требование минимум 10 символов для отзыва
+    // if (review.trim().length < 10) {
+    //   showError('Пожалуйста, напишите отзыв (минимум 10 символов)');
+    //   return;
+    // }
 
     setSubmitting(true);
+    console.log('Starting submission...');
 
     try {
       // Сохраняем фидбек в localStorage
@@ -30,6 +34,8 @@ const FeedbackModal = ({ orderId, onClose, onSubmit }) => {
         date: new Date().toISOString(),
         clientId: localStorage.getItem('clientId') || 'demo_client'
       };
+
+      console.log('Saving feedback:', feedback);
 
       const existingFeedback = JSON.parse(localStorage.getItem('orderFeedback') || '[]');
       existingFeedback.push(feedback);
@@ -44,12 +50,14 @@ const FeedbackModal = ({ orderId, onClose, onSubmit }) => {
         onSubmit(feedback);
       }
       
+      console.log('Feedback submitted successfully');
       onClose();
     } catch (error) {
       showError('Ошибка при отправке отзыва');
       console.error('Feedback error:', error);
     } finally {
       setSubmitting(false);
+      console.log('Submission finished');
     }
   };
 
@@ -145,9 +153,18 @@ const FeedbackModal = ({ orderId, onClose, onSubmit }) => {
               Пропустить
             </button>
             <button 
-              onClick={handleSubmit}
+              onClick={(e) => {
+                console.log('Submit button clicked', { rating, review: review.trim(), submitting });
+                e.preventDefault();
+                e.stopPropagation();
+                handleSubmit();
+              }}
               className="submit-btn"
-              disabled={submitting || rating === 0 || review.trim().length < 10}
+              disabled={submitting || rating === 0}
+              style={{ 
+                pointerEvents: 'auto',
+                cursor: (submitting || rating === 0) ? 'not-allowed' : 'pointer'
+              }}
             >
               {submitting ? 'Отправляем...' : 'Отправить отзыв'}
             </button>

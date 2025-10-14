@@ -1,0 +1,149 @@
+export const fr = {
+  // Navigation
+  home: 'Accueil',
+  menu: 'Menu',
+  cart: 'Panier',
+  orders: 'Commandes',
+  profile: 'Profil',
+  admin: 'Admin',
+  adminPanel: 'Panneau Admin',
+  logout: 'Déconnexion',
+  chefs: 'Chefs',
+  clients: 'Clients',
+  chefPage: 'Page du Chef',
+  clientMenu: 'Menu Client',
+
+  // Login/Register Forms
+  login: {
+    title: 'Connexion',
+    email: 'E-mail',
+    password: 'Mot de passe',
+    loginWithGoogle: 'Se connecter avec Google',
+    chefLoginWithGoogle: 'Se connecter en tant que chef avec Google',
+    submit: 'Se connecter',
+    noAccount: 'Pas de compte?',
+    registerLink: 'S\'inscrire',
+    chefLogin: 'Connexion pour chefs',
+    clientLogin: 'Connexion pour clients'
+  },
+  register: {
+    title: 'Inscription',
+    name: 'Nom',
+    email: 'E-mail',
+    password: 'Mot de passe',
+    confirmPassword: 'Confirmer le mot de passe',
+    phone: 'Téléphone',
+    address: 'Adresse',
+    submit: 'S\'inscrire',
+    hasAccount: 'Déjà un compte?',
+    loginLink: 'Se connecter',
+    chefRegister: 'Inscription Chef',
+    clientRegister: 'Inscription Client',
+    selectPhoto: 'Sélectionner une photo:',
+    chooseFile: 'Choisir un fichier',
+    fileNotSelected: 'Aucun fichier sélectionné',
+    alreadyRegistered: 'Déjà inscrit?',
+    registerForChefs: 'Inscription pour chefs'
+  },
+
+  // Common UI elements
+  common: {
+    back: 'Retour',
+    save: 'Enregistrer',
+    cancel: 'Annuler',
+    delete: 'Supprimer',
+    edit: 'Modifier',
+    close: 'Fermer',
+    submit: 'Soumettre',
+    loading: 'Chargement...',
+    error: 'Erreur',
+    success: 'Succès',
+    confirm: 'Confirmer',
+    search: 'Rechercher',
+    filter: 'Filtrer',
+    sort: 'Trier',
+    yes: 'Oui',
+    no: 'Non'
+  },
+
+  // Chef Menu
+  chefMenu: {
+    title: 'Menu du Chef',
+    addDish: 'Ajouter un plat',
+    editDish: 'Modifier le plat',
+    deleteDish: 'Supprimer le plat',
+    dishName: 'Nom du plat',
+    description: 'Description',
+    price: 'Prix',
+    category: 'Catégorie',
+    image: 'Image',
+    available: 'Disponible',
+    unavailable: 'Non disponible',
+    stats: 'Statistiques',
+    notifications: 'Notifications',
+    orders: 'Commandes',
+    ratings: 'Évaluations',
+    settings: 'Paramètres'
+  },
+
+  // Client Menu
+  clientMenu: {
+    title: 'Menu Client',
+    categories: 'Catégories',
+    dishes: 'Plats',
+    addToCart: 'Ajouter au panier',
+    viewDetails: 'Voir les détails',
+    orderNow: 'Commander maintenant',
+    favorites: 'Favoris',
+    orderHistory: 'Historique des commandes',
+    myAddresses: 'Mes adresses',
+    chatWithChef: 'Chat avec le chef'
+  },
+
+  // Cart
+  cartEmpty: 'Le panier est vide',
+  cartTotal: 'Total',
+  checkout: 'Passer la commande',
+  clearCart: 'Vider le panier',
+  dishAddedToCart: 'ajouté au panier',
+
+  // Orders
+  orderStatus: {
+    pending: 'En attente',
+    confirmed: 'Confirmé',
+    preparing: 'En préparation',
+    ready: 'Prêt',
+    delivering: 'En livraison',
+    delivered: 'Livré',
+    cancelled: 'Annulé'
+  },
+
+  // Categories
+  halalMenu: 'Menu Halal',
+  mainDishes: 'Plats principaux',
+  semiFinished: 'Produits semi-finis',
+  pastries: 'Pâtisseries',
+  tatarCuisine: 'Cuisine tatare',
+  soups: 'Soupes',
+  salads: 'Salades',
+  desserts: 'Desserts',
+  beverages: 'Boissons',
+  dietMenu: 'Menu diététique',
+  diabeticMenu: {
+    title: 'Menu diabétique',
+    description: 'Plats adaptés aux diabétiques'
+  },
+  clientCooking: 'Cuisine client',
+  masterClass: 'Master class',
+  helpGuest: 'Aide aux invités',
+  preparations: 'Préparations',
+  farmersMarket: 'Marché fermier',
+
+  // Misc
+  backToCategories: 'Retour aux catégories',
+  noResults: 'Aucun résultat trouvé',
+  tryAgain: 'Réessayer',
+  loading: 'Chargement...',
+  refresh: 'Actualiser'
+};
+

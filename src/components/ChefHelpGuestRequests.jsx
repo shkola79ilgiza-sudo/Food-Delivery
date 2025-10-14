@@ -4,7 +4,7 @@ import { useToast } from '../contexts/ToastContext';
 import HelpGuestChat from './HelpGuestChat';
 import HelpGuestBidding from './HelpGuestBidding';
 
-const ChefHelpGuestRequests = () => {
+const ChefHelpGuestRequests = ({ onClose }) => {
   const { t } = useLanguage();
   const { showSuccess, showError } = useToast();
   const [requests, setRequests] = useState([]);
@@ -64,7 +64,51 @@ const ChefHelpGuestRequests = () => {
   const loadRequests = () => {
     try {
       const savedRequests = JSON.parse(localStorage.getItem('helpGuestRequests') || '[]');
-      setRequests(savedRequests);
+      
+      // Если нет запросов, создаем демо-данные
+      if (savedRequests.length === 0) {
+        const demoRequests = [
+          {
+            id: 'demo-help-1',
+            clientName: 'Анна Петрова',
+            eventDate: new Date().toISOString(),
+            eventTime: '19:00',
+            numberOfGuests: 8,
+            eventType: 'День рождения',
+            budget: 15000,
+            contactPhone: '+7 (999) 123-45-67',
+            address: 'ул. Ленина, д. 10, кв. 5',
+            dietaryRestrictions: 'Вегетарианское меню',
+            preferredCuisine: 'Европейская',
+            servingStyle: 'Фуршет',
+            specialRequests: 'Нужна помощь в приготовлении торта',
+            status: 'pending',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'demo-help-2',
+            clientName: 'Михаил Иванов',
+            eventDate: new Date(Date.now() + 86400000).toISOString(), // завтра
+            eventTime: '18:30',
+            numberOfGuests: 12,
+            eventType: 'Корпоратив',
+            budget: 25000,
+            contactPhone: '+7 (999) 987-65-43',
+            address: 'пр. Победы, д. 25',
+            dietaryRestrictions: 'Без ограничений',
+            preferredCuisine: 'Русская',
+            servingStyle: 'Банкет',
+            specialRequests: 'Нужна помощь в сервировке',
+            status: 'accepted',
+            createdAt: new Date(Date.now() - 86400000).toISOString() // вчера
+          }
+        ];
+        
+        setRequests(demoRequests);
+        localStorage.setItem('helpGuestRequests', JSON.stringify(demoRequests));
+      } else {
+        setRequests(savedRequests);
+      }
     } catch (error) {
       console.error('Error loading help guest requests:', error);
       showError('Ошибка загрузки запросов');
@@ -169,22 +213,173 @@ const ChefHelpGuestRequests = () => {
   }
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ 
+      padding: '20px',
+      background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 50%, #fad0c4 75%, #ffd1ff 100%)',
+      minHeight: '100vh',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Декоративные элементы фона */}
+      <div style={{
+        position: 'absolute',
+        top: '-50px',
+        right: '-50px',
+        width: '200px',
+        height: '200px',
+        background: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: '50%',
+        zIndex: 0
+      }}></div>
+      <div style={{
+        position: 'absolute',
+        bottom: '-100px',
+        left: '-100px',
+        width: '300px',
+        height: '300px',
+        background: 'rgba(255, 182, 193, 0.15)',
+        borderRadius: '50%',
+        zIndex: 0
+      }}></div>
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '400px',
+        height: '400px',
+        background: 'rgba(255, 218, 185, 0.1)',
+        borderRadius: '50%',
+        zIndex: 0
+      }}></div>
+      
+      {/* Эмодзи элементы */}
+      <div style={{
+        position: 'absolute',
+        top: '10%',
+        left: '5%',
+        fontSize: '30px',
+        opacity: 0.3,
+        zIndex: 0
+      }}>🍽️</div>
+      <div style={{
+        position: 'absolute',
+        top: '20%',
+        right: '10%',
+        fontSize: '25px',
+        opacity: 0.3,
+        zIndex: 0
+      }}>👨‍🍳</div>
+      <div style={{
+        position: 'absolute',
+        bottom: '15%',
+        left: '8%',
+        fontSize: '28px',
+        opacity: 0.3,
+        zIndex: 0
+      }}>🥘</div>
+      <div style={{
+        position: 'absolute',
+        bottom: '25%',
+        right: '15%',
+        fontSize: '22px',
+        opacity: 0.3,
+        zIndex: 0
+      }}>🍴</div>
+      <div style={{
+        position: 'absolute',
+        top: '60%',
+        left: '3%',
+        fontSize: '20px',
+        opacity: 0.3,
+        zIndex: 0
+      }}>👩‍🍳</div>
+      <div style={{
+        position: 'absolute',
+        top: '70%',
+        right: '5%',
+        fontSize: '24px',
+        opacity: 0.3,
+        zIndex: 0
+      }}>🍳</div>
+      
+      {/* Основной контент */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
       <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ marginBottom: '20px', color: '#333' }}>
-          🍽️ Запросы на помощь в готовке
-        </h2>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '15px', 
+          marginBottom: '20px',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+          padding: '15px 20px',
+          borderRadius: '15px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.3)'
+        }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'linear-gradient(135deg, #ff6b6b, #ee5a52)',
+              color: 'white',
+              border: 'none',
+              padding: '10px 18px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)',
+              transition: 'all 0.3s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 6px 20px rgba(255, 107, 107, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 15px rgba(255, 107, 107, 0.3)';
+            }}
+          >
+            ← Назад
+          </button>
+          <h2 style={{ 
+            margin: 0, 
+            color: '#2c3e50',
+            fontSize: '24px',
+            fontWeight: 'bold',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            🍽️ Запросы на помощь в готовке
+          </h2>
+        </div>
         
         {/* Фильтры */}
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ 
+          marginBottom: '20px',
+          background: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(10px)',
+          padding: '15px',
+          borderRadius: '12px',
+          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.3)'
+        }}>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             style={{
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1px solid #ddd',
-              fontSize: '14px'
+              padding: '10px 15px',
+              borderRadius: '8px',
+              border: '2px solid rgba(255, 107, 107, 0.3)',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              background: 'rgba(255, 255, 255, 0.9)',
+              color: '#2c3e50',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
             }}
           >
             <option value="all">Все запросы</option>
@@ -199,13 +394,32 @@ const ChefHelpGuestRequests = () => {
       {filteredRequests.length === 0 ? (
         <div style={{ 
           textAlign: 'center', 
-          padding: '40px', 
-          color: '#666',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px'
+          padding: '50px', 
+          color: '#2c3e50',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          marginTop: '20px'
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🍽️</div>
-          <div>Нет запросов на помощь в готовке</div>
+          <div style={{ fontSize: '64px', marginBottom: '20px', opacity: 0.8 }}>🍽️</div>
+          <h3 style={{ 
+            margin: '0 0 10px 0', 
+            fontSize: '24px', 
+            fontWeight: 'bold',
+            color: '#2c3e50'
+          }}>
+            Нет запросов на помощь в готовке
+          </h3>
+          <p style={{ 
+            margin: 0, 
+            fontSize: '16px', 
+            opacity: 0.7,
+            color: '#666'
+          }}>
+            Клиенты еще не отправляли запросы на помощь в приготовлении блюд
+          </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -214,12 +428,14 @@ const ChefHelpGuestRequests = () => {
               key={request.id}
               id={`help-request-${request.id}`}
               style={{
-                border: '1px solid #e0e0e0',
-                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '15px',
                 padding: '20px',
-                backgroundColor: '#fff',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                transition: 'all 0.2s ease'
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                transition: 'all 0.3s ease',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
@@ -499,6 +715,7 @@ const ChefHelpGuestRequests = () => {
           isChef={true}
         />
       )}
+      </div>
     </div>
   );
 };
