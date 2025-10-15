@@ -57,8 +57,9 @@ coderabbit:
 # Настройки для разных типов файлов
 file_patterns:
   components:
-    - "src/components/**/*.jsx"
-    - "src/components/**/*.tsx"
+    include:
+      - "src/components/**/*.jsx"
+      - "src/components/**/*.tsx"
     patterns:
       - "Check for proper prop validation"
       - "Ensure accessibility features"
@@ -66,8 +67,9 @@ file_patterns:
       - "Check for proper error handling"
   
   api:
-    - "src/api/**/*.js"
-    - "src/services/**/*.js"
+    include:
+      - "src/api/**/*.js"
+      - "src/services/**/*.js"
     patterns:
       - "Verify proper error handling"
       - "Check for request timeouts"
@@ -75,8 +77,9 @@ file_patterns:
       - "Validate response data"
   
   utils:
-    - "src/utils/**/*.js"
-    - "src/helpers/**/*.js"
+    include:
+      - "src/utils/**/*.js"
+      - "src/helpers/**/*.js"
     patterns:
       - "Check for pure functions"
       - "Verify input validation"
