@@ -131,7 +131,7 @@ export const validateCart = (cart) => {
   }
   
   // Проверяем на дублированные IDs
-  const ids = cart.map(item => item.id).filter(Boolean);
+  const ids = cart.map(item => item.id).filter(id => id !== null && id !== undefined);
   const uniqueIds = [...new Set(ids)];
   
   if (ids.length !== uniqueIds.length) {
@@ -140,7 +140,7 @@ export const validateCart = (cart) => {
   
   // Проверяем каждый элемент корзины
   cart.forEach((item, index) => {
-    if (!item.id) {
+    if (item.id === null || item.id === undefined) {
       errors.push(`Элемент ${index + 1}: отсутствует ID`);
     }
     if (!item.name || typeof item.name !== 'string') {
@@ -170,7 +170,7 @@ export const validateDishesForDuplicates = (dishes) => {
     return { isValid: false, duplicates: [] };
   }
   
-  const ids = dishes.map(dish => dish.id).filter(Boolean);
+  const ids = dishes.map(dish => dish.id).filter(id => id !== null && id !== undefined);
   const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
   
   return {
