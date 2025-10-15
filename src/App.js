@@ -10,7 +10,7 @@ import ClientRegister from "./components/ClientRegister";
 import ClientMenu from "./components/ClientMenu";
 import GuestMenu from "./components/GuestMenu";
 import Cart from "./components/Cart";
-import Checkout from "./components/Checkout";
+// import Checkout from "./components/Checkout"; // Не используется в текущей версии
 import RealCheckout from "./components/RealCheckout";
 import OrderConfirmation from "./components/OrderConfirmation";
 import ClientOrders from "./components/ClientOrders";
@@ -288,7 +288,9 @@ function ChefRedirect() {
   const chefId = localStorage.getItem("chefId");
   const userId = localStorage.getItem("userId");
   
-  if (!token) return <Navigate to="/login" replace />;
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
   
   // Если нет chefId, используем userId или создаем временный ID
   const targetChefId = chefId || userId || "temp-chef-id";

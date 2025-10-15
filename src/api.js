@@ -1,6 +1,6 @@
 import { safeSetClientOrders } from './utils/safeStorage';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "";
+const API_BASE_URL = ""; // process.env.REACT_APP_API_BASE_URL || "";
 
 function getAuthToken() {
   // Adjust to your auth storage. Placeholder: token in localStorage
@@ -372,11 +372,25 @@ export const Categories = [
 ];
 
 // Auth APIs (assumed)
+// Валидация email
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 export async function login(email, password, role = 'chef') {
+  // Валидация входных данных
+  if (!email || !password) {
+    throw new Error('Email и пароль обязательны');
+  }
+  
+  if (!validateEmail(email)) {
+    throw new Error('Неверный формат email');
+  }
+  
   if (!API_BASE_URL || API_BASE_URL === "") {
     // Demo login for testing
-    console.log("DEMO: Login", { email, password, role });
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       setTimeout(() => {
         if (role === 'client') {
           // Demo client login
@@ -391,24 +405,49 @@ export async function login(email, password, role = 'chef') {
                 role: 'client'
               });
             } else {
-              throw new Error("Неверный email или пароль");
+              reject(new Error("Неверный email или пароль"));
             }
           } else {
-            throw new Error("Клиент не найден. Зарегистрируйтесь сначала.");
+            reject(new Error("Клиент не найден. Зарегистрируйтесь сначала."));
           }
         } else {
           // Demo chef login
-          const savedEmail = localStorage.getItem("chefEmail");
-          const savedPassword = localStorage.getItem("chefPassword");
-          if (email === savedEmail && password === savedPassword) {
-            resolve({ 
+          // Тестовые аккаунты поваров
+          const testChefs = [
+            { email: 'chef@test.com', password: 'password123' },
+            { email: 'chef1@demo.com', password: 'password123' },
+            { email: 'chef2@demo.com', password: 'password123' },
+            { email: 'chef3@demo.com', password: 'password123' },
+          ];
+          
+          const testChef = testChefs.find(chef => chef.email === email && chef.password === password);
+          
+          if (testChef) {
+            // Успешный вход с тестовым аккаунтом
+            localStorage.setItem("chefEmail", email);
+            localStorage.setItem("chefPassword", password);
+            const result = { 
               success: true, 
               token: `demo-chef-token-${Date.now()}`,
               chefId: email,
               role: 'chef'
-            });
+            };
+            resolve(result);
           } else {
-            throw new Error("Неверный email или пароль");
+            // Проверяем сохраненные данные
+            const savedEmail = localStorage.getItem("chefEmail");
+            const savedPassword = localStorage.getItem("chefPassword");
+            if (email === savedEmail && password === savedPassword) {
+              const result = { 
+                success: true, 
+                token: `demo-chef-token-${Date.now()}`,
+                chefId: email,
+                role: 'chef'
+              };
+              resolve(result);
+            } else {
+              reject(new Error("Неверный email или пароль"));
+            }
           }
         }
       }, 500);
