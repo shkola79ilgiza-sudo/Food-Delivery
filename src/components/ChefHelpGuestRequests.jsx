@@ -430,14 +430,13 @@ const ChefHelpGuestRequests = ({ onClose }) => {
               key={request.id}
               id={`help-request-${request.id}`}
               style={{
-                border: '1px solid rgba(255, 255, 255, 0.3)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
                 borderRadius: '15px',
                 padding: '20px',
                 backgroundColor: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(10px)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                transition: 'all 0.3s ease',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
+                transition: 'all 0.3s ease'
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
