@@ -39,6 +39,7 @@ import AdminSettings from "./components/AdminSettings";
 import AdminOrderDetails from "./components/AdminOrderDetails";
 import DishPassport from "./components/DishPassport";
 import FarmersMarket from "./components/FarmersMarket";
+import OfflineIndicator from "./components/OfflineIndicator";
 import AICoach from "./components/AICoach";
 import AIChefAssistant from "./components/AIChefAssistant";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -84,6 +85,9 @@ function App() {
                 <div className="AppWrapper">
                   {/* Навигация */}
                   <Navigation />
+                  
+                  {/* Индикатор офлайн статуса */}
+                  <OfflineIndicator />
 
         {/* Маршрутизация */}
         <Routes>
