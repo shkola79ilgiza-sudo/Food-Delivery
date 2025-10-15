@@ -15,11 +15,11 @@ echo ⏳ Ожидание 10 секунд...
 timeout /t 10 /nobreak >nul
 echo.
 echo [3] Открываю браузер...
-start http://localhost:3000/
+start http://localhost:3000/Food-Delivery
 echo.
 echo ✅ ГОТОВО!
 echo.
-echo 🌐 Адрес: http://localhost:3000/
+echo 🌐 Адрес: http://localhost:3000/Food-Delivery
 echo.
 echo 💡 НЕ ЗАКРЫВАЙТЕ минимизированное окно с сервером!
 echo.

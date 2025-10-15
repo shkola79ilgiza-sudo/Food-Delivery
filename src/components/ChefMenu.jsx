@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { getChefMenu, createDish, deleteDish, updateDish, Categories as CATEGORY_LIST } from "../api";
+import { getChefMenu, createDish, deleteDish, updateDish, Categories as CATEGORY_LIST } from "../api/adapter";
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import Rating from './Rating';

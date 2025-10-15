@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../contexts/ToastContext';
-import { placeOrder } from '../api';
+import { placeOrder } from '../api/adapter';
 import storageManager from '../utils/storageManager';
 
 const QuickOrder = ({ dishes = [], onClose }) => {

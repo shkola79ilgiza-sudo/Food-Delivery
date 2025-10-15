@@ -21,6 +21,7 @@ import ReviewModal from './ReviewModal';
 import AIRecommendations from './AIRecommendations';
 import AnimatedIcon from './AnimatedIcon';
 import AIDishChatbot from './AIDishChatbot';
+import './ClientMenu.css';
 
 const ClientMenu = () => {
   const [dishes, setDishes] = useState([]);
@@ -1706,8 +1707,8 @@ const ClientMenu = () => {
 
             <div className="categories-grid" style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '20px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '15px',
               marginTop: '20px'
             }}>
               {categories.map(category => (
@@ -1937,7 +1938,7 @@ const ClientMenu = () => {
           ) : (
             <div className="dishes-grid" style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
               gap: '20px',
               marginTop: '20px'
             }}>

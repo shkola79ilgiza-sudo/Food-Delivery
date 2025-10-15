@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
-import { placeOrder } from '../api';
+import { placeOrder } from '../api/adapter';
 
 const Checkout = () => {
   const [cart, setCart] = useState([]);
@@ -285,21 +285,34 @@ const Checkout = () => {
           discount: discount,
           deliveryCost: deliveryCost,
           subtotal: subtotal,
-          chefId: cart.length > 0 ? cart[0].chefId : 'demo-chef-1',
-          createdAt: new Date().toISOString()
+          // Используем серверные данные или fallback значения
+          chefId: response.order.chefId || (cart.length > 0 ? cart[0].chefId : 'demo-chef-1'),
+          createdAt: response.order.createdAt || new Date().toISOString()
         };
         
-        // Сохраняем данные заказа для страницы подтверждения
-        localStorage.setItem('lastOrder', JSON.stringify(fullOrder));
+        // Сохраняем данные заказа для страницы подтверждения с обработкой ошибок
+        try {
+          localStorage.setItem('lastOrder', JSON.stringify(fullOrder));
+        } catch (error) {
+          console.warn('Не удалось сохранить lastOrder в localStorage:', error);
+        }
         
-        // Сохраняем заказ в clientOrders для истории
-        const existingOrders = JSON.parse(localStorage.getItem('clientOrders') || '[]');
-        const updatedOrders = [fullOrder, ...existingOrders];
-        localStorage.setItem('clientOrders', JSON.stringify(updatedOrders));
+        // Сохраняем заказ в clientOrders для истории с обработкой ошибок
+        try {
+          const existingOrders = JSON.parse(localStorage.getItem('clientOrders') || '[]');
+          const updatedOrders = [fullOrder, ...existingOrders];
+          localStorage.setItem('clientOrders', JSON.stringify(updatedOrders));
+        } catch (error) {
+          console.warn('Не удалось сохранить clientOrders в localStorage:', error);
+        }
         
-        // Очищаем корзину
-        localStorage.removeItem('cart');
-        localStorage.removeItem('appliedPromo');
+        // Очищаем корзину с обработкой ошибок
+        try {
+          localStorage.removeItem('cart');
+          localStorage.removeItem('appliedPromo');
+        } catch (error) {
+          console.warn('Не удалось очистить корзину в localStorage:', error);
+        }
         
         // Перенаправляем на страницу подтверждения заказа
         navigate('/client/order-confirmation');

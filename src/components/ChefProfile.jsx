@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '../contexts/ToastContext';
 import VerificationBadges from './VerificationBadges';
 import ChefTiers from './ChefTiers';
-import { getChefData } from '../api';
+import { getChefData } from '../api/adapter';
 import '../App.css';
 
 const ChefProfile = ({ onClose }) => {

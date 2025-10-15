@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '../contexts/ToastContext';
 import aiPhotoAnalyzer from '../utils/aiPhotoAnalyzer';
 
@@ -7,6 +7,10 @@ const AIPhotoAnalyzer = ({ imageDataUrl, dishInfo = {}, onAnalysisComplete, onCl
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const { showSuccess } = useToast();
+  
+  // Refs для защиты от устаревших обновлений
+  const activeRequestRef = useRef(0);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     if (imageDataUrl) {
@@ -14,12 +18,29 @@ const AIPhotoAnalyzer = ({ imageDataUrl, dishInfo = {}, onAnalysisComplete, onCl
     }
   }, [imageDataUrl]);
 
-  const analyzePhoto = async () => {
+  // Cleanup при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const analyzePhoto = useCallback(async () => {
+    // Генерируем уникальный ID для этого запроса
+    const requestId = ++activeRequestRef.current;
+    
     setIsAnalyzing(true);
     try {
       console.log('📸 Starting AI photo analysis...');
       const result = await aiPhotoAnalyzer.analyzePhoto(imageDataUrl, dishInfo);
       console.log('✅ Analysis completed:', result);
+      
+      // Проверяем, что компонент еще смонтирован и это актуальный запрос
+      if (!isMountedRef.current || activeRequestRef.current !== requestId) {
+        console.log('🔄 Skipping stale analysis update');
+        return;
+      }
+      
       setAnalysis(result);
       
       if (onAnalysisComplete) {
@@ -28,9 +49,12 @@ const AIPhotoAnalyzer = ({ imageDataUrl, dishInfo = {}, onAnalysisComplete, onCl
     } catch (error) {
       console.error('❌ Photo analysis error:', error);
     } finally {
-      setIsAnalyzing(false);
+      // Проверяем, что компонент еще смонтирован и это актуальный запрос
+      if (isMountedRef.current && activeRequestRef.current === requestId) {
+        setIsAnalyzing(false);
+      }
     }
-  };
+  }, [imageDataUrl, dishInfo, onAnalysisComplete]);
 
   const getScoreColor = (score) => {
     if (score >= 80) return '#4caf50';

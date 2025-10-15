@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../contexts/ToastContext';
-import { updateOrderStatus } from '../api';
+import { updateOrderStatus } from '../api/adapter';
 import '../App.css';
 
 function ChefOrderDetails({ orderId, onClose, onStatusUpdate }) {

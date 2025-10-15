@@ -318,34 +318,36 @@ const ChefHelpGuestRequests = ({ onClose }) => {
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
           border: '1px solid rgba(255, 255, 255, 0.3)'
         }}>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'linear-gradient(135deg, #ff6b6b, #ee5a52)',
-              color: 'white',
-              border: 'none',
-              padding: '10px 18px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 'bold',
-              boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)',
-              transition: 'all 0.3s ease',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 6px 20px rgba(255, 107, 107, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 4px 15px rgba(255, 107, 107, 0.3)';
-            }}
-          >
-            ← Назад
-          </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              style={{
+                background: 'linear-gradient(135deg, #ff6b6b, #ee5a52)',
+                color: 'white',
+                border: 'none',
+                padding: '10px 18px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(255, 107, 107, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(255, 107, 107, 0.3)';
+              }}
+            >
+              ← Назад
+            </button>
+          )}
           <h2 style={{ 
             margin: 0, 
             color: '#2c3e50',
