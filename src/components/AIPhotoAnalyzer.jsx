@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../contexts/ToastContext';
 import aiPhotoAnalyzer from '../utils/aiPhotoAnalyzer';
 
@@ -12,9 +12,9 @@ const AIPhotoAnalyzer = ({ imageDataUrl, dishInfo = {}, onAnalysisComplete, onCl
     if (imageDataUrl) {
       analyzePhoto();
     }
-  }, [imageDataUrl, dishInfo, onAnalysisComplete]);
+  }, [imageDataUrl, dishInfo, onAnalysisComplete, analyzePhoto]);
 
-  const analyzePhoto = async () => {
+  const analyzePhoto = useCallback(async () => {
     setIsAnalyzing(true);
     try {
       console.log('📸 Starting AI photo analysis...');
@@ -31,7 +31,7 @@ const AIPhotoAnalyzer = ({ imageDataUrl, dishInfo = {}, onAnalysisComplete, onCl
     } finally {
       setIsAnalyzing(false);
     }
-  };
+  }, [imageDataUrl, dishInfo, onAnalysisComplete]);
 
   const getScoreColor = (score) => {
     if (score >= 80) return '#4caf50';

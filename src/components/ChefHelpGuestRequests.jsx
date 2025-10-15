@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../contexts/ToastContext';
 import HelpGuestChat from './HelpGuestChat';
 import HelpGuestBidding from './HelpGuestBidding';
 
 const ChefHelpGuestRequests = ({ onClose }) => {
-  const { t } = useLanguage();
   const { showSuccess, showError } = useToast();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +14,7 @@ const ChefHelpGuestRequests = ({ onClose }) => {
 
   useEffect(() => {
     loadRequests();
-  }, []);
+  }, [loadRequests]);
 
   // Эффект для прокрутки к запросу после загрузки
   useEffect(() => {
@@ -61,7 +59,7 @@ const ChefHelpGuestRequests = ({ onClose }) => {
     }
   }, [requests]);
 
-  const loadRequests = () => {
+  const loadRequests = useCallback(() => {
     try {
       const savedRequests = JSON.parse(localStorage.getItem('helpGuestRequests') || '[]');
       
@@ -115,7 +113,7 @@ const ChefHelpGuestRequests = ({ onClose }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const updateRequestStatus = (requestId, newStatus) => {
     try {
