@@ -9,6 +9,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import aiHolidaySetMenuGenerator from '../utils/aiHolidaySetMenuGenerator';
+import { useRateLimit } from '../utils/rateLimiter';
 
 const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
   const { t } = useLanguage();
@@ -23,6 +24,9 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
   
   // Ref для управления фокусом модального окна
   const dialogRef = useRef(null);
+  
+  // Rate limiting для AI генерации
+  const { checkLimit, recordRequest, getTimeUntilReset } = useRateLimit('HOLIDAY_SET_MENU');
 
   useEffect(() => {
     // Загружаем предстоящие праздники
@@ -45,6 +49,18 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
       return;
     }
 
+    // Проверяем rate limit
+    const { allowed, remaining, resetTime } = checkLimit();
+    
+    if (!allowed) {
+      const timeUntilReset = getTimeUntilReset(resetTime);
+      setToast({ 
+        type: 'error', 
+        message: `Превышен лимит генерации (10/час). Попробуйте снова через ${timeUntilReset}.` 
+      });
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
@@ -55,8 +71,13 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
       );
 
       if (result.success) {
+        // Регистрируем успешный запрос
+        recordRequest();
         setSelectedSet(result.set);
-        setToast({ type: 'success', message: '✅ Сет-меню сгенерировано!' });
+        setToast({ 
+          type: 'success', 
+          message: `✅ Сет-меню сгенерировано! Осталось запросов: ${remaining - 1}` 
+        });
       } else {
         setToast({ type: 'error', message: result.error });
       }
@@ -146,9 +167,24 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
         }}
         ref={dialogRef}
       >
-        <h2 id="ai-holiday-setmenu-title" style={{ margin: 0, color: '#333' }}>
-          AI-Конструктор Праздничных Сет-Меню
-        </h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <h2 id="ai-holiday-setmenu-title" style={{ margin: 0, color: '#333' }}>
+            AI-Конструктор Праздничных Сет-Меню
+          </h2>
+          {(() => {
+            const { remaining, resetTime } = checkLimit();
+            return (
+              <div style={{ fontSize: '12px', color: '#666', textAlign: 'right' }}>
+                <div>Осталось: {remaining}/10 запросов</div>
+                {remaining < 3 && (
+                  <div style={{ color: '#ff6b35' }}>
+                    Лимит: {getTimeUntilReset(resetTime)}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </div>
         {/* Заголовок */}
         <div style={{
           display: 'flex',
