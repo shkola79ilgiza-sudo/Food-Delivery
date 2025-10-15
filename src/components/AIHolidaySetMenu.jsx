@@ -103,30 +103,44 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10000,
-      padding: '20px',
-      overflow: 'auto'
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '30px',
-        maxWidth: '900px',
-        width: '100%',
-        maxHeight: '90vh',
-        overflow: 'auto',
-        position: 'relative'
-      }}>
+    <div 
+      role="presentation"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10000,
+        padding: '20px',
+        overflow: 'auto'
+      }}
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose?.(); }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ai-holiday-setmenu-title"
+        tabIndex={-1}
+        style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          padding: '30px',
+          maxWidth: '900px',
+          width: '100%',
+          maxHeight: '90vh',
+          overflow: 'auto',
+          position: 'relative'
+        }}
+        ref={(el) => { if (el) el.focus(); }}
+      >
+        <h2 id="ai-holiday-setmenu-title" style={{ margin: 0, color: '#333' }}>
+          AI-Конструктор Праздничных Сет-Меню
+        </h2>
         {/* Заголовок */}
         <div style={{
           display: 'flex',

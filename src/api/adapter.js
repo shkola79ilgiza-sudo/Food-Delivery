@@ -8,7 +8,29 @@ import { authAPI, dishesAPI, ordersAPI, reviewsAPI } from './backend';
 import * as oldAPI from '../api';
 
 // Флаг для переключения между mock и реальным backend
-const USE_REAL_BACKEND = false; // Временно используем mock данные, пока Backend не запущен
+const USE_REAL_BACKEND = process.env.REACT_APP_USE_REAL_BACKEND === 'true';
+
+// Функция для санитизации сообщений об ошибках
+const sanitizeError = (error, fallbackMessage) => {
+  if (process.env.NODE_ENV === 'production') {
+    return fallbackMessage;
+  }
+  return error.message || error.toString();
+};
+
+// Глобальный маппинг категорий frontend → backend
+const CATEGORY_MAP = {
+  'main': 'MAIN_COURSE',
+  'salads': 'SALAD',
+  'soups': 'SOUP',
+  'desserts': 'DESSERT',
+  'beverages': 'BEVERAGE',
+  'bakery': 'DESSERT', // Выпечка как десерты
+  'semi-finished': 'SEMI_FINISHED',
+  'tatar': 'MAIN_COURSE', // Татарская кухня как основное блюдо
+  'halal': 'MAIN_COURSE', // Халяль как основное блюдо
+  'diet': 'MAIN_COURSE', // Диет меню как основное блюдо
+};
 
 // Константы категорий (для совместимости со старым API)
 export const Categories = [
@@ -33,21 +55,7 @@ export const getAvailableDishes = async (categoryId) => {
   }
 
   try {
-    // Маппинг категорий frontend → backend
-    const categoryMap = {
-      'main': 'MAIN_COURSE',
-      'salads': 'SALAD',
-      'soups': 'SOUP',
-      'desserts': 'DESSERT',
-      'beverages': 'BEVERAGE',
-      'bakery': 'DESSERT', // Выпечка как десерты
-      'semi-finished': 'SEMI_FINISHED',
-      'tatar': 'MAIN_COURSE', // Татарская кухня как основное блюдо
-      'halal': 'MAIN_COURSE', // Халяль как основное блюдо
-      'diet': 'MAIN_COURSE',  // Диет меню как основное блюдо
-    };
-
-    const backendCategory = categoryMap[categoryId];
+    const backendCategory = CATEGORY_MAP[categoryId];
     
     const params = {};
     if (backendCategory) {
@@ -104,18 +112,18 @@ export const getAvailableDishes = async (categoryId) => {
   } catch (error) {
     console.error('Error fetching dishes from backend:', error);
     
-    // Если ошибка 500, возвращаем пустой массив вместо ошибки
+    // Если ошибка 500, возвращаем ошибку (не маскируем)
     if (error.status === 500 || error.message?.includes('500')) {
       return {
-        success: true,
+        success: false,
         dishes: [],
-        message: `Блюда категории "${categoryId}" не найдены в базе данных`
+        error: "Ошибка сервера при получении блюд категории. Попробуйте позже."
       };
     }
     
     return {
       success: false,
-      error: error.message,
+      error: sanitizeError(error, "Не удалось загрузить блюда. Попробуйте позже."),
       dishes: [],
     };
   }
@@ -166,7 +174,7 @@ export const createOrder = async (orderData) => {
     console.error('Error creating order:', error);
     return {
       success: false,
-      error: error.message,
+      error: sanitizeError(error, "Произошла ошибка при выполнении операции. Попробуйте позже."),
     };
   }
 };
@@ -198,7 +206,7 @@ export const getClientOrders = async () => {
     console.error('Error fetching orders:', error);
     return {
       success: false,
-      error: error.message,
+      error: sanitizeError(error, "Произошла ошибка при выполнении операции. Попробуйте позже."),
       orders: [],
     };
   }
@@ -222,19 +230,7 @@ export const getChefMenu = async (chefId, categoryId) => {
 
     // Фильтрация по категории если указана
     if (categoryId && dishes) {
-      const categoryMap = {
-        'main': 'MAIN_COURSE',
-        'salads': 'SALAD',
-        'soups': 'SOUP',
-        'desserts': 'DESSERT',
-        'beverages': 'BEVERAGE',
-        'bakery': 'DESSERT',
-        'semi-finished': 'SEMI_FINISHED',
-        'tatar': 'MAIN_COURSE',
-        'halal': 'MAIN_COURSE',
-        'diet': 'MAIN_COURSE',
-      };
-      const backendCategory = categoryMap[categoryId];
+      const backendCategory = CATEGORY_MAP[categoryId];
       dishes = dishes.filter(dish => dish.category === backendCategory);
     }
 
@@ -246,7 +242,7 @@ export const getChefMenu = async (chefId, categoryId) => {
     console.error('Error fetching chef menu:', error);
     return {
       success: false,
-      error: error.message,
+      error: sanitizeError(error, "Не удалось загрузить блюда. Попробуйте позже."),
       dishes: [],
     };
   }
@@ -261,24 +257,12 @@ export const createDish = async (chefId, dishData) => {
   }
 
   try {
-    // Маппинг категорий frontend → backend
-    const categoryMap = {
-      'main': 'MAIN_COURSE',
-      'salads': 'SALAD',
-      'soups': 'SOUP',
-      'desserts': 'DESSERT',
-      'beverages': 'BEVERAGE',
-      'bakery': 'DESSERT',
-      'semi-finished': 'SEMI_FINISHED',
-      'tatar': 'MAIN_COURSE',
-      'halal': 'MAIN_COURSE',
-      'diet': 'MAIN_COURSE',
-    };
+    // Используем глобальный маппинг категорий
 
     const backendDishData = {
       name: dishData.name,
       description: dishData.description,
-      category: categoryMap[dishData.category] || 'MAIN_COURSE',
+      category: CATEGORY_MAP[dishData.category] || 'MAIN_COURSE',
       price: parseFloat(dishData.price),
       image: dishData.image || '',
       calories: parseInt(dishData.calories) || 0,
@@ -312,7 +296,7 @@ export const createDish = async (chefId, dishData) => {
     console.error('Error creating dish:', error);
     return {
       success: false,
-      error: error.message,
+      error: sanitizeError(error, "Произошла ошибка при выполнении операции. Попробуйте позже."),
     };
   }
 };
@@ -326,24 +310,12 @@ export const updateDish = async (chefId, dishId, updates) => {
   }
 
   try {
-    // Маппинг категорий frontend → backend
-    const categoryMap = {
-      'main': 'MAIN_COURSE',
-      'salads': 'SALAD',
-      'soups': 'SOUP',
-      'desserts': 'DESSERT',
-      'beverages': 'BEVERAGE',
-      'bakery': 'DESSERT',
-      'semi-finished': 'SEMI_FINISHED',
-      'tatar': 'MAIN_COURSE',
-      'halal': 'MAIN_COURSE',
-      'diet': 'MAIN_COURSE',
-    };
+    // Используем глобальный маппинг категорий
 
     const backendUpdates = { ...updates };
     
-    if (updates.category && categoryMap[updates.category]) {
-      backendUpdates.category = categoryMap[updates.category];
+    if (updates.category && CATEGORY_MAP[updates.category]) {
+      backendUpdates.category = CATEGORY_MAP[updates.category];
     }
 
     if (updates.ingredients && Array.isArray(updates.ingredients)) {
@@ -365,7 +337,7 @@ export const updateDish = async (chefId, dishId, updates) => {
     console.error('Error updating dish:', error);
     return {
       success: false,
-      error: error.message,
+      error: sanitizeError(error, "Произошла ошибка при выполнении операции. Попробуйте позже."),
     };
   }
 };
@@ -389,7 +361,7 @@ export const deleteDish = async (chefId, dishId) => {
     console.error('Error deleting dish:', error);
     return {
       success: false,
-      error: error.message,
+      error: sanitizeError(error, "Произошла ошибка при выполнении операции. Попробуйте позже."),
     };
   }
 };
@@ -414,7 +386,7 @@ export const login = async (email, password, role = 'client') => {
     console.error('Error logging in:', error);
     return {
       success: false,
-      error: error.message,
+      error: sanitizeError(error, "Произошла ошибка при выполнении операции. Попробуйте позже."),
     };
   }
 };
@@ -439,7 +411,7 @@ export const register = async (userData) => {
     console.error('Error registering:', error);
     return {
       success: false,
-      error: error.message,
+      error: sanitizeError(error, "Произошла ошибка при выполнении операции. Попробуйте позже."),
     };
   }
 };
@@ -463,7 +435,7 @@ export const getProfile = async () => {
     console.error('Error fetching profile:', error);
     return {
       success: false,
-      error: error.message,
+      error: sanitizeError(error, "Произошла ошибка при выполнении операции. Попробуйте позже."),
     };
   }
 };
@@ -488,7 +460,7 @@ export const updateOrderStatus = async (orderId, newStatus, chefId = null) => {
     console.error('Error updating order status:', error);
     return {
       success: false,
-      error: error.message,
+      error: sanitizeError(error, "Произошла ошибка при выполнении операции. Попробуйте позже."),
     };
   }
 };

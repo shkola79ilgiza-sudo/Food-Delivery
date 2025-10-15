@@ -424,8 +424,8 @@ export async function login(email, password, role = 'chef') {
           
           if (testChef) {
             // Успешный вход с тестовым аккаунтом
+            // НЕ сохраняем пароль в localStorage по соображениям безопасности
             localStorage.setItem("chefEmail", email);
-            localStorage.setItem("chefPassword", password);
             const result = { 
               success: true, 
               token: `demo-chef-token-${Date.now()}`,
@@ -434,10 +434,9 @@ export async function login(email, password, role = 'chef') {
             };
             resolve(result);
           } else {
-            // Проверяем сохраненные данные
+            // Проверяем только email (без пароля)
             const savedEmail = localStorage.getItem("chefEmail");
-            const savedPassword = localStorage.getItem("chefPassword");
-            if (email === savedEmail && password === savedPassword) {
+            if (email === savedEmail) {
               const result = { 
                 success: true, 
                 token: `demo-chef-token-${Date.now()}`,
@@ -475,9 +474,8 @@ export async function register(userData) {
             address: userData.address
           }));
         } else {
-          // Save chef data
+          // Save chef data (без пароля по соображениям безопасности)
           localStorage.setItem("chefEmail", userData.email);
-          localStorage.setItem("chefPassword", userData.password);
           if (userData.avatar) {
             localStorage.setItem("chefAvatar", userData.avatar);
           }
