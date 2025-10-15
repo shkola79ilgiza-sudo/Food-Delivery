@@ -113,7 +113,7 @@ const ChefHelpGuestRequests = ({ onClose }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showError]);
 
   const updateRequestStatus = (requestId, newStatus) => {
     try {

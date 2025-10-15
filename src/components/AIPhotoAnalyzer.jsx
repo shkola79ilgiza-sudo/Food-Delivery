@@ -8,12 +8,6 @@ const AIPhotoAnalyzer = ({ imageDataUrl, dishInfo = {}, onAnalysisComplete, onCl
   const [showDetails, setShowDetails] = useState(false);
   const { showSuccess } = useToast();
   
-  useEffect(() => {
-    if (imageDataUrl) {
-      analyzePhoto();
-    }
-  }, [imageDataUrl, dishInfo, onAnalysisComplete, analyzePhoto]);
-
   const analyzePhoto = useCallback(async () => {
     setIsAnalyzing(true);
     try {
@@ -32,6 +26,12 @@ const AIPhotoAnalyzer = ({ imageDataUrl, dishInfo = {}, onAnalysisComplete, onCl
       setIsAnalyzing(false);
     }
   }, [imageDataUrl, dishInfo, onAnalysisComplete]);
+
+  useEffect(() => {
+    if (imageDataUrl) {
+      analyzePhoto();
+    }
+  }, [imageDataUrl, dishInfo, onAnalysisComplete, analyzePhoto]);
 
   const getScoreColor = (score) => {
     if (score >= 80) return '#4caf50';
