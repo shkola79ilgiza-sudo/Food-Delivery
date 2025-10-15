@@ -11,6 +11,7 @@ import { useToast } from '../contexts/ToastContext';
 import aiHolidaySetMenuGenerator from '../utils/aiHolidaySetMenuGenerator';
 import { useRateLimit } from '../utils/rateLimiter';
 import AILoadingIndicator from './AILoadingIndicator';
+import AIContentPreview from './AIContentPreview';
 
 const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
   const { t } = useLanguage();
@@ -18,6 +19,7 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
   const [selectedHoliday, setSelectedHoliday] = useState('');
   const [selectedType, setSelectedType] = useState('family');
   const [generatedSets, setGeneratedSets] = useState([]);
@@ -88,6 +90,7 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
         // Регистрируем успешный запрос
         recordRequest();
         setSelectedSet(result.set);
+        setShowPreview(true); // Показываем предпросмотр
         setToast({ 
           type: 'success', 
           message: `✅ Сет-меню сгенерировано! Осталось запросов: ${remaining - 1}` 
@@ -146,6 +149,31 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
     setTimeout(() => {
       if (onClose) onClose();
     }, 1500);
+  };
+
+  // Функции для предпросмотра
+  const handlePreviewEdit = (editedContent) => {
+    setSelectedSet(editedContent);
+    setToast({ type: 'success', message: '✅ Контент отредактирован!' });
+  };
+
+  const handlePreviewPublish = async (content) => {
+    try {
+      await onSetCreated(content);
+      setShowPreview(false);
+      setToast({ type: 'success', message: '🎉 Праздничное меню опубликовано!' });
+    } catch (error) {
+      setToast({ type: 'error', message: 'Ошибка публикации: ' + error.message });
+    }
+  };
+
+  const handlePreviewRegenerate = async () => {
+    setShowPreview(false);
+    await handleGenerateSet();
+  };
+
+  const handlePreviewClose = () => {
+    setShowPreview(false);
   };
 
   return (
@@ -666,6 +694,18 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
         setGenerationProgress(0);
       }}
     />
+    
+    {/* AI Content Preview */}
+    {showPreview && selectedSet && (
+      <AIContentPreview
+        type="menu"
+        content={selectedSet}
+        onEdit={handlePreviewEdit}
+        onPublish={handlePreviewPublish}
+        onRegenerate={handlePreviewRegenerate}
+        onClose={handlePreviewClose}
+      />
+    )}
     </>
   );
 };
