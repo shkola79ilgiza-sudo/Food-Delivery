@@ -12,53 +12,6 @@ const ChefHelpGuestRequests = ({ onClose }) => {
   const [chatRequestId, setChatRequestId] = useState(null);
   const [biddingRequest, setBiddingRequest] = useState(null);
 
-  useEffect(() => {
-    loadRequests();
-  }, [loadRequests]);
-
-  // Эффект для прокрутки к запросу после загрузки
-  useEffect(() => {
-    if (requests.length > 0) {
-      const highlightRequestId = localStorage.getItem('highlightHelpRequestId');
-      const openChatId = localStorage.getItem('openHelpGuestChat');
-      
-      if (highlightRequestId) {
-        // Удаляем ID из localStorage
-        localStorage.removeItem('highlightHelpRequestId');
-        
-        // Ищем запрос по ID
-        const requestElement = document.getElementById(`help-request-${highlightRequestId}`);
-        if (requestElement) {
-          // Прокручиваем к запросу с анимацией
-          requestElement.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center' 
-          });
-          
-          // Подсвечиваем запрос
-          requestElement.style.backgroundColor = '#fff3cd';
-          requestElement.style.border = '2px solid #ffc107';
-          requestElement.style.borderRadius = '8px';
-          requestElement.style.transition = 'all 0.3s ease';
-          
-          // Убираем подсветку через 3 секунды
-          setTimeout(() => {
-            requestElement.style.backgroundColor = '';
-            requestElement.style.border = '';
-            requestElement.style.borderRadius = '';
-          }, 3000);
-        }
-      }
-      
-      if (openChatId) {
-        // Удаляем ID из localStorage
-        localStorage.removeItem('openHelpGuestChat');
-        // Открываем чат
-        setChatRequestId(openChatId);
-      }
-    }
-  }, [requests]);
-
   const loadRequests = useCallback(() => {
     try {
       const savedRequests = JSON.parse(localStorage.getItem('helpGuestRequests') || '[]');
@@ -114,6 +67,54 @@ const ChefHelpGuestRequests = ({ onClose }) => {
       setLoading(false);
     }
   }, [showError]);
+
+  useEffect(() => {
+    loadRequests();
+  }, [loadRequests]);
+
+  // Эффект для прокрутки к запросу после загрузки
+  useEffect(() => {
+    if (requests.length > 0) {
+      const highlightRequestId = localStorage.getItem('highlightHelpRequestId');
+      const openChatId = localStorage.getItem('openHelpGuestChat');
+      
+      if (highlightRequestId) {
+        // Удаляем ID из localStorage
+        localStorage.removeItem('highlightHelpRequestId');
+        
+        // Ищем запрос по ID
+        const requestElement = document.getElementById(`help-request-${highlightRequestId}`);
+        if (requestElement) {
+          // Прокручиваем к запросу с анимацией
+          requestElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+          
+          // Подсвечиваем запрос
+          requestElement.style.backgroundColor = '#fff3cd';
+          requestElement.style.border = '2px solid #ffc107';
+          requestElement.style.borderRadius = '8px';
+          requestElement.style.transition = 'all 0.3s ease';
+          
+          // Убираем подсветку через 3 секунды
+          setTimeout(() => {
+            requestElement.style.backgroundColor = '';
+            requestElement.style.border = '';
+            requestElement.style.borderRadius = '';
+          }, 3000);
+        }
+      }
+      
+      if (openChatId) {
+        // Удаляем ID из localStorage
+        localStorage.removeItem('openHelpGuestChat');
+        // Открываем чат
+        setChatRequestId(openChatId);
+      }
+    }
+  }, [requests]);
+
 
   const updateRequestStatus = (requestId, newStatus) => {
     try {
