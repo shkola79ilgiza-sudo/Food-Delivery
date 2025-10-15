@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { login as apiLogin, register as apiRegister, getProfile as apiGetProfile } from '../api/adapter';
+import { 
+  getCurrentUser, 
+  secureLogout, 
+  isAuthenticated, 
+  getUserRole,
+  getDemoUser,
+  setDemoUser,
+  clearDemoUser 
+} from '../utils/auth';
 
 const AuthContext = createContext();
 
@@ -19,27 +28,39 @@ export const AuthProvider = ({ children }) => {
   // Проверка авторизации при загрузке
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('authToken');
-      const role = localStorage.getItem('role');
-      const userId = localStorage.getItem('chefId') || localStorage.getItem('clientId');
-      
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
       try {
-        // Для mock режима восстанавливаем пользователя из localStorage
-        const userData = {
-          id: userId,
-          role: role?.toUpperCase() || 'CLIENT',
-          email: localStorage.getItem('chefEmail') || localStorage.getItem('userEmail'),
-        };
-        setUser(userData);
-      } catch (err) {
-        console.error('Auth check failed:', err);
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('role');
+        // Сначала пытаемся получить пользователя через безопасные cookies
+        const currentUser = await getCurrentUser();
+        
+        if (currentUser) {
+          // Пользователь аутентифицирован через cookies
+          setUser(currentUser);
+          setLoading(false);
+          return;
+        }
+        
+        // Fallback: проверяем демо-пользователя (для случая, когда backend недоступен)
+        const demoUser = getDemoUser();
+        if (demoUser) {
+          console.log('🔒 Используем демо-режим аутентификации');
+          setUser(demoUser);
+          setLoading(false);
+          return;
+        }
+        
+        // Никакая аутентификация не найдена
+        setUser(null);
+      } catch (error) {
+        console.error('Ошибка проверки аутентификации:', error);
+        
+        // Fallback: проверяем демо-пользователя при ошибке
+        const demoUser = getDemoUser();
+        if (demoUser) {
+          console.log('🔒 Fallback на демо-режим при ошибке');
+          setUser(demoUser);
+        } else {
+          setUser(null);
+        }
       } finally {
         setLoading(false);
       }
@@ -92,19 +113,9 @@ export const AuthProvider = ({ children }) => {
           role: response.role?.toUpperCase() || role.toUpperCase(),
         };
         
-        // Сохраняем данные в localStorage для роутинга
+        // Для демо-режима сохраняем в localStorage (fallback)
         if (response.token) {
-          localStorage.setItem('authToken', response.token);
-        }
-        if (user.role === 'CHEF') {
-          localStorage.setItem('chefId', user.id);
-          localStorage.setItem('role', 'chef');
-        } else if (user.role === 'CLIENT') {
-          localStorage.setItem('userId', user.id);
-          localStorage.setItem('role', 'client');
-        } else if (user.role === 'ADMIN') {
-          localStorage.setItem('userId', user.id);
-          localStorage.setItem('role', 'admin');
+          setDemoUser(user, response.token);
         }
         
         setUser(user);
@@ -121,8 +132,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Логаут
-  const logout = () => {
-    // Очищаем все данные аутентификации из localStorage
+  const logout = async () => {
+    try {
+      // Пытаемся безопасно выйти через API
+      await secureLogout();
+    } catch (error) {
+      console.warn('Ошибка при безопасном выходе:', error);
+    }
+    
+    // Очищаем демо-данные (fallback)
+    clearDemoUser();
+    
+    // Очищаем старые данные из localStorage (для совместимости)
     const authKeys = [
       'authToken', 'role', 'chefId', 'clientId', 'userId',
       'chefEmail', 'chefPassword', 'clientEmail', 'clientPassword'
