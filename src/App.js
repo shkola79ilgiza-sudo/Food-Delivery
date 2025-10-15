@@ -1,13 +1,9 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import Home from "./components/Home";
 import Register from "./components/Register";
 import Login from "./components/Login";
-import ChefMenu from "./components/ChefMenu";
-import ClientLogin from "./components/ClientLogin";
-import ClientRegister from "./components/ClientRegister";
-import ClientMenu from "./components/ClientMenu";
 import GuestMenu from "./components/GuestMenu";
 import Cart from "./components/Cart";
 // import Checkout from "./components/Checkout"; // Не используется в текущей версии
@@ -18,6 +14,22 @@ import ClientChat from "./components/ClientChat";
 import ClientProfile from "./components/ClientProfile";
 import AdminLogin from "./components/AdminLogin";
 import AdminLayout from "./components/AdminLayout";
+
+// Ленивая загрузка компонентов
+import {
+  ClientMenu,
+  ClientLogin,
+  ClientRegister,
+  ChefMenu,
+  ChefProfile,
+  ChefOrderDetails,
+  ChefHelpGuestRequests,
+  AIHolidaySetMenu,
+  AIHolidayPromo,
+  AIPhotoAnalyzer,
+  LoadingSpinner,
+  ErrorBoundary
+} from "./components/LazyComponents";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminUsers from "./components/AdminUsers";
 import AdminOrders from "./components/AdminOrders";
@@ -86,20 +98,82 @@ function App() {
             path="/chef/:chefId/menu"
             element={
               <ProtectedRoute>
-                <ChefMenu />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ErrorBoundary>
+                    <ChefMenu />
+                  </ErrorBoundary>
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chef/:chefId/profile"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ErrorBoundary>
+                    <ChefProfile />
+                  </ErrorBoundary>
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chef/:chefId/order/:orderId"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ErrorBoundary>
+                    <ChefOrderDetails />
+                  </ErrorBoundary>
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chef/:chefId/help"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ErrorBoundary>
+                    <ChefHelpGuestRequests />
+                  </ErrorBoundary>
+                </Suspense>
               </ProtectedRoute>
             }
           />
           
           {/* Клиентские маршруты */}
-          <Route path="/client/register" element={<ClientRegister />} />
-          <Route path="/client/login" element={<ClientLogin />} />
+          <Route 
+            path="/client/register" 
+            element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <ErrorBoundary>
+                  <ClientRegister />
+                </ErrorBoundary>
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/client/login" 
+            element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <ErrorBoundary>
+                  <ClientLogin />
+                </ErrorBoundary>
+              </Suspense>
+            } 
+          />
           <Route path="/client" element={<ClientRedirect />} />
           <Route
             path="/client/menu"
             element={
               <ProtectedRoute>
-                <ClientMenu />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ErrorBoundary>
+                    <ClientMenu />
+                  </ErrorBoundary>
+                </Suspense>
               </ProtectedRoute>
             }
           />

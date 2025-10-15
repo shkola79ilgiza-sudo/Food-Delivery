@@ -10,12 +10,14 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import aiHolidaySetMenuGenerator from '../utils/aiHolidaySetMenuGenerator';
 import { useRateLimit } from '../utils/rateLimiter';
+import AILoadingIndicator from './AILoadingIndicator';
 
 const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
   const { t } = useLanguage();
   const { setToast } = useToast();
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
   const [selectedHoliday, setSelectedHoliday] = useState('');
   const [selectedType, setSelectedType] = useState('family');
   const [generatedSets, setGeneratedSets] = useState([]);
@@ -62,13 +64,25 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
     }
 
     setIsGenerating(true);
+    setGenerationProgress(0);
 
     try {
+      // Симулируем прогресс генерации
+      const progressInterval = setInterval(() => {
+        setGenerationProgress(prev => {
+          if (prev >= 90) return prev;
+          return prev + Math.random() * 15;
+        });
+      }, 200);
+
       const result = await aiHolidaySetMenuGenerator.generateHolidaySet(
         chefDishes,
         selectedHoliday,
         selectedType
       );
+
+      clearInterval(progressInterval);
+      setGenerationProgress(100);
 
       if (result.success) {
         // Регистрируем успешный запрос
@@ -84,7 +98,10 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
     } catch (error) {
       setToast({ type: 'error', message: 'Ошибка генерации: ' + error.message });
     } finally {
-      setIsGenerating(false);
+      setTimeout(() => {
+        setIsGenerating(false);
+        setGenerationProgress(0);
+      }, 500);
     }
   };
 
@@ -132,6 +149,7 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
   };
 
   return (
+    <>
     <div 
       role="presentation"
       style={{
@@ -637,6 +655,18 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
         </div>
       </div>
     </div>
+    
+    {/* AI Loading Indicator */}
+    <AILoadingIndicator 
+      type="menu"
+      isGenerating={isGenerating}
+      progress={generationProgress}
+      onCancel={() => {
+        setIsGenerating(false);
+        setGenerationProgress(0);
+      }}
+    />
+    </>
   );
 };
 
