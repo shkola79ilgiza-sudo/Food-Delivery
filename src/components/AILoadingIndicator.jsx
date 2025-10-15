@@ -56,14 +56,18 @@ const AILoadingIndicator = ({
 
   // Смена сообщений
   useEffect(() => {
-    if (!isGenerating) return;
-
+    if (isGenerating) {
+      setCurrentMessage(0);
+      return;
+    }
+    
+    setCurrentMessage(0);
     const interval = setInterval(() => {
       setCurrentMessage(prev => (prev + 1) % currentMessages.length);
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [isGenerating, currentMessages.length]);
+  }, [isGenerating, type, currentMessages.length]);
 
   if (!isGenerating) return null;
 

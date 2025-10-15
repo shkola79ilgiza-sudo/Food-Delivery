@@ -13,10 +13,12 @@ const OfflineIndicator = () => {
   const [pendingActions, setPendingActions] = useState(0);
 
   useEffect(() => {
+    let hideIndicatorTimeoutId = null;
+    
     const handleOnline = () => {
       setIsOnline(true);
       setShowIndicator(true);
-      setTimeout(() => setShowIndicator(false), 3000);
+      hideIndicatorTimeoutId = window.setTimeout(() => setShowIndicator(false), 3000);
     };
 
     const handleOffline = () => {
@@ -29,17 +31,25 @@ const OfflineIndicator = () => {
     window.addEventListener('offline', handleOffline);
 
     // Проверяем Service Worker
+    let messageHandler;
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
+      messageHandler = (event) => {
         if (event.data.type === 'SYNC_STATUS') {
           setPendingActions(event.data.count || 0);
         }
-      });
+      };
+      navigator.serviceWorker.addEventListener('message', messageHandler);
     }
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if (hideIndicatorTimeoutId) {
+        clearTimeout(hideIndicatorTimeoutId);
+      }
+      if ('serviceWorker' in navigator && messageHandler) {
+        navigator.serviceWorker.removeEventListener('message', messageHandler);
+      }
     };
   }, []);
 

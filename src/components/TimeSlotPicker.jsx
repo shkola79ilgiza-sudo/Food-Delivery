@@ -13,6 +13,11 @@ const TimeSlotPicker = ({ onSelect, selectedSlot = null }) => {
   const [timeSlots, setTimeSlots] = useState([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(selectedSlot);
 
+  // Синхронизация с внешними изменениями selectedSlot
+  useEffect(() => {
+    setSelectedTimeSlot(selectedSlot);
+  }, [selectedSlot]);
+
   // Генерация временных слотов
   const generateTimeSlots = () => {
     const slots = [];

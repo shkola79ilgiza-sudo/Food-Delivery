@@ -151,13 +151,13 @@ export const getTimeUntilReset = (resetTime) => {
  */
 export const useRateLimit = (type) => {
   const checkLimit = () => checkRateLimit(type);
-  const recordRequest = () => recordRequest(type);
-  const getTimeUntilReset = (resetTime) => getTimeUntilReset(resetTime);
+  const recordLimitRequest = () => recordRequest(type);
+  const formatTimeUntilReset = (resetTime) => getTimeUntilReset(resetTime);
   
   return {
     checkLimit,
-    recordRequest,
-    getTimeUntilReset
+    recordRequest: recordLimitRequest,
+    getTimeUntilReset: formatTimeUntilReset
   };
 };
 

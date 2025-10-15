@@ -12,15 +12,24 @@
  * @returns {Promise<Response>}
  */
 export const secureFetch = async (url, options = {}) => {
-  const defaultOptions = {
-    credentials: 'include', // Автоматически отправляем cookies
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+  const { headers, credentials, body, ...restOptions } = options;
+  
+  // Устанавливаем JSON Content-Type только если body не FormData и Content-Type не указан
+  const shouldSetJsonHeader = !(body instanceof FormData) && 
+    !headers?.['Content-Type'] && 
+    !headers?.['content-type'];
+  
+  const mergedHeaders = {
+    ...(shouldSetJsonHeader && { 'Content-Type': 'application/json' }),
+    ...headers,
   };
 
-  return fetch(url, { ...defaultOptions, ...options });
+  return fetch(url, {
+    credentials: credentials ?? 'include', // Автоматически отправляем cookies
+    body,
+    ...restOptions,
+    headers: mergedHeaders,
+  });
 };
 
 /**

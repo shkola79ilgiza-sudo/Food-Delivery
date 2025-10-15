@@ -68,9 +68,10 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
     setIsGenerating(true);
     setGenerationProgress(0);
 
+    let progressInterval;
     try {
       // Симулируем прогресс генерации
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setGenerationProgress(prev => {
           if (prev >= 90) return prev;
           return prev + Math.random() * 15;
@@ -83,7 +84,6 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
         selectedType
       );
 
-      clearInterval(progressInterval);
       setGenerationProgress(100);
 
       if (result.success) {
@@ -101,6 +101,9 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
     } catch (error) {
       setToast({ type: 'error', message: 'Ошибка генерации: ' + error.message });
     } finally {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setTimeout(() => {
         setIsGenerating(false);
         setGenerationProgress(0);

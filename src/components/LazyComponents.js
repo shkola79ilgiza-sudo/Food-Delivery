@@ -6,6 +6,7 @@
  */
 
 import { lazy } from 'react';
+import { Component } from 'react';
 
 // Клиентские компоненты (загружаются для всех пользователей)
 export const ClientMenu = lazy(() => import('./ClientMenu'));
@@ -67,29 +68,49 @@ export const LoadingSpinner = () => (
   </div>
 );
 
-export const ErrorBoundary = ({ children }) => {
-  return (
-    <div style={{
-      padding: '20px',
-      textAlign: 'center',
-      color: '#d32f2f'
-    }}>
-      <h3>Ошибка загрузки компонента</h3>
-      <p>Попробуйте обновить страницу</p>
-      <button 
-        onClick={() => window.location.reload()}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          marginTop: '10px'
-        }}
-      >
-        Обновить страницу
-      </button>
-    </div>
-  );
-};
+export class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // Log error to monitoring service (e.g., Sentry)
+    console.error('ErrorBoundary caught:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          padding: '20px',
+          textAlign: 'center',
+          color: '#d32f2f'
+        }}>
+          <h3>Ошибка загрузки компонента</h3>
+          <p>Попробуйте обновить страницу</p>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              marginTop: '10px'
+            }}
+          >
+            Обновить страницу
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
