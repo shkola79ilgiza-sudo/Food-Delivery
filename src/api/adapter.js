@@ -30,6 +30,12 @@ const CATEGORY_MAP = {
   'tatar': 'MAIN_COURSE', // Татарская кухня как основное блюдо
   'halal': 'MAIN_COURSE', // Халяль как основное блюдо
   'diet': 'MAIN_COURSE', // Диет меню как основное блюдо
+  // Дополнительные категории для полной совместимости
+  'client_cook': 'MAIN_COURSE', // Клиент-повар как основное блюдо
+  'master_class': 'MAIN_COURSE', // Мастер-класс как основное блюдо
+  'help_guest': 'MAIN_COURSE', // Помощь гостю как основное блюдо
+  'preparations': 'SEMI_FINISHED', // Заготовки как полуфабрикаты
+  'brand-products': 'MAIN_COURSE', // Брендовые продукты как основное блюдо
 };
 
 // Константы категорий (для совместимости со старым API)
@@ -231,7 +237,10 @@ export const getChefMenu = async (chefId, categoryId) => {
     // Фильтрация по категории если указана
     if (categoryId && dishes) {
       const backendCategory = CATEGORY_MAP[categoryId];
-      dishes = dishes.filter(dish => dish.category === backendCategory);
+      if (backendCategory) {
+        dishes = dishes.filter(dish => dish.category === backendCategory);
+      }
+      // Если категория не найдена в маппинге, показываем все блюда
     }
 
     return {

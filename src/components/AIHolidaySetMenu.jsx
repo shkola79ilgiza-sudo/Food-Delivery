@@ -5,7 +5,7 @@
  * одним кликом с помощью AI.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import aiHolidaySetMenuGenerator from '../utils/aiHolidaySetMenuGenerator';
@@ -20,6 +20,9 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
   const [generatedSets, setGeneratedSets] = useState([]);
   const [selectedSet, setSelectedSet] = useState(null);
   const [upcomingHolidays, setUpcomingHolidays] = useState([]);
+  
+  // Ref для управления фокусом модального окна
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     // Загружаем предстоящие праздники
@@ -29,6 +32,11 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
     // Автоматически выбираем ближайший праздник
     const upcoming = aiHolidaySetMenuGenerator.getUpcomingHoliday();
     setSelectedHoliday(upcoming);
+  }, []);
+  
+  // Фокус на модальном окне только при монтировании
+  useEffect(() => {
+    dialogRef.current?.focus();
   }, []);
 
   const handleGenerateSet = async () => {
@@ -136,7 +144,7 @@ const AIHolidaySetMenu = ({ chefDishes, onSetCreated, onClose }) => {
           overflow: 'auto',
           position: 'relative'
         }}
-        ref={(el) => { if (el) el.focus(); }}
+        ref={dialogRef}
       >
         <h2 id="ai-holiday-setmenu-title" style={{ margin: 0, color: '#333' }}>
           AI-Конструктор Праздничных Сет-Меню
