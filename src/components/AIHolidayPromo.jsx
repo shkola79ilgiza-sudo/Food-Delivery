@@ -4,7 +4,7 @@
  * Создаёт продающие тексты для праздничных акций.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import aiHolidayPromoGenerator from '../utils/aiHolidayPromoGenerator';
@@ -18,6 +18,14 @@ const AIHolidayPromo = ({ dish, onPromoGenerated, onClose }) => {
   const [promoVariants, setPromoVariants] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [activeTab, setActiveTab] = useState('texts'); // texts, social, email
+  
+  // Ref для управления фокусом модального окна
+  const dialogRef = useRef(null);
+  
+  // Фокус на модальном окне только при монтировании
+  useEffect(() => {
+    dialogRef.current?.focus();
+  }, []);
 
   const holidays = Object.keys(aiHolidayPromoGenerator.emotionalTriggers);
 
@@ -94,7 +102,7 @@ const AIHolidayPromo = ({ dish, onPromoGenerated, onClose }) => {
           overflow: 'auto',
           position: 'relative'
         }}
-        ref={(el) => { if (el) el.focus(); }}
+        ref={dialogRef}
       >
         <h2 id="ai-holiday-promo-title" style={{ margin: 0, color: '#333' }}>
           AI-Генератор Праздничных Акций

@@ -1,7 +1,7 @@
 /**
  * Утилиты для валидации данных в Food Delivery приложении
  * @author Food Delivery Team
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 /**
@@ -110,4 +110,71 @@ export const validateDishDescription = (description) => {
   
   const trimmedDescription = description.trim();
   return trimmedDescription.length >= 10 && trimmedDescription.length <= 500;
+};
+
+/**
+ * Валидация корзины покупок
+ * @param {Array} cart - Корзина для валидации
+ * @returns {Object} - { isValid: boolean, errors: Array<string> }
+ */
+export const validateCart = (cart) => {
+  const errors = [];
+  
+  if (!Array.isArray(cart)) {
+    errors.push('Корзина должна быть массивом');
+    return { isValid: false, errors };
+  }
+  
+  if (cart.length === 0) {
+    errors.push('Корзина пуста');
+    return { isValid: false, errors };
+  }
+  
+  // Проверяем на дублированные IDs
+  const ids = cart.map(item => item.id).filter(Boolean);
+  const uniqueIds = [...new Set(ids)];
+  
+  if (ids.length !== uniqueIds.length) {
+    errors.push('Обнаружены дублированные ID в корзине');
+  }
+  
+  // Проверяем каждый элемент корзины
+  cart.forEach((item, index) => {
+    if (!item.id) {
+      errors.push(`Элемент ${index + 1}: отсутствует ID`);
+    }
+    if (!item.name || typeof item.name !== 'string') {
+      errors.push(`Элемент ${index + 1}: неверное название`);
+    }
+    if (typeof item.quantity !== 'number' || item.quantity <= 0) {
+      errors.push(`Элемент ${index + 1}: неверное количество`);
+    }
+    if (typeof item.price !== 'number' || item.price < 0) {
+      errors.push(`Элемент ${index + 1}: неверная цена`);
+    }
+  });
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+/**
+ * Валидация массива блюд на дублированные ID
+ * @param {Array} dishes - Массив блюд для валидации
+ * @returns {Object} - { isValid: boolean, duplicates: Array<string> }
+ */
+export const validateDishesForDuplicates = (dishes) => {
+  if (!Array.isArray(dishes)) {
+    return { isValid: false, duplicates: [] };
+  }
+  
+  const ids = dishes.map(dish => dish.id).filter(Boolean);
+  const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
+  
+  return {
+    isValid: duplicates.length === 0,
+    duplicates: [...new Set(duplicates)]
+  };
 };
