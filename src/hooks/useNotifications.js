@@ -11,6 +11,7 @@ export const useNotifications = (type = 'chef') => {
   // Загрузка уведомлений из localStorage
   const loadNotifications = useCallback(() => {
     try {
+      setLoading(true);
       const key = type === 'chef' ? 'chefNotifications' : 'clientNotifications';
       const savedNotifications = localStorage.getItem(key);
       if (savedNotifications) {
@@ -24,6 +25,8 @@ export const useNotifications = (type = 'chef') => {
       }
     } catch (error) {
       console.error(`Error loading ${type} notifications:`, error);
+      setNotifications([]);
+      setUnreadCount(0);
     } finally {
       setLoading(false);
     }

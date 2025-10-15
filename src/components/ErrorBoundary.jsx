@@ -51,24 +51,27 @@ class ErrorBoundary extends React.Component {
           >
             Обновить страницу
           </button>
-          {process.env.NODE_ENV === 'development' && (
-            <details style={{ marginTop: '20px', textAlign: 'left' }}>
-              <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>
-                Детали ошибки (только для разработки)
-              </summary>
-              <pre style={{ 
-                marginTop: '10px', 
-                padding: '10px', 
-                backgroundColor: '#f8f9fa', 
-                borderRadius: '4px',
-                overflow: 'auto',
-                fontSize: '12px'
-              }}>
-                {this.state.error && this.state.error.toString()}
-                {this.state.errorInfo && this.state.errorInfo.componentStack}
-              </pre>
-            </details>
-          )}
+          <details style={{ marginTop: '20px', textAlign: 'left' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 'bold', color: '#d63031' }}>
+              📋 Показать детали ошибки
+            </summary>
+            <pre style={{ 
+              marginTop: '10px', 
+              padding: '10px', 
+              backgroundColor: '#f8f9fa', 
+              borderRadius: '4px',
+              overflow: 'auto',
+              fontSize: '12px',
+              color: '#2d3436',
+              border: '1px solid #dfe6e9'
+            }}>
+              <strong>Ошибка:</strong>{'\n'}
+              {this.state.error && this.state.error.toString()}
+              {'\n\n'}
+              <strong>Стек вызовов:</strong>{'\n'}
+              {this.state.errorInfo && this.state.errorInfo.componentStack}
+            </pre>
+          </details>
         </div>
       );
     }

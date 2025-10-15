@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../api';
+import { login } from '../api/adapter';
 import { useLanguage } from '../contexts/LanguageContext';
+import GoogleAuth from './GoogleAuth';
 
 const ClientLogin = () => {
   const [email, setEmail] = useState('');
@@ -60,6 +61,33 @@ const ClientLogin = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (userData) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      // Здесь можно отправить данные Google на сервер для создания/авторизации пользователя
+      // Пока что сохраняем данные локально
+      localStorage.setItem('authToken', 'google-token-' + userData.googleId);
+      localStorage.setItem('role', 'client');
+      localStorage.setItem('userEmail', userData.email);
+      localStorage.setItem('userName', userData.name);
+      localStorage.setItem('userPicture', userData.picture);
+      
+      navigate('/client/menu');
+    } catch (error) {
+      console.error('Google auth error:', error);
+      setError('Ошибка авторизации через Google');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleFailure = (error) => {
+    console.error('Google auth failure:', error);
+    setError('Ошибка авторизации через Google');
   };
 
   return (
@@ -390,6 +418,37 @@ const ClientLogin = () => {
             {loading ? t.login.submit + '...' : t.login.submit}
           </button>
         </form>
+
+        {/* Разделитель */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          margin: '20px 0',
+          color: '#2D5016'
+        }}>
+          <div style={{
+            flex: 1,
+            height: '1px',
+            background: 'rgba(45, 80, 22, 0.3)'
+          }}></div>
+          <span style={{
+            margin: '0 15px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>или</span>
+          <div style={{
+            flex: 1,
+            height: '1px',
+            background: 'rgba(45, 80, 22, 0.3)'
+          }}></div>
+        </div>
+
+        {/* Google OAuth */}
+        <GoogleAuth 
+          onSuccess={handleGoogleSuccess}
+          onFailure={handleGoogleFailure}
+          role="client"
+        />
         
         <div className="login-links" style={{
           textAlign: 'center',

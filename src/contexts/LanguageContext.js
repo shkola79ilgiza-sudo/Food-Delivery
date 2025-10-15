@@ -2,13 +2,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ru } from '../locales/ru';
 import { en } from '../locales/en';
 import { tt } from '../locales/tt';
+import { fr } from '../locales/fr';
+import { uz } from '../locales/uz';
 
 const LanguageContext = createContext();
 
 const translations = {
   ru,
   en,
-  tt
+  tt,
+  fr,
+  uz
 };
 
 export const useLanguage = () => {
@@ -59,7 +63,9 @@ export const LanguageProvider = ({ children }) => {
     availableLanguages: [
       { code: 'ru', name: 'Русский', flag: '🇷🇺' },
       { code: 'en', name: 'English', flag: '🇺🇸' },
-      { code: 'tt', name: 'Татарча', flag: '🏴' }
+      { code: 'tt', name: 'Татарча', flag: '🏴' },
+      { code: 'fr', name: 'Français', flag: '🇫🇷' },
+      { code: 'uz', name: 'Oʻzbekcha (Lotin)', flag: '🇺🇿' }
     ]
   };
 

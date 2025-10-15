@@ -28,7 +28,19 @@ export const WebSocketProvider = ({ children }) => {
 
   const value = {
     socket,
-    isConnected,
+    connected: isConnected,
+    emit: (event, data) => {
+      console.log(`WebSocket emit: ${event}`, data);
+      // Simulate WebSocket emit for demo
+    },
+    on: (event, callback) => {
+      console.log(`WebSocket listener added: ${event}`);
+      // Simulate WebSocket listener for demo
+    },
+    off: (event, callback) => {
+      console.log(`WebSocket listener removed: ${event}`);
+      // Simulate WebSocket listener removal for demo
+    },
     sendMessage: (message) => {
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify(message));

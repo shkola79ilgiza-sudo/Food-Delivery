@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { getChefMenu, createDish, deleteDish, updateDish, Categories as CATEGORY_LIST } from "../api";
+import { getChefMenu, createDish, deleteDish, updateDish, Categories as CATEGORY_LIST } from "../api/adapter";
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import Rating from './Rating';
@@ -13,13 +13,23 @@ import ChefShoppingList from './ChefShoppingList';
 import ChefRatings from './ChefRatings';
 import ChefCookingRequests from './ChefCookingRequests';
 import ChefHelpGuestRequests from './ChefHelpGuestRequests';
+import ChefPreparations from './ChefPreparations';
 import ChefProfile from './ChefProfile';
 import AnimatedIcon from './AnimatedIcon';
-// import AITextHelper from './AITextHelper';
+import AITextHelper from './AITextHelper';
+import ChefSlotsCalendar from './ChefSlotsCalendar';
+import NutritionValidationPanel from './NutritionValidationPanel';
+import SmartTagSelector from './SmartTagSelector';
+import ShareNutritionButton from './ShareNutritionButton';
+import AIConscienceChecker from './AIConscienceChecker';
+import AIBenefitPanel from './AIBenefitPanel';
+import AIPhotoAnalyzer from './AIPhotoAnalyzer';
+import AIHolidaySetMenu from './AIHolidaySetMenu';
+import AIHolidayPromo from './AIHolidayPromo';
 import { smartNutritionCalculator } from '../utils/smartNutritionCalculator';
 import { findRecipe, getRandomRecipe } from '../utils/recipeDatabase';
 // import { diabeticCalculator } from '../utils/diabeticCalculator';
-import { ultimateDiabeticCalculator } from '../utils/ultimateDiabeticCalculator';
+import { simpleDiabeticCalculator } from '../utils/simpleDiabeticCalculator';
 import { ingredientParser } from '../utils/ingredientParser';
 import { enhancedIngredientDB } from '../utils/enhancedIngredientDatabase';
 // import DatabaseStatistics from './DatabaseStatistics';
@@ -36,11 +46,6 @@ function ChefMenu() {
   const location = useLocation();
   const chefId = paramsUrl.chefId || storedChefId || savedEmail || "me";
   
-  // Отладочная информация для chefId
-  console.log('🔍 ChefMenu - chefId:', chefId);
-  console.log('🔍 ChefMenu - paramsUrl.chefId:', paramsUrl.chefId);
-  console.log('🔍 ChefMenu - storedChefId:', storedChefId);
-  console.log('🔍 ChefMenu - savedEmail:', savedEmail);
   const { t } = useLanguage();
   const { showSuccess, showError } = useToast();
 
@@ -50,13 +55,21 @@ function ChefMenu() {
   const [dishDescription, setDishDescription] = useState("");
   const [dishPrice, setDishPrice] = useState("");
   const [dishCategory, setDishCategory] = useState("");
+  const [dishTags, setDishTags] = useState([]);
   const [dishPhoto, setDishPhoto] = useState(null);
+  const [showConscienceChecker, setShowConscienceChecker] = useState(false);
+  const [showPhotoAnalyzer, setShowPhotoAnalyzer] = useState(false);
+  const [photoAnalysisResult, setPhotoAnalysisResult] = useState(null);
+  const [showHolidaySetMenu, setShowHolidaySetMenu] = useState(false);
+  const [showHolidayPromo, setShowHolidayPromo] = useState(false);
+  const [selectedDishForPromo, setSelectedDishForPromo] = useState(null);
   const [dishIngredients, setDishIngredients] = useState("");
   const [dishCookingMethod, setDishCookingMethod] = useState("варка");
   const [dishCalories, setDishCalories] = useState("");
   const [dishProtein, setDishProtein] = useState("");
   const [dishCarbs, setDishCarbs] = useState("");
   const [dishFat, setDishFat] = useState("");
+  const [dishFiber, setDishFiber] = useState("");
   const [dishBeforePhoto, setDishBeforePhoto] = useState(null);
   const [dishAfterPhoto, setDishAfterPhoto] = useState(null);
   const [isClientProducts, setIsClientProducts] = useState(false);
@@ -104,7 +117,7 @@ function ChefMenu() {
   const [chefSpecialization, setChefSpecialization] = useState(localStorage.getItem('chefSpecialization') || 'general');
   const [chefAvatar, setChefAvatar] = useState(savedAvatar || null);
   const [chefName, setChefName] = useState(localStorage.getItem('chefName') || '');
-  const [activeTab, setActiveTab] = useState('dishes'); // 'dishes', 'products', 'notifications', 'kanban', 'stats', 'procurement', 'shopping-list', 'ratings', 'cooking-requests', 'profile'
+  const [activeTab, setActiveTab] = useState('dishes'); // 'dishes', 'products', 'notifications', 'kanban', 'slots', 'stats', 'procurement', 'shopping-list', 'ratings', 'cooking-requests', 'help-guest-requests', 'preparations', 'profile'
   // const [showStats, setShowStats] = useState(false);
   // const [showNotifications, setShowNotifications] = useState(false);
   // const [showKanban, setShowKanban] = useState(false);
@@ -112,6 +125,13 @@ function ChefMenu() {
   // const [showRatings, setShowRatings] = useState(false);
   const [showAITextHelper, setShowAITextHelper] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [showDishForm, setShowDishForm] = useState(false);
+  const [orderCounts, setOrderCounts] = useState({
+    pending: 0,
+    preparing: 0,
+    ready: 0,
+    delivering: 0
+  });
   // const categoryIdToName = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c.name])), [categories]);
   
   // Состояние для продуктов
@@ -172,6 +192,39 @@ function ChefMenu() {
     } catch (error) {
       console.error('Error loading notifications count:', error);
       setUnreadNotificationsCount(0);
+    }
+  };
+
+  // Функция для загрузки счетчиков заказов по статусам
+  const loadOrderCounts = () => {
+    try {
+      const allOrders = JSON.parse(localStorage.getItem('clientOrders') || '[]');
+      const chefId = localStorage.getItem('chefId') || 'demo-chef-1';
+      
+      // Фильтруем заказы для текущего повара
+      const chefOrders = allOrders.filter(order => {
+        if (order.chefId === chefId) return true;
+        if (order.items && order.items.some(item => item.chefId === chefId)) return true;
+        if (!order.chefId && chefId === 'demo-chef-1') return true;
+        return false;
+      });
+      
+      // Подсчитываем заказы по статусам
+      const counts = {
+        pending: chefOrders.filter(order => 
+          order.status === 'pending_confirmation' || 
+          order.status === 'pending' || 
+          order.status === 'pending_payment'
+        ).length,
+        preparing: chefOrders.filter(order => order.status === 'preparing').length,
+        ready: chefOrders.filter(order => order.status === 'ready').length,
+        delivering: chefOrders.filter(order => order.status === 'delivering').length
+      };
+      
+      setOrderCounts(counts);
+    } catch (error) {
+      console.error('Error loading order counts:', error);
+      setOrderCounts({ pending: 0, preparing: 0, ready: 0, delivering: 0 });
     }
   };
 
@@ -417,7 +470,7 @@ function ChefMenu() {
     if (value && value.trim().length > 0) {
       // Есть ингредиенты - рассчитываем на их основе
       try {
-        const diabeticValues = ultimateDiabeticCalculator.calculateDiabeticValues(value, dishCookingMethod);
+        const diabeticValues = simpleDiabeticCalculator.calculateDiabeticValues(value, dishCookingMethod);
         
         // Проверяем, что diabeticValues существует и имеет нужные свойства
         if (diabeticValues && typeof diabeticValues === 'object') {
@@ -480,7 +533,7 @@ function ChefMenu() {
   //     if (dishIngredients && dishIngredients.trim().length > 0) {
   //       // Есть ингредиенты - пересчитываем диабетические значения
   //       try {
-  //         const diabeticValues = ultimateDiabeticCalculator.calculateDiabeticValues(dishIngredients, dishCookingMethod);
+  //         const diabeticValues = simpleDiabeticCalculator.calculateDiabeticValues(dishIngredients, dishCookingMethod);
   //         
   //         if (diabeticValues && typeof diabeticValues === 'object') {
   //           const baseSugar = diabeticValues.sugar || 0;
@@ -533,7 +586,7 @@ function ChefMenu() {
     // Для сахара используем значение из ultimateDiabeticCalculator
     if (dishIngredients && dishIngredients.trim().length > 0) {
       try {
-        const diabeticValues = ultimateDiabeticCalculator.calculateDiabeticValues(dishIngredients, dishCookingMethod);
+        const diabeticValues = simpleDiabeticCalculator.calculateDiabeticValues(dishIngredients, dishCookingMethod);
         if (diabeticValues && typeof diabeticValues === 'object') {
           setDishSugar((diabeticValues.sugar || 0).toString());
         }
@@ -578,62 +631,29 @@ function ChefMenu() {
   // Функция для расчета рейтинга повара
   const calculateChefRating = useCallback(() => {
     try {
-      console.log('🧮 Starting chef rating calculation...');
-      console.log('🧮 Chef ID:', chefId);
-      
       // Принудительно читаем данные из localStorage
       const rawData = localStorage.getItem('clientOrders');
-      console.log('🔍 Raw localStorage data:', rawData);
-      
       const allOrders = JSON.parse(rawData || '[]');
-      console.log('🔍 Parsed orders:', allOrders);
-      console.log('🔍 Number of orders:', allOrders.length);
-      
-      // Проверяем каждый заказ детально
-      allOrders.forEach((order, index) => {
-        console.log(`🔍 Order ${index}:`, {
-          id: order.id,
-          chefId: order.chefId,
-          rating: order.rating,
-          ratedAt: order.ratedAt
-        });
-      });
       
       // Фильтруем заказы по chefId или по умолчанию для chef-1
       const chefOrders = allOrders.filter(order => {
-        const isChefOrder = order.chefId === chefId || 
+        return order.chefId === chefId || 
           (chefId === 'chef-1' && (!order.chefId || order.chefId === 'chef-1'));
-        console.log(`🔍 Order ${order.id}: chefId=${order.chefId}, isChefOrder=${isChefOrder}`);
-        return isChefOrder;
       });
       
       // Дополнительная проверка: ищем заказы без chefId, но с рейтингом
       const ordersWithRating = allOrders.filter(order => order.rating && order.rating > 0);
-      console.log('🔍 Orders with rating (any chef):', ordersWithRating);
       
       // Если нет заказов с chefId, но есть заказы с рейтингом, используем их
       if (chefOrders.length === 0 && ordersWithRating.length > 0) {
-        console.log('⚠️ No orders with chefId found, using orders with rating');
         chefOrders.push(...ordersWithRating);
       }
       
-      console.log('👨‍🍳 Chef orders found:', chefOrders);
-      console.log('👨‍🍳 Number of chef orders:', chefOrders.length);
-      
       const ratedOrders = chefOrders.filter(order => {
-        const hasRating = order.rating && order.rating > 0;
-        console.log(`Order ${order.id}: rating=${order.rating}, hasRating=${hasRating}`);
-        return hasRating;
+        return order.rating && order.rating > 0;
       });
       
-      console.log('⭐ Rated orders found:', ratedOrders);
-      console.log('⭐ Number of rated orders:', ratedOrders.length);
-      
       if (ratedOrders.length === 0) {
-        console.log('❌ No rated orders found, setting rating to 0');
-        console.log('❌ All orders in localStorage:', allOrders);
-        console.log('❌ Chef orders found:', chefOrders);
-        console.log('❌ Orders with rating:', ordersWithRating);
         setChefRating(0);
         setChefReviewsCount(0);
         return;
@@ -642,13 +662,8 @@ function ChefMenu() {
       const totalRating = ratedOrders.reduce((sum, order) => sum + order.rating, 0);
       const averageRating = totalRating / ratedOrders.length;
       
-      console.log('📊 Calculated rating:', averageRating, 'from', ratedOrders.length, 'orders');
-      console.log('📊 Total rating:', totalRating);
-      
       setChefRating(averageRating);
       setChefReviewsCount(ratedOrders.length);
-      
-      console.log('✅ Chef rating updated successfully!');
     } catch (error) {
       console.error('❌ Error calculating chef rating:', error);
       setChefRating(0);
@@ -658,13 +673,15 @@ function ChefMenu() {
 
   const handleAddDish = (e) => {
     e.preventDefault();
-    const nextErrors = { name: "", price: "", category: "" };
-    if (!dishName) nextErrors.name = t.chefMenu.enterName;
-    const priceNumber = Number(dishPrice);
-    if (!dishPrice || isNaN(priceNumber) || priceNumber <= 0) nextErrors.price = t.chefMenu.enterPrice;
-    if (!dishCategory) nextErrors.category = t.chefMenu.selectCategoryError;
-    setErrors(nextErrors);
-    if (nextErrors.name || nextErrors.price || nextErrors.category) return;
+    
+    try {
+      const nextErrors = { name: "", price: "", category: "" };
+      if (!dishName) nextErrors.name = t.chefMenu.enterName;
+      const priceNumber = Number(dishPrice);
+      if (!dishPrice || isNaN(priceNumber) || priceNumber <= 0) nextErrors.price = t.chefMenu.enterPrice;
+      if (!dishCategory) nextErrors.category = t.chefMenu.selectCategoryError;
+      setErrors(nextErrors);
+      if (nextErrors.name || nextErrors.price || nextErrors.category) return;
     const payload = {
       name: dishName,
       description: dishDescription || undefined,
@@ -677,6 +694,7 @@ function ChefMenu() {
       protein: dishProtein ? Number(dishProtein) : undefined,
       carbs: dishCarbs ? Number(dishCarbs) : undefined,
       fat: dishFat ? Number(dishFat) : undefined,
+      tags: dishTags.length > 0 ? dishTags : undefined,
       // Диабетические поля
       sugar: dishSugar ? Number(dishSugar) : undefined,
       glycemicIndex: dishGlycemicIndex ? Number(dishGlycemicIndex) : undefined,
@@ -696,36 +714,53 @@ function ChefMenu() {
         const search = new URLSearchParams(location.search);
         search.set("category_id", newCategoryId);
         const hash = newId ? `#dish-${newId}` : "";
-        // Добавляем небольшую задержку, чтобы сервер успел обработать запрос
-        return new Promise(resolve => setTimeout(resolve, 500))
-          .then(() => getChefMenu(chefId, "")) // Загружаем все блюда, не только конкретной категории
-          .then((data) => {
-            if (data?.categories?.length) setCategories(data.categories);
-            if (data?.dishes) setDishes(data.dishes);
-            console.log('🔄 Блюда перезагружены после добавления:', data.dishes);
-            console.log('🔄 Количество блюд после добавления:', data.dishes?.length || 0);
-            console.log('🔄 Категории загружены:', data.categories);
-            
-            // Дополнительная отладочная информация после добавления
-            console.log('🔍 localStorage ключ после добавления:', `demo_menu_${chefId}`);
-            const storedDishes = localStorage.getItem(`demo_menu_${chefId}`);
-            console.log('🔍 Сырые данные из localStorage после добавления:', storedDishes);
-            if (storedDishes) {
-              try {
-                const parsedDishes = JSON.parse(storedDishes);
-                console.log('🔍 Распарсенные блюда из localStorage после добавления:', parsedDishes);
-                console.log('🔍 Количество блюд в localStorage после добавления:', parsedDishes.length);
-              } catch (e) {
-                console.error('🔍 Ошибка парсинга localStorage после добавления:', e);
-              }
-            }
-          })
-          .finally(() => {
+        // Добавляем новое блюдо к существующим блюдам вместо полной перезагрузки
+        const newDish = {
+          id: newId || Date.now(), // Используем ID от сервера или временный ID
+          name: dishName,
+          description: dishDescription || "",
+          price: Number(priceNumber.toFixed(2)),
+          category_id: dishCategory,
+          photo: dishPhoto || null,
+          ingredients: dishIngredients || "",
+          cookingMethod: dishCookingMethod || 'варка',
+          calories: dishCalories ? Number(dishCalories) : 0,
+          protein: dishProtein ? Number(dishProtein) : 0,
+          carbs: dishCarbs ? Number(dishCarbs) : 0,
+          fat: dishFat ? Number(dishFat) : 0,
+          tags: dishTags || [],
+          sugar: dishSugar ? Number(dishSugar) : 0,
+          glycemicIndex: dishGlycemicIndex ? Number(dishGlycemicIndex) : 0,
+          sugarSubstitutes: dishSugarSubstitutes,
+          diabeticFriendly: dishDiabeticFriendly,
+          before_photo: dishBeforePhoto || null,
+          after_photo: dishAfterPhoto || null,
+          is_client_products: isClientProducts,
+          created_at: new Date().toISOString()
+        };
+        
+        // Добавляем новое блюдо к существующим блюдам
+        const updatedDishes = [...dishes, newDish];
+        setDishes(updatedDishes);
+        
+        // Сохраняем в localStorage
+        try {
+          localStorage.setItem(`demo_menu_${chefId}`, JSON.stringify(updatedDishes));
+        } catch (error) {
+          console.error('Error saving dish to localStorage:', error);
+        }
+        
+        // Загружаем категории отдельно, если нужно
+        return getChefMenu(chefId, "").then((data) => {
+          if (data?.categories?.length) setCategories(data.categories);
+        })
+        .finally(() => {
             navigate({ pathname: `/chef/${encodeURIComponent(chefId)}/menu`, search: `?${search.toString()}`, hash }, { replace: true });
     setDishName("");
     setDishDescription("");
             setDishPrice("");
             setDishCategory("");
+            setDishTags([]);
             setDishPhoto(null);
             setDishIngredients("");
             setDishCookingMethod("варка");
@@ -733,6 +768,7 @@ function ChefMenu() {
             setDishProtein("");
             setDishCarbs("");
             setDishFat("");
+            setDishFiber("");
             setDishBeforePhoto(null);
             setDishAfterPhoto(null);
             setIsClientProducts(false);
@@ -753,6 +789,11 @@ function ChefMenu() {
         setTimeout(() => setToast({ type: "", message: "" }), 3000);
       })
       .finally(() => setLoading(false));
+    } catch (error) {
+      console.error('Error in handleAddDish:', error);
+      showError('Ошибка при добавлении блюда');
+      setLoading(false);
+    }
   };
 
   const handlePhotoChange = (e) => {
@@ -770,7 +811,15 @@ function ChefMenu() {
         return;
       }
       const reader = new FileReader();
-      reader.onloadend = () => setDishPhoto(reader.result);
+      reader.onloadend = () => {
+        const photoData = reader.result;
+        setDishPhoto(photoData);
+        
+        // Автоматически запускаем AI-анализ фото
+        if (photoData && dishName) {
+          setShowPhotoAnalyzer(true);
+        }
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -787,14 +836,31 @@ function ChefMenu() {
     if (!window.confirm(t.chefMenu.deleteConfirm)) return;
     setLoading(true);
     deleteDish(chefId, target.id)
-      .then(() => getChefMenu(chefId, activeCategory))
-      .then((data) => {
-        if (data?.categories?.length) setCategories(data.categories);
-        if (data?.dishes) setDishes(data.dishes);
-        setToast({ type: "success", message: t.chefMenu.dishDeleted });
-        setTimeout(() => setToast({ type: "", message: "" }), 2000);
+      .then(() => {
+        try {
+          // Удаляем блюдо из состояния и localStorage
+          const updatedDishes = dishes.filter(dish => dish.id !== target.id);
+          setDishes(updatedDishes);
+          localStorage.setItem(`demo_menu_${chefId}`, JSON.stringify(updatedDishes));
+          console.log('✅ Блюдо удалено из состояния и localStorage');
+          console.log('✅ Осталось блюд:', updatedDishes.length);
+          
+          // Обновляем модальное окно если оно открыто
+          if (showCategoryModal) {
+            const categoryDishes = updatedDishes.filter(dish => dish.category_id === activeCategory);
+            setSelectedCategoryDishes(categoryDishes);
+          }
+          
+          setToast({ type: "success", message: t.chefMenu.dishDeleted });
+          setTimeout(() => setToast({ type: "", message: "" }), 2000);
+        } catch (error) {
+          console.error('Error deleting dish:', error);
+          setToast({ type: "error", message: "Ошибка при удалении блюда" });
+          setTimeout(() => setToast({ type: "", message: "" }), 2000);
+        }
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('Error in deleteDish API call:', error);
         setToast({ type: "error", message: t.chefMenu.deleteError });
         setTimeout(() => setToast({ type: "", message: "" }), 2000);
       })
@@ -826,6 +892,11 @@ function ChefMenu() {
       const categoryDishes = dishes.filter(dish => dish.category_id === catId);
       console.log('🔍 Отфильтрованные блюда для категории', catId, ':', categoryDishes);
       console.log('🔍 Количество отфильтрованных блюд:', categoryDishes.length);
+      console.log('🔍 Все блюда перед фильтрацией:', dishes);
+      console.log('🔍 Блюда по категориям:', dishes.reduce((acc, dish) => {
+        acc[dish.category_id] = (acc[dish.category_id] || 0) + 1;
+        return acc;
+      }, {}));
       
     setSelectedCategoryDishes(categoryDishes);
       setActiveCategory(catId); // Устанавливаем активную категорию для отображения названия
@@ -865,6 +936,9 @@ function ChefMenu() {
 
   // Функция для начала редактирования блюда
   const startEditDish = (dish) => {
+    console.log('🔍 Начинаем редактирование блюда:', dish);
+    console.log('🔍 Все блюда в состоянии:', dishes);
+    console.log('🔍 Активная категория:', activeCategory);
     setEditingDish(dish);
     setEditName(dish.name || "");
     setEditDescription(dish.description || "");
@@ -906,18 +980,36 @@ function ChefMenu() {
 
     updateDish(chefId, editingDish.id, formData)
       .then(() => {
-        // Перезагружаем блюда после редактирования
-        return getChefMenu(chefId, activeCategory);
-      })
-      .then((data) => {
-        if (data?.categories?.length) setCategories(data.categories);
-        if (data?.dishes) setDishes(data.dishes);
-        // Обновляем блюда в модальном окне
-        const categoryDishes = data.dishes.filter(dish => dish.category_id === activeCategory);
-        setSelectedCategoryDishes(categoryDishes);
-        setToast({ type: "success", message: "Блюдо успешно обновлено!" });
-        setTimeout(() => setToast({ type: "", message: "" }), 2000);
-        cancelEditDish();
+        try {
+          // Обновляем блюдо в состоянии и localStorage
+          const updatedDishes = dishes.map(dish => 
+            dish.id === editingDish.id 
+              ? { 
+                  ...dish, 
+                  name: editName,
+                  description: editDescription,
+                  price: Number(editPrice),
+                  category_id: editCategory,
+                  photo: editPhoto ? URL.createObjectURL(editPhoto) : dish.photo
+                }
+              : dish
+          );
+          setDishes(updatedDishes);
+          localStorage.setItem(`demo_menu_${chefId}`, JSON.stringify(updatedDishes));
+          console.log('✅ Блюдо обновлено в состоянии и localStorage');
+          
+          // Обновляем блюда в модальном окне
+          const categoryDishes = updatedDishes.filter(dish => dish.category_id === activeCategory);
+          setSelectedCategoryDishes(categoryDishes);
+          
+          setToast({ type: "success", message: "Блюдо успешно обновлено!" });
+          setTimeout(() => setToast({ type: "", message: "" }), 2000);
+          cancelEditDish();
+        } catch (error) {
+          console.error('Error updating dish:', error);
+          setToast({ type: "error", message: "Ошибка при обновлении блюда" });
+          setTimeout(() => setToast({ type: "", message: "" }), 2000);
+        }
       })
       .catch((err) => {
         console.error("Ошибка обновления блюда:", err);
@@ -955,29 +1047,31 @@ function ChefMenu() {
     const categoryParam = params.get("category_id") || "";
     setActiveCategory(categoryParam);
     
-    // Загружаем блюда каждый раз для актуальности
+    // Загружаем блюда из localStorage и API
     setLoading(true);
     setApiError("");
+    
+    // Сначала загружаем из localStorage
+    const storedDishes = localStorage.getItem(`demo_menu_${chefId}`);
+    if (storedDishes) {
+      try {
+        const parsedDishes = JSON.parse(storedDishes);
+        setDishes(parsedDishes);
+      } catch (e) {
+        console.error('❌ Ошибка парсинга localStorage:', e);
+      }
+    }
+    
+    // Затем загружаем категории из API
     getChefMenu(chefId, categoryParam)
       .then((data) => {
         if (data?.categories?.length) setCategories(data.categories);
-        if (data?.dishes) setDishes(data.dishes);
-        console.log('🔄 Блюда загружены в useEffect:', data.dishes);
-        console.log('🔄 Количество блюд в useEffect:', data.dishes?.length || 0);
-        console.log('🔄 Категории в useEffect:', data.categories);
         
-        // Дополнительная отладочная информация
-        console.log('🔍 localStorage ключ для блюд:', `demo_menu_${chefId}`);
-        const storedDishes = localStorage.getItem(`demo_menu_${chefId}`);
-        console.log('🔍 Сырые данные из localStorage:', storedDishes);
-        if (storedDishes) {
-          try {
-            const parsedDishes = JSON.parse(storedDishes);
-            console.log('🔍 Распарсенные блюда из localStorage:', parsedDishes);
-            console.log('🔍 Количество блюд в localStorage:', parsedDishes.length);
-          } catch (e) {
-            console.error('🔍 Ошибка парсинга localStorage:', e);
-          }
+        // Если в localStorage нет блюд, загружаем из API
+        if (!storedDishes && data?.dishes) {
+          setDishes(data.dishes);
+          localStorage.setItem(`demo_menu_${chefId}`, JSON.stringify(data.dishes));
+          console.log('✅ Блюда загружены из API и сохранены в localStorage:', data.dishes);
         }
       })
       .catch((err) => setApiError(err?.message || t.chefMenu.loadError))
@@ -986,45 +1080,34 @@ function ChefMenu() {
     // Расчет рейтинга повара
     calculateChefRating();
     
-    // Принудительное обновление рейтинга через 1 секунду
-    setTimeout(() => {
-      console.log('🔄 Force updating chef rating after 1 second...');
-      console.log('🔄 Current chef ID:', chefId);
-      calculateChefRating();
-    }, 1000);
+    // Принудительное обновление рейтинга - ОТКЛЮЧЕНО (вызывало бесконечный цикл)
+    // setTimeout(() => {
+    //   console.log('🔄 Force updating chef rating after 1 second...');
+    //   console.log('🔄 Current chef ID:', chefId);
+    //   calculateChefRating();
+    // }, 1000);
     
-    // Дополнительное обновление через 3 секунды
-    setTimeout(() => {
-      console.log('🔄 Force updating chef rating after 3 seconds...');
-      calculateChefRating();
-    }, 3000);
+    // Дополнительное обновление - ОТКЛЮЧЕНО (вызывало бесконечный цикл)
+    // setTimeout(() => {
+    //   console.log('🔄 Force updating chef rating after 3 seconds...');
+    //   calculateChefRating();
+    // }, 3000);
   }, [location.search, chefId, calculateChefRating, t.chefMenu.loadError]);
 
   // Слушатель для обновления рейтинга при изменении заказов
   useEffect(() => {
     const handleStorageChange = () => {
-      console.log('🔄 Storage change detected, updating chef rating...');
       calculateChefRating();
     };
 
     const handleOrderRated = (event) => {
-      console.log('⭐ Order rated event received:', event.detail);
-      console.log('⭐ Event type:', event.type);
-      console.log('⭐ Event timestamp:', new Date().toISOString());
-      
       // Принудительно проверяем данные после события
       setTimeout(() => {
-        console.log('⭐ Checking data after orderRated event...');
-        const allOrders = JSON.parse(localStorage.getItem('clientOrders') || '[]');
-        console.log('⭐ Orders after event:', allOrders);
         calculateChefRating();
       }, 100);
     };
 
     const handleReviewAdded = (event) => {
-      console.log('💬 Review added event received:', event.detail);
-      console.log('💬 Event type:', event.type);
-      console.log('💬 Event timestamp:', new Date().toISOString());
       calculateChefRating();
     };
 
@@ -1042,13 +1125,13 @@ function ChefMenu() {
     };
   }, [calculateChefRating]);
 
-  // Принудительное обновление рейтинга при каждом рендере
-  useEffect(() => {
-    console.log('🔄 Component rendered, updating chef rating...');
-    console.log('🔄 Current chef ID:', chefId);
-    console.log('🔄 Current rating state:', chefRating);
-    calculateChefRating();
-  }, [calculateChefRating, chefId, chefRating]);
+  // Принудительное обновление рейтинга при каждом рендере - ОТКЛЮЧЕНО (вызывало бесконечный цикл)
+  // useEffect(() => {
+  //   console.log('🔄 Component rendered, updating chef rating...');
+  //   console.log('🔄 Current chef ID:', chefId);
+  //   console.log('🔄 Current rating state:', chefRating);
+  //   calculateChefRating();
+  // }, [calculateChefRating, chefId, chefRating]);
 
   // Загрузка продуктов при смене вкладки
   useEffect(() => {
@@ -1060,6 +1143,7 @@ function ChefMenu() {
   // Загрузка количества уведомлений при монтировании компонента
   useEffect(() => {
     loadUnreadNotificationsCount();
+    loadOrderCounts();
   }, []);
 
   // Слушатель изменений в localStorage для обновления счетчика уведомлений
@@ -1072,14 +1156,15 @@ function ChefMenu() {
 
     window.addEventListener('storage', handleStorageChange);
     
-    // Также слушаем изменения в том же окне
-    const interval = setInterval(() => {
-      loadUnreadNotificationsCount();
-    }, 2000); // Проверяем каждые 2 секунды
+    // Также слушаем изменения в том же окне - ОТКЛЮЧЕНО (вызывало частые ререндеры)
+    // const interval = setInterval(() => {
+    //   loadUnreadNotificationsCount();
+    //   loadOrderCounts();
+    // }, 2000); // Проверяем каждые 2 секунды
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
+      // clearInterval(interval);
     };
   }, []);
 
@@ -1095,10 +1180,10 @@ function ChefMenu() {
   }, [location.hash, dishes]);
 
   return (
-    <div
-      className="chef-page-container"
+    <div 
       style={{
-        backgroundImage: 'url(/backgrounds/chef-pattern.png)',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backgroundImage: `url(${process.env.PUBLIC_URL}/backgrounds/chef-pattern.png)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -1110,7 +1195,16 @@ function ChefMenu() {
         padding: '20px'
       }}
     >
-      <div className="ContentWrapper">
+      <div 
+        style={{
+          width: '100%',
+          maxWidth: '1200px',
+          background: 'rgba(255, 255, 255, 0.9)',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+        }}
+      >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>
             <h2 style={{ margin: '0' }}>Повар: {chefName || savedEmail}</h2>
@@ -1192,7 +1286,8 @@ function ChefMenu() {
                   fontSize: '10px',
                   fontWeight: 'bold',
                   border: '2px solid white',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                  animation: 'pulse 2s infinite'
                 }}>
                   {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
                 </span>
@@ -1217,11 +1312,117 @@ function ChefMenu() {
                    alignItems: 'center',
                    justifyContent: 'center',
                    gap: '6px',
-                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                   position: 'relative'
                  }}
                >
                  <AnimatedIcon name="orders" size={16} animation="bounce" />
                  Доска заказов
+                 
+                 {/* Бейджи счетчиков заказов */}
+                 <div className="order-badges" style={{ 
+                   display: 'flex', 
+                   gap: '4px', 
+                   marginLeft: '8px',
+                   flexWrap: 'wrap',
+                   justifyContent: 'center'
+                 }}>
+                   {orderCounts.pending > 0 && (
+                     <span style={{
+                       background: '#ff9800',
+                       color: 'white',
+                       borderRadius: '50%',
+                       minWidth: '18px',
+                       height: '18px',
+                       display: 'flex',
+                       alignItems: 'center',
+                       justifyContent: 'center',
+                       fontSize: '10px',
+                       fontWeight: 'bold',
+                       padding: '2px 4px',
+                       lineHeight: '1'
+                     }}>
+                       {orderCounts.pending}
+                     </span>
+                   )}
+                   {orderCounts.preparing > 0 && (
+                     <span style={{
+                       background: '#2196f3',
+                       color: 'white',
+                       borderRadius: '50%',
+                       minWidth: '18px',
+                       height: '18px',
+                       display: 'flex',
+                       alignItems: 'center',
+                       justifyContent: 'center',
+                       fontSize: '10px',
+                       fontWeight: 'bold',
+                       padding: '2px 4px',
+                       lineHeight: '1'
+                     }}>
+                       {orderCounts.preparing}
+                     </span>
+                   )}
+                   {orderCounts.ready > 0 && (
+                     <span style={{
+                       background: '#4caf50',
+                       color: 'white',
+                       borderRadius: '50%',
+                       minWidth: '18px',
+                       height: '18px',
+                       display: 'flex',
+                       alignItems: 'center',
+                       justifyContent: 'center',
+                       fontSize: '10px',
+                       fontWeight: 'bold',
+                       padding: '2px 4px',
+                       lineHeight: '1'
+                     }}>
+                       {orderCounts.ready}
+                     </span>
+                   )}
+                   {orderCounts.delivering > 0 && (
+                     <span style={{
+                       background: '#9c27b0',
+                       color: 'white',
+                       borderRadius: '50%',
+                       minWidth: '18px',
+                       height: '18px',
+                       display: 'flex',
+                       alignItems: 'center',
+                       justifyContent: 'center',
+                       fontSize: '10px',
+                       fontWeight: 'bold',
+                       padding: '2px 4px',
+                       lineHeight: '1'
+                     }}>
+                       {orderCounts.delivering}
+                     </span>
+                   )}
+                 </div>
+                 
+                 {/* Мобильный бейдж - показывает общее количество заказов */}
+                 {(orderCounts.pending + orderCounts.preparing + orderCounts.ready + orderCounts.delivering) > 0 && (
+                   <div className="mobile-badge" style={{
+                     display: 'none',
+                     position: 'absolute',
+                     top: '-8px',
+                     right: '-8px',
+                     background: '#ff4444',
+                     color: 'white',
+                     borderRadius: '50%',
+                     minWidth: '20px',
+                     height: '20px',
+                     alignItems: 'center',
+                     justifyContent: 'center',
+                     fontSize: '11px',
+                     fontWeight: 'bold',
+                     border: '2px solid white',
+                     boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                   }}>
+                     {orderCounts.pending + orderCounts.preparing + orderCounts.ready + orderCounts.delivering}
+                   </div>
+                 )}
                </button>
 
                {/* Кнопка "AI Планировщик закупок" */}
@@ -1245,8 +1446,33 @@ function ChefMenu() {
                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                  }}
                >
-                 <AnimatedIcon name="ai" size={16} animation="pulse" />
-                 Закупки
+                 <span>🤖</span>
+                 AI Закупки
+               </button>
+
+               {/* Кнопка "Календарь слотов" */}
+               <button
+                 onClick={() => setActiveTab('slots')}
+                 className={`chef-tab-button ${activeTab === 'slots' ? 'active' : ''}`}
+                 style={{
+                   padding: '8px 16px',
+                   border: activeTab === 'slots' ? '2px solid #4caf50' : '2px solid #e0e0e0',
+                   background: activeTab === 'slots' ? '#4caf50' : 'rgba(255, 255, 255, 0.9)',
+                   color: activeTab === 'slots' ? 'white' : '#333',
+                   borderRadius: '20px',
+                   cursor: 'pointer',
+                   fontSize: '12px',
+                   fontWeight: 'bold',
+                   transition: 'all 0.3s ease',
+                   display: 'flex',
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                   gap: '6px',
+                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                 }}
+               >
+                 <AnimatedIcon name="calendar" size={16} animation="bounce" />
+                 Слоты работы
                </button>
 
                {/* Кнопка "Список покупок" */}
@@ -1347,6 +1573,31 @@ function ChefMenu() {
                >
                  <AnimatedIcon name="cooking" size={16} animation="pulse" />
                  Помощь гостям
+               </button>
+
+               {/* Кнопка "Заготовки" */}
+               <button
+                 onClick={() => setActiveTab('preparations')}
+                 className={`chef-tab-button ${activeTab === 'preparations' ? 'active' : ''}`}
+                 style={{
+                   padding: '8px 16px',
+                   border: activeTab === 'preparations' ? '2px solid #ff6b35' : '2px solid #e0e0e0',
+                   background: activeTab === 'preparations' ? '#ff6b35' : 'rgba(255, 255, 255, 0.9)',
+                   color: activeTab === 'preparations' ? 'white' : '#333',
+                   borderRadius: '20px',
+                   cursor: 'pointer',
+                   fontSize: '12px',
+                   fontWeight: 'bold',
+                   transition: 'all 0.3s ease',
+                   display: 'flex',
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                   gap: '6px',
+                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                 }}
+               >
+                 <AnimatedIcon name="preparations" size={16} animation="pulse" />
+                 Заготовки
                </button>
 
                {/* Кнопка "Профиль" */}
@@ -1884,13 +2135,21 @@ function ChefMenu() {
           </button>
 
 
-
           {/* Аватарка повара - справа от статистики */}
           {savedAvatar && <img src={savedAvatar} alt={t.chefMenu.avatar} className="avatar" />}
 
           {/* Кнопка "Мои блюда" - справа */}
           <button
-            onClick={() => setActiveTab('dishes')}
+            onClick={() => {
+              console.log('🔍 Клик по кнопке "Мои блюда"');
+              console.log('🔍 Текущий activeTab:', activeTab);
+              setActiveTab('dishes');
+              console.log('🔍 Установлен activeTab в:', 'dishes');
+              // Добавляем визуальную обратную связь
+              setTimeout(() => {
+                console.log('🔍 Проверка activeTab после клика:', activeTab);
+              }, 100);
+            }}
             className={`chef-tab-button ${activeTab === 'dishes' ? 'active' : ''}`}
             style={{
               padding: '12px 20px',
@@ -1979,11 +2238,8 @@ function ChefMenu() {
           </button>
         </div>
 
-        {/* Отладочная информация */}
-        {console.log('🔍 Debug Form:', { activeTab, role, showForm: activeTab === 'dishes' && (role === "chef" || role === "Chef" || role === "Manager" || role === "Admin") })}
-        
-        {activeTab === 'dishes' && (
-        <form onSubmit={handleAddDish} className="DishForm">
+        {activeTab === 'dishes' && showDishForm && (
+        <form onSubmit={handleAddDish} className="DishForm" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '600px', margin: '0 auto' }}>
           <input
             type="text"
             placeholder={t.chefMenu.dishName}
@@ -2364,25 +2620,59 @@ function ChefMenu() {
                 </div>
               </div>
             )}
+
+            {/* AI-Проверка адекватности КБЖУ - ВРЕМЕННО ОТКЛЮЧЕНО (вызывало бесконечный цикл) */}
+            {/* {dishIngredients && dishIngredients.trim().length > 0 && (dishCalories || dishProtein || dishCarbs || dishFat) && (
+              <NutritionValidationPanel
+                manualData={{
+                  calories: dishCalories,
+                  protein: dishProtein,
+                  carbs: dishCarbs,
+                  fat: dishFat
+                }}
+                ingredients={dishIngredients ? dishIngredients.split(',').map(ing => ing.trim()) : []}
+                onValidationComplete={(result) => {
+                  console.log('Validation result:', result);
+                  // Можно добавить логику для блокировки сохранения при критических ошибках
+                  if (!result.isValid && result.needsReview) {
+                    // Показываем предупреждение, но не блокируем
+                    console.warn('Nutrition data needs review');
+                  }
+                }}
+                onAutoFill={(aiData) => {
+                  // Автоматически заполняем поля AI-расчетами
+                  setDishCalories(aiData.calories.toString());
+                  setDishProtein(aiData.protein.toString());
+                  setDishCarbs(aiData.carbs.toString());
+                  setDishFat(aiData.fat.toString());
+                  console.log('🤖 AI автоматически заполнил поля КБЖУ:', aiData);
+                }}
+              />
+            )} */}
           </div>
           
           
           {/* Диабетические поля */}
           <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(76, 175, 80, 0.1)', borderRadius: '10px', border: '2px solid rgba(76, 175, 80, 0.3)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px' }}>
-              <input
-                type="checkbox"
-                checked={dishDiabeticFriendly}
-                onChange={(e) => {
-                  const isChecked = e.target.checked;
-                  setDishDiabeticFriendly(isChecked);
-                  
-                  if (isChecked) {
-                    // Если галочка поставлена, пересчитываем на основе ингредиентов
-                    if (dishIngredients && dishIngredients.trim().length > 0) {
-                      // Есть ингредиенты - пересчитываем диабетические значения
+            <div 
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', cursor: 'pointer', userSelect: 'none' }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const newValue = !dishDiabeticFriendly;
+                console.log('🩺 Клик по галочке "Меню для диабетиков"');
+                console.log('🩺 Текущее значение:', dishDiabeticFriendly);
+                console.log('🩺 Новое значение:', newValue);
+                setDishDiabeticFriendly(newValue);
+                
+                if (newValue) {
+                  // Если галочка поставлена, пересчитываем на основе ингредиентов
+                  if (dishIngredients && dishIngredients.trim().length > 0) {
+                    // Есть ингредиенты - пересчитываем диабетические значения
+                    // Используем setTimeout чтобы не блокировать UI
+                    setTimeout(() => {
                       try {
-                        const diabeticValues = ultimateDiabeticCalculator.calculateDiabeticValues(dishIngredients, dishCookingMethod);
+                        const diabeticValues = simpleDiabeticCalculator.calculateDiabeticValues(dishIngredients, dishCookingMethod);
                         if (diabeticValues && typeof diabeticValues === 'object') {
                           if (dishSugarSubstitutes) {
                             setDishSugar(((diabeticValues.sugar || 0) * 0.01).toString()); // Уменьшаем в 100 раз
@@ -2398,36 +2688,49 @@ function ChefMenu() {
                         }
                       } catch (error) {
                         console.error('Error calculating diabetic values in checkbox handler:', error);
-                        // Fallback при ошибке
+                        // Fallback при ошибке или таймауте
                         setDishSugar(dishSugarSubstitutes ? "0.5" : "5.0");
                         setDishGlycemicIndex(dishSugarSubstitutes ? "15" : "45");
                       }
-                    } else {
-                      // Нет ингредиентов - показываем базовые диабетические значения
-                      setDishSugar(dishSugarSubstitutes ? "0.5" : "5.0");
-                      setDishGlycemicIndex(dishSugarSubstitutes ? "15" : "45");
-                    }
-                    setDiabeticAccuracy({
-                      sugarAccuracy: dishSugarSubstitutes ? 95.0 : 85.0,
-                      glycemicAccuracy: dishSugarSubstitutes ? 92.0 : 80.0,
-                      overallAccuracy: dishSugarSubstitutes ? 93.5 : 82.5
-                    });
+                    }, 100); // Задержка 100мс чтобы не блокировать UI
                   } else {
-                    // Если галочка снята, очищаем поля
-                    setDishSugar("");
-                    setDishGlycemicIndex("");
-                    setDishSugarSubstitutes(false);
-                    setDiabeticAccuracy({
-                      sugarAccuracy: 87.3,
-                      glycemicAccuracy: 84.7,
-                      overallAccuracy: 86.0
-                    });
+                    // Нет ингредиентов - показываем базовые диабетические значения
+                    setDishSugar(dishSugarSubstitutes ? "0.5" : "5.0");
+                    setDishGlycemicIndex(dishSugarSubstitutes ? "15" : "45");
                   }
+                  setDiabeticAccuracy({
+                    sugarAccuracy: dishSugarSubstitutes ? 95.0 : 85.0,
+                    glycemicAccuracy: dishSugarSubstitutes ? 92.0 : 80.0,
+                    overallAccuracy: dishSugarSubstitutes ? 93.5 : 82.5
+                  });
+                } else {
+                  // Если галочка снята, очищаем поля
+                  setDishSugar("");
+                  setDishGlycemicIndex("");
+                  setDishSugarSubstitutes(false);
+                  setDiabeticAccuracy({
+                    sugarAccuracy: 87.3,
+                    glycemicAccuracy: 84.7,
+                    overallAccuracy: 86.0
+                  });
+                }
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={dishDiabeticFriendly}
+                onChange={() => {}} // Пустой обработчик для предотвращения ошибок
+                style={{ 
+                  width: '20px', 
+                  height: '20px', 
+                  accentColor: '#4caf50', 
+                  cursor: 'pointer',
+                  transform: 'scale(1.2)',
+                  marginRight: '5px'
                 }}
-                style={{ width: '18px', height: '18px', accentColor: '#4caf50' }}
               />
               <h4 style={{ margin: '0', color: '#2e7d32', fontSize: '16px', fontWeight: 'bold' }}>
-                🩺 {t.diabeticMenu.title}
+                🩺 {(t.diabeticMenu && (t.diabeticMenu.title || t.diabeticMenu)) || 'Диабетическое меню'}
               </h4>
             </div>
             
@@ -2693,6 +2996,70 @@ function ChefMenu() {
             </div>
           )}
           
+          {/* Smart Tagging - AI предлагает теги */}
+          {dishIngredients && dishIngredients.trim().length > 0 && (dishCalories || dishProtein || dishCarbs || dishFat) && (
+            <div style={{ marginBottom: '20px' }}>
+              <SmartTagSelector
+                ingredients={dishIngredients}
+                nutrition={{
+                  calories: Number(dishCalories) || 0,
+                  protein: Number(dishProtein) || 0,
+                  carbs: Number(dishCarbs) || 0,
+                  fat: Number(dishFat) || 0
+                }}
+                selectedTags={dishTags}
+                onTagsChange={(tags) => setDishTags(tags)}
+              />
+            </div>
+          )}
+          
+          {/* Кнопка "Поделиться КБЖУ" */}
+          {dishName && dishIngredients && (dishCalories || dishProtein || dishCarbs || dishFat) && (
+            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
+              <ShareNutritionButton
+                dish={{
+                  name: dishName,
+                  description: dishDescription,
+                  ingredients: dishIngredients,
+                  calories: Number(dishCalories) || 0,
+                  protein: Number(dishProtein) || 0,
+                  carbs: Number(dishCarbs) || 0,
+                  fat: Number(dishFat) || 0,
+                  fiber: Number(dishFiber) || 0,
+                  sugar: Number(dishSugar) || 0,
+                  sodium: 0, // Дефолтное значение, так как поле не определено
+                  weight: 100, // Дефолтное значение, так как поле не определено
+                  category: dishCategory,
+                  diabeticFriendly: dishDiabeticFriendly
+                }}
+              />
+            </div>
+          )}
+
+          {/* AI Benefit Generator - ВРЕМЕННО ОТКЛЮЧЕНО (вызывало бесконечный цикл) */}
+          {/* {dishName && dishIngredients && (dishCalories || dishProtein || dishCarbs || dishFat) && (
+            <AIBenefitPanel
+              dish={{
+                name: dishName,
+                ingredients: dishIngredients,
+                dishCalories: Number(dishCalories) || 0,
+                dishProtein: Number(dishProtein) || 0,
+                dishCarbs: Number(dishCarbs) || 0,
+                dishFat: Number(dishFat) || 0,
+                dishFiber: Number(dishFiber) || 0,
+                diabeticFriendly: dishDiabeticFriendly
+              }}
+              onBenefitGenerated={(benefit) => {
+                // Добавляем сгенерированный текст к описанию
+                const currentDescription = dishDescription || '';
+                const newDescription = currentDescription 
+                  ? `${currentDescription}\n\n${benefit}`
+                  : benefit;
+                setDishDescription(newDescription);
+              }}
+            />
+          )} */}
+          
           {imageError && <p style={{ color: "#d32f2f" }}>{imageError}</p>}
           <button type="submit" className="SaveDishButton" disabled={loading}>{t.chefMenu.addDish}</button>
           {apiError && <p style={{ color: "#d32f2f" }}>{apiError}</p>}
@@ -2701,8 +3068,185 @@ function ChefMenu() {
 
         {activeTab === 'dishes' && (
         <>
-        <h3>{t.chefMenu.yourMenu}</h3>
-        <div className="CategoriesGrid" role="tablist" aria-label="Категории меню">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          marginBottom: '30px', 
+          flexDirection: 'column', 
+          gap: '20px',
+          width: '100%',
+          maxWidth: '1200px',
+          margin: '0 auto 30px auto',
+          padding: '0 20px'
+        }}>
+          <h3 style={{ 
+            margin: 0, 
+            textAlign: 'center',
+            fontSize: '28px',
+            fontWeight: 'bold',
+            color: '#2D5016',
+            textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+          }}>
+            {t.chefMenu.yourMenu}
+          </h3>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button
+              onClick={() => setShowDishForm(!showDishForm)}
+              style={{
+                background: showDishForm ? '#e74c3c' : '#4caf50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+                minWidth: '200px',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
+              }}
+            >
+              {showDishForm ? '❌ Закрыть форму' : '➕ Добавить блюдо'}
+            </button>
+            
+            {/* Тестовая кнопка для быстрого доступа к галочке диабетического меню */}
+            <button
+              onClick={() => {
+                setShowDishForm(true);
+                // Автоматически заполняем поля для тестирования
+                setDishName('Тестовое блюдо для диабетиков');
+                setDishDescription('Тестовое описание блюда');
+                setDishPrice('250');
+                setDishIngredients('помидоры, огурцы, оливковое масло, листья салата');
+                setDishCookingMethod('сырой');
+                console.log('🧪 Тестовая кнопка: форма открыта, поля заполнены');
+              }}
+              style={{
+                background: '#ff9800',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                padding: '15px 20px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 15px rgba(255, 152, 0, 0.3)',
+                minWidth: '180px',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 4px 12px rgba(255, 152, 0, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 2px 8px rgba(255, 152, 0, 0.3)';
+              }}
+            >
+              🧪 Тест галочки диабетиков
+            </button>
+
+            {/* Кнопка проверки этичности */}
+            {dishes.length > 0 && (
+              <button
+                onClick={() => setShowConscienceChecker(true)}
+                style={{
+                  background: 'linear-gradient(135deg, #9c27b0, #7b1fa2)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '15px 20px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(156, 39, 176, 0.3)',
+                  minWidth: '180px',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(156, 39, 176, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 8px rgba(156, 39, 176, 0.3)';
+                }}
+              >
+                🔍 Проверка этичности
+              </button>
+            )}
+
+            {/* Кнопка: AI-Конструктор Праздничных Сет-Меню */}
+            {dishes.length > 0 && (
+              <button
+                onClick={() => setShowHolidaySetMenu(true)}
+                style={{
+                  background: 'linear-gradient(135deg, #ff9800, #f57c00)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '15px 20px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(255, 152, 0, 0.3)',
+                  minWidth: '180px',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(255, 152, 0, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 8px rgba(255, 152, 0, 0.3)';
+                }}
+              >
+                🎄 Праздничные наборы
+              </button>
+            )}
+          </div>
+        </div>
+        <div 
+          className="CategoriesGrid" 
+          role="tablist" 
+          aria-label="Категории меню" 
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            flexWrap: 'wrap', 
+            gap: '10px',
+            width: '100%',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '0 20px'
+          }}
+        >
           <button
             key="all"
             role="tab"
@@ -2711,21 +3255,45 @@ function ChefMenu() {
             onClick={() => handleSelectCategory("")}
             style={{
               background: !activeCategory ? 'linear-gradient(135deg, #ff7043, #f57c00)' : 'linear-gradient(135deg, #ff7043, #f57c00)',
-              opacity: !activeCategory ? 1 : 0.7
+              opacity: !activeCategory ? 1 : 0.7,
+              minWidth: '150px',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
             }}
           >
             📋 Все блюда
           </button>
           {categories.map((cat) => (
-                  <button
+            <button
               key={cat.id}
               role="tab"
               aria-selected={activeCategory === cat.id}
               className="CategoryButton"
               onClick={() => handleSelectCategory(cat.id)}
+              style={{
+                background: activeCategory === cat.id ? 'linear-gradient(135deg, #4caf50, #45a049)' : 'linear-gradient(135deg, #ff7043, #f57c00)',
+                opacity: activeCategory === cat.id ? 1 : 0.8,
+                minWidth: '150px',
+                padding: '12px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+              }}
             >
               {cat.name}
-          </button>
+            </button>
           ))}
         </div>
         </>
@@ -2763,7 +3331,7 @@ function ChefMenu() {
                 ➕ {t.addProduct}
               </button>
               <button
-                onClick={() => window.history.back()}
+                onClick={() => setActiveTab('dishes')}
                 style={{
                   background: 'linear-gradient(135deg, #6c757d, #495057)',
                   color: 'white',
@@ -3112,13 +3680,26 @@ function ChefMenu() {
         </div>
         )}
 
-        <h3>{t.chefMenu.chatWithClients}</h3>
-        <div className="ChatBox">
-          <div className="Messages"><p className="NoMessages">{t.chefMenu.noMessages}</p></div>
-          <form className="MessageForm">
-            <input type="text" placeholder={t.chefMenu.writeMessage} />
-            <button type="submit">{t.chefMenu.send}</button>
-          </form>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          margin: '20px 0',
+          width: '100%'
+        }}>
+          <h3 style={{ textAlign: 'center', marginBottom: '20px' }}>{t.chefMenu.chatWithClients}</h3>
+          <div className="ChatBox" style={{ 
+            width: '100%', 
+            maxWidth: '600px',
+            margin: '0 auto'
+          }}>
+            <div className="Messages"><p className="NoMessages">{t.chefMenu.noMessages}</p></div>
+            <form className="MessageForm">
+              <input type="text" placeholder={t.chefMenu.writeMessage} />
+              <button type="submit">{t.chefMenu.send}</button>
+            </form>
+          </div>
         </div>
 
 
@@ -3180,7 +3761,7 @@ function ChefMenu() {
                     <p style={{ fontSize: '14px', color: '#ff6b35', fontWeight: 'bold', margin: '5px 0' }}>
                       Осталось: {dish.quantity || Math.floor(Math.random() * 10) + 1} шт.
                     </p>
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '15px' }}>
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '15px', flexWrap: 'wrap' }}>
                       <button 
                         onClick={() => startEditDish(dish)}
                         style={{
@@ -3189,10 +3770,28 @@ function ChefMenu() {
                           color: 'white',
                           border: 'none',
                           borderRadius: '5px',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          fontSize: '13px'
                         }}
                       >
-                        Редактировать
+                        ✏️ Редактировать
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSelectedDishForPromo(dish);
+                          setShowHolidayPromo(true);
+                        }}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: '#ff9800',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '5px',
+                          cursor: 'pointer',
+                          fontSize: '13px'
+                        }}
+                      >
+                        🖼️ Промо
                       </button>
                       <button 
                         onClick={() => handleDeleteDish(index)}
@@ -3202,10 +3801,11 @@ function ChefMenu() {
                           color: 'white',
                           border: 'none',
                           borderRadius: '5px',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          fontSize: '13px'
                         }}
                       >
-                        Удалить
+                        🗑️ Удалить
                       </button>
               </div>
                   </div>
@@ -3510,6 +4110,18 @@ function ChefMenu() {
                />
              )}
 
+        {activeTab === 'slots' && (
+          <div style={{ padding: '20px' }}>
+            <ChefSlotsCalendar 
+              chefId={chefId}
+              onSlotsUpdate={(slots) => {
+                console.log('Slots updated:', slots);
+              }}
+              onClose={() => setActiveTab('dishes')}
+            />
+          </div>
+        )}
+
         {activeTab === 'procurement' && (
                <ChefProcurementPlanner
             chefId={chefId}
@@ -3540,12 +4152,190 @@ function ChefMenu() {
         )}
 
         {activeTab === 'help-guest-requests' && (
-          <ChefHelpGuestRequests />
+          <ChefHelpGuestRequests onClose={() => setActiveTab('dishes')} />
+        )}
+
+        {activeTab === 'preparations' && (
+          <ChefPreparations onClose={() => setActiveTab('dishes')} />
         )}
 
         {activeTab === 'profile' && (
           <ChefProfile 
             onClose={() => setActiveTab('dishes')}
+          />
+        )}
+
+        {showAITextHelper && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: '15px',
+            padding: '20px',
+            marginBottom: '20px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3>📝 Помощник по текстам</h3>
+              <button
+                onClick={() => setShowAITextHelper(false)}
+                style={{
+                  background: '#e74c3c',
+                  color: 'white',
+                  border: 'none',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 8px rgba(231, 76, 60, 0.3)',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(231, 76, 60, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 8px rgba(231, 76, 60, 0.3)';
+                }}
+              >
+                ← Закрыть
+              </button>
+            </div>
+            <AITextHelper 
+              onInsertToDishDescription={(text) => {
+                setDishDescription(text);
+                setShowAITextHelper(false);
+              }}
+            />
+          </div>
+        )}
+
+        {/* AI Conscience Checker Modal */}
+        {showConscienceChecker && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '15px',
+              maxWidth: '900px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <AIConscienceChecker
+                availableDishes={dishes}
+                onClose={() => setShowConscienceChecker(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* AI Photo Analyzer Modal */}
+        {showPhotoAnalyzer && dishPhoto && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '15px',
+              maxWidth: '800px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <AIPhotoAnalyzer
+                imageDataUrl={dishPhoto}
+                dishInfo={{
+                  name: dishName,
+                  ingredients: dishIngredients,
+                  category: dishCategory
+                }}
+                onAnalysisComplete={(result) => {
+                  console.log('📸 Photo analysis result:', result);
+                  setPhotoAnalysisResult(result);
+                }}
+                onClose={() => {
+                  setShowPhotoAnalyzer(false);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* AI Holiday Set Menu Modal */}
+        {showHolidaySetMenu && (
+          <AIHolidaySetMenu
+            chefDishes={dishes}
+            onSetCreated={(set) => {
+              // Сохраняем сгенерированный набор как блюдо
+              const newDish = {
+                id: set.id,
+                name: set.name,
+                description: set.description,
+                price: set.pricing.discountedPrice,
+                category: 'special',
+                tags: set.tags,
+                photo: dishPhoto,
+                ingredients: set.dishes.map(d => d.name).join(', '),
+                calories: set.pricing.nutrition.totalCalories,
+                protein: set.pricing.nutrition.totalProtein,
+                carbs: set.pricing.nutrition.totalCarbs,
+                fat: set.pricing.nutrition.totalFat,
+                isHolidaySet: true,
+                holidaySetData: set
+              };
+
+              const updatedDishes = [...dishes, newDish];
+              setDishes(updatedDishes);
+              localStorage.setItem(`${chefId}_dishes`, JSON.stringify(updatedDishes));
+              
+              setToast({ type: 'success', message: `✅ Праздничный набор "${set.name}" добавлен!` });
+              setShowHolidaySetMenu(false);
+            }}
+            onClose={() => setShowHolidaySetMenu(false)}
+          />
+        )}
+
+        {/* AI Holiday Promo Modal */}
+        {showHolidayPromo && selectedDishForPromo && (
+          <AIHolidayPromo
+            dish={selectedDishForPromo}
+            onPromoGenerated={(promo) => {
+              // Можно добавить промо-текст к описанию блюда
+              console.log("Промо сгенерирован:", promo);
+            }}
+            onClose={() => {
+              setShowHolidayPromo(false);
+              setSelectedDishForPromo(null);
+            }}
           />
         )}
 

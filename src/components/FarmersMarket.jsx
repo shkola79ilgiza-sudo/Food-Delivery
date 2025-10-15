@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
-import { getFarmersMarketProducts, createCookingRequest } from '../api';
+import { getFarmersMarketProducts, createCookingRequest } from '../api/adapter';
 import Rating from './Rating';
 import '../App.css';
 

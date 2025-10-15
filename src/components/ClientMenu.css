@@ -1,0 +1,67 @@
+/* Мобильная адаптивность для ClientMenu */
+
+@media (max-width: 768px) {
+  .client-menu-container {
+    padding: 10px !important;
+  }
+  
+  .dishes-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+    padding: 0 10px !important;
+  }
+  
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 0 10px !important;
+  }
+  
+  .category-card {
+    padding: 15px !important;
+  }
+  
+  .category-card h3 {
+    font-size: 14px !important;
+  }
+  
+  .dish-card {
+    padding: 15px !important;
+  }
+  
+  .dish-card h3 {
+    font-size: 16px !important;
+  }
+  
+  .dish-card p {
+    font-size: 14px !important;
+  }
+  
+  .filters-content {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  
+  .nav-buttons {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  
+  .nav-buttons button {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .categories-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .category-card {
+    padding: 12px !important;
+  }
+  
+  .dish-card {
+    padding: 12px !important;
+  }
+}

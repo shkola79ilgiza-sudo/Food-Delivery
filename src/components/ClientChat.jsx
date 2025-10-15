@@ -1,15 +1,64 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useWebSocket } from '../contexts/WebSocketContext';
+import { useToast } from '../contexts/ToastContext';
 
 const ClientChat = () => {
+  // Ограничения и безопасное сохранение истории чата в localStorage
+  const CHAT_MAX_MESSAGES = 150; // держим только последние N сообщений
+  const safeSaveChat = (chatKey, messagesToSave, notify = true, showErrorFn, showSuccessFn) => {
+    // сначала ограничиваем длину массива
+    let payload = Array.isArray(messagesToSave)
+      ? messagesToSave.slice(Math.max(0, messagesToSave.length - CHAT_MAX_MESSAGES))
+      : [];
+
+    try {
+      localStorage.setItem(chatKey, JSON.stringify(payload));
+    } catch (err) {
+      // Попытка почистить тяжелые поля (изображения), если переполнено хранилище
+      if (err && (err.name === 'QuotaExceededError' || err.code === 22)) {
+        try {
+          const withoutImages = payload.map(m => ({
+            id: m.id,
+            sender: m.sender,
+            text: m.text,
+            timestamp: m.timestamp
+          }));
+          localStorage.setItem(chatKey, JSON.stringify(withoutImages));
+          if (notify && typeof showErrorFn === 'function') {
+            showErrorFn('История чата частично сохранена без изображений (недостаточно памяти браузера)');
+          }
+        } catch (err2) {
+          // Финальный фоллбек — очищаем самый старый ключ чата этого клиента
+          try {
+            if (notify && typeof showErrorFn === 'function') {
+              showErrorFn('Недостаточно памяти для сохранения истории. Самые старые сообщения будут удалены.');
+            }
+          } catch (_) {}
+        }
+      } else {
+        // Другая ошибка сохранения
+        console.error('Error saving chat to localStorage:', err);
+        if (notify && typeof showErrorFn === 'function') {
+          showErrorFn('Не удалось сохранить историю чата');
+        }
+      }
+    }
+  };
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [chefs, setChefs] = useState([]);
   const [selectedChef, setSelectedChef] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
   const navigate = useNavigate();
+  const { socket } = useWebSocket();
+  const { showSuccess, showError } = useToast();
+  const clientId = localStorage.getItem('clientId') || 'demo_client';
 
   // Прокрутка чата вниз при новых сообщениях
   const scrollToBottom = () => {
@@ -74,24 +123,10 @@ const ClientChat = () => {
   const loadMessages = async (chefId) => {
     setLoading(true);
     try {
-      // Здесь будет API запрос для получения истории сообщений
-      // const response = await fetch(`api/client/messages/${chefId}`, {
-      //   headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
-      // });
-      // const data = await response.json();
-      // if (!response.ok) throw new Error(data.message || 'Ошибка при загрузке сообщений');
-      // setMessages(data);
-
-      // Временные данные для демонстрации
-      const mockMessages = [
-        { id: 1, sender: 'chef', text: 'Здравствуйте! Чем могу помочь?', timestamp: '2023-06-20T10:30:00' },
-        { id: 2, sender: 'client', text: 'Добрый день! Хотел уточнить по поводу моего заказа #12345', timestamp: '2023-06-20T10:31:00' },
-        { id: 3, sender: 'chef', text: 'Конечно, ваш заказ сейчас готовится. Будет готов примерно через 20 минут.', timestamp: '2023-06-20T10:32:00' },
-        { id: 4, sender: 'client', text: 'Отлично, спасибо! А можно добавить к заказу еще один десерт?', timestamp: '2023-06-20T10:33:00' },
-        { id: 5, sender: 'chef', text: 'К сожалению, заказ уже в процессе приготовления. Но вы можете сделать дополнительный заказ.', timestamp: '2023-06-20T10:34:00' }
-      ];
-      
-      setMessages(mockMessages);
+      // Загружаем историю сообщений из localStorage
+      const chatKey = `chat_${clientId}_${chefId}`;
+      const savedMessages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+      setMessages(savedMessages);
       localStorage.setItem('selectedChefId', chefId);
     } catch (err) {
       console.error('Error loading messages:', err);
@@ -101,60 +136,124 @@ const ClientChat = () => {
     }
   };
 
+  // WebSocket обработчики
+  useEffect(() => {
+    if (socket && selectedChef) {
+      // Присоединяемся к комнате чата
+      socket.emit('joinChatRoom', { clientId, chefId: selectedChef.id });
+
+      // Слушаем входящие сообщения
+      const handleNewMessage = (data) => {
+        if (data.from === selectedChef.id) {
+          const newMsg = {
+            id: Date.now(),
+            sender: 'chef',
+            text: data.message,
+            timestamp: new Date().toISOString(),
+            image: data.image
+          };
+          setMessages(prev => {
+            const updated = [...prev, newMsg];
+            const chatKey = `chat_${clientId}_${selectedChef.id}`;
+            safeSaveChat(chatKey, updated, true, showError);
+            return updated;
+          });
+          setIsTyping(false);
+        }
+      };
+
+      // Слушаем индикатор печати
+      const handleTyping = (data) => {
+        if (data.from === selectedChef.id) {
+          setIsTyping(true);
+          setTimeout(() => setIsTyping(false), 3000);
+        }
+      };
+
+      socket.on('chatMessage', handleNewMessage);
+      socket.on('typing', handleTyping);
+
+      return () => {
+        socket.off('chatMessage', handleNewMessage);
+        socket.off('typing', handleTyping);
+        socket.emit('leaveChatRoom', { clientId, chefId: selectedChef.id });
+      };
+    }
+  }, [socket, selectedChef, clientId]);
+
   // Выбор повара для чата
   const handleSelectChef = (chef) => {
     setSelectedChef(chef);
     loadMessages(chef.id);
   };
 
+  // Обработка загрузки изображения
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showError('Можно загружать только изображения');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showError('Размер файла не должен превышать 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSelectedImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Обработка индикатора печати
+  const handleTypingIndicator = () => {
+    if (socket && selectedChef) {
+      socket.emit('typing', { to: selectedChef.id, from: clientId });
+    }
+  };
+
   // Отправка нового сообщения
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedChef) return;
-
-    // Для реального API запроса
-    // const messageData = {
-    //   text: newMessage,
-    //   chefId: selectedChef.id
-    // };
+    if ((!newMessage.trim() && !selectedImage) || !selectedChef) return;
 
     try {
-      // Здесь будет API запрос для отправки сообщения
-      // const response = await fetch('api/client/messages', {
-      //   method: 'POST',
-      //   headers: { 
-      //     'Content-Type': 'application/json',
-      //     Authorization: `Bearer ${localStorage.getItem('authToken')}` 
-      //   },
-      //   body: JSON.stringify(messageData)
-      // });
-      // const data = await response.json();
-      // if (!response.ok) throw new Error(data.message || 'Ошибка при отправке сообщения');
-
-      // Временная имитация отправки сообщения
       const newMsg = {
-        id: messages.length + 1,
+        id: Date.now(),
         sender: 'client',
-        text: newMessage,
-        timestamp: new Date().toISOString()
+        text: newMessage.trim(),
+        timestamp: new Date().toISOString(),
+        image: selectedImage
       };
       
-      setMessages([...messages, newMsg]);
-      setNewMessage('');
+      // Сохраняем в state и localStorage
+      setMessages(prev => {
+        const updated = [...prev, newMsg];
+        const chatKey = `chat_${clientId}_${selectedChef.id}`;
+        safeSaveChat(chatKey, updated, true, showError);
+        return updated;
+      });
 
-      // Имитация ответа от повара через 1 секунду
-      setTimeout(() => {
-        const chefReply = {
-          id: messages.length + 2,
-          sender: 'chef',
-          text: 'Спасибо за ваше сообщение! Я скоро отвечу.',
-          timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, chefReply]);
-      }, 1000);
+      // Отправляем через WebSocket
+      if (socket) {
+        socket.emit('sendChatMessage', {
+          to: selectedChef.id,
+          from: clientId,
+          message: newMessage.trim(),
+          image: selectedImage
+        });
+      }
+
+      setNewMessage('');
+      setSelectedImage(null);
+      showSuccess('Сообщение отправлено');
     } catch (err) {
       console.error('Error sending message:', err);
-      setError(err.message || 'Произошла ошибка при отправке сообщения');
+      showError('Ошибка при отправке сообщения');
     }
   };
 
@@ -212,7 +311,13 @@ const ClientChat = () => {
                   <span>Чат с</span>
                   <strong>{selectedChef.name}</strong>
                 </div>
-                <div className="chef-status online">В сети</div>
+                <div className="chef-status-info">
+                  {isTyping ? (
+                    <div className="typing-indicator">печатает...</div>
+                  ) : (
+                    <div className="chef-status online">В сети</div>
+                  )}
+                </div>
               </div>
               
               <div className="messages-container">
@@ -229,7 +334,19 @@ const ClientChat = () => {
                         className={`message ${message.sender === 'client' ? 'outgoing' : 'incoming'}`}
                       >
                         <div className="message-content">
-                          <div className="message-text">{message.text}</div>
+                          {message.image && (
+                            <img
+                              src={message.image}
+                              alt="Вложение"
+                              className="message-image"
+                              style={{
+                                maxWidth: '200px',
+                                borderRadius: '8px',
+                                marginBottom: '8px'
+                              }}
+                            />
+                          )}
+                          {message.text && <div className="message-text">{message.text}</div>}
                           <div className="message-time">{formatMessageTime(message.timestamp)}</div>
                         </div>
                       </div>
@@ -239,15 +356,93 @@ const ClientChat = () => {
                 )}
               </div>
               
+              {/* Превью изображения */}
+              {selectedImage && (
+                <div style={{
+                  padding: '10px 20px',
+                  background: '#f8f9fa',
+                  borderTop: '1px solid #e0e0e0'
+                }}>
+                  <div style={{
+                    position: 'relative',
+                    display: 'inline-block'
+                  }}>
+                    <img
+                      src={selectedImage}
+                      alt="Превью"
+                      style={{
+                        width: '100px',
+                        height: '100px',
+                        objectFit: 'cover',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedImage(null)}
+                      style={{
+                        position: 'absolute',
+                        top: '-8px',
+                        right: '-8px',
+                        background: '#f44336',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '24px',
+                        height: '24px',
+                        cursor: 'pointer',
+                        fontSize: '16px'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              )}
+              
               <form className="message-form" onSubmit={handleSendMessage}>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleImageUpload}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="attach-button"
+                  title="Прикрепить изображение"
+                  style={{
+                    background: '#2196F3',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px',
+                    cursor: 'pointer',
+                    fontSize: '18px'
+                  }}
+                >
+                  📎
+                </button>
                 <input
                   type="text"
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    handleTypingIndicator();
+                  }}
                   placeholder="Введите сообщение..."
-                  required
+                  style={{ flex: 1 }}
                 />
-                <button type="submit" disabled={!newMessage.trim()}>
+                <button 
+                  type="submit" 
+                  disabled={!newMessage.trim() && !selectedImage}
+                  style={{
+                    opacity: (newMessage.trim() || selectedImage) ? 1 : 0.5,
+                    cursor: (newMessage.trim() || selectedImage) ? 'pointer' : 'not-allowed'
+                  }}
+                >
                   Отправить
                 </button>
               </form>

@@ -1,0 +1,932 @@
+openapi: 3.0.3
+info:
+  title: Food Delivery Platform API
+  version: 2.0.0
+  description: |
+    Production-ready API для платформы доставки еды от домашних поваров.
+    
+    ## Аутентификация
+    - Access token (15 минут) в httpOnly cookie
+    - Refresh token (7 дней) в httpOnly cookie
+    - CSRF protection через SameSite=Strict
+    
+    ## Rate Limiting
+    - 100 req/min для обычных пользователей
+    - 1000 req/min для поваров
+    - 10 req/min для auth endpoints
+    
+    ## Безопасность
+    - HTTPS только
+    - Input validation
+    - SQL injection protection
+    - XSS protection
+  contact:
+    name: API Support
+    email: api@fooddelivery.com
+  license:
+    name: MIT
+
+servers:
+  - url: https://api.fooddelivery.com/v1
+    description: Production server
+  - url: https://staging-api.fooddelivery.com/v1
+    description: Staging server
+  - url: http://localhost:3001/api
+    description: Development server
+
+tags:
+  - name: Auth
+    description: Аутентификация и авторизация
+  - name: Dishes
+    description: Управление блюдами
+  - name: Orders
+    description: Управление заказами
+  - name: Payments
+    description: Платежная система
+  - name: Chefs
+    description: Управление поварами
+  - name: Reviews
+    description: Отзывы и рейтинги
+  - name: Analytics
+    description: Аналитика и статистика
+  - name: Notifications
+    description: Уведомления
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: Access token в httpOnly cookie
+    
+  schemas:
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Validation error"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+    
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - firstName
+        - lastName
+        - role
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        email:
+          type: string
+          format: email
+          example: "chef@example.com"
+        firstName:
+          type: string
+          example: "Иван"
+        lastName:
+          type: string
+          example: "Иванов"
+        phone:
+          type: string
+          example: "+79001234567"
+        role:
+          type: string
+          enum: [client, chef, admin]
+          example: "chef"
+        isVerified:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+    
+    Chef:
+      type: object
+      required:
+        - id
+        - userId
+        - specialization
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        bio:
+          type: string
+          example: "Опытный повар итальянской кухни"
+        specialization:
+          type: string
+          example: "Итальянская кухня, паста, пицца"
+        experience:
+          type: integer
+          example: 10
+        rating:
+          type: number
+          format: float
+          example: 4.8
+        reviewsCount:
+          type: integer
+          example: 156
+        totalOrders:
+          type: integer
+          example: 542
+        isAvailable:
+          type: boolean
+          example: true
+        tier:
+          type: string
+          enum: [BRONZE, SILVER, GOLD, PLATINUM]
+          example: "GOLD"
+    
+    Dish:
+      type: object
+      required:
+        - id
+        - chefId
+        - name
+        - category
+        - price
+      properties:
+        id:
+          type: string
+          format: uuid
+        chefId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Паста Карбонара"
+        description:
+          type: string
+          example: "Классическая итальянская паста с беконом"
+        category:
+          type: string
+          enum: [MAIN_COURSE, SALAD, DESSERT, SOUP, BAKERY, DRINKS, SEMI_FINISHED]
+          example: "MAIN_COURSE"
+        image:
+          type: string
+          format: uri
+          example: "https://cdn.example.com/dishes/carbonara.jpg"
+        price:
+          type: number
+          format: float
+          example: 450.00
+        calories:
+          type: integer
+          example: 520
+        protein:
+          type: number
+          example: 25.5
+        carbs:
+          type: number
+          example: 45.2
+        fat:
+          type: number
+          example: 28.1
+        fiber:
+          type: number
+          example: 3.5
+        ingredients:
+          type: string
+          example: "Спагетти, бекон, яйца, пармезан"
+        tags:
+          type: string
+          example: "итальянская кухня, паста, классика"
+        isVegan:
+          type: boolean
+          example: false
+        isHalal:
+          type: boolean
+          example: false
+        isGlutenFree:
+          type: boolean
+          example: false
+        diabeticFriendly:
+          type: boolean
+          example: false
+        cookingTime:
+          type: integer
+          example: 20
+        servingSize:
+          type: string
+          example: "1 порция (350г)"
+        rating:
+          type: number
+          format: float
+          example: 4.7
+        ordersCount:
+          type: integer
+          example: 45
+        isAvailable:
+          type: boolean
+          example: true
+    
+    Order:
+      type: object
+      required:
+        - id
+        - clientId
+        - chefId
+        - status
+        - totalAmount
+      properties:
+        id:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        chefId:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              dishId:
+                type: string
+                format: uuid
+              quantity:
+                type: integer
+                example: 2
+              price:
+                type: number
+                example: 450.00
+        status:
+          type: string
+          enum: [PENDING, ACCEPTED, PREPARING, READY, DELIVERING, COMPLETED, CANCELLED]
+          example: "PREPARING"
+        totalAmount:
+          type: number
+          example: 1350.00
+        deliveryAddress:
+          type: string
+          example: "ул. Пушкина, д. 10, кв. 5"
+        deliveryTime:
+          type: string
+          format: date-time
+        comment:
+          type: string
+          example: "Без лука, пожалуйста"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    Payment:
+      type: object
+      required:
+        - id
+        - orderId
+        - amount
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          example: 1350.00
+        currency:
+          type: string
+          example: "RUB"
+        status:
+          type: string
+          enum: [PENDING, PROCESSING, COMPLETED, FAILED, REFUNDED]
+          example: "COMPLETED"
+        provider:
+          type: string
+          enum: [STRIPE, YOOKASSA]
+          example: "STRIPE"
+        providerPaymentId:
+          type: string
+          example: "pi_1234567890"
+        createdAt:
+          type: string
+          format: date-time
+
+paths:
+  # ============================================
+  # AUTH ENDPOINTS
+  # ============================================
+  
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Регистрация нового пользователя
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - firstName
+                - lastName
+                - role
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                phone:
+                  type: string
+                role:
+                  type: string
+                  enum: [client, chef]
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: "accessToken=abc123; HttpOnly; Secure; SameSite=Strict"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  message:
+                    type: string
+                    example: "Регистрация успешна"
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Вход в систему
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Успешный вход
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: "accessToken=abc123; HttpOnly; Secure; SameSite=Strict"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  message:
+                    type: string
+                    example: "Вход выполнен успешно"
+        '401':
+          description: Неверные учетные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Выход из системы
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Успешный выход
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Выход выполнен успешно"
+  
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Обновление access token
+      security: []
+      responses:
+        '200':
+          description: Токен обновлен
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: "accessToken=new123; HttpOnly; Secure; SameSite=Strict"
+        '401':
+          description: Refresh token недействителен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ============================================
+  # DISHES ENDPOINTS
+  # ============================================
+  
+  /dishes:
+    get:
+      tags:
+        - Dishes
+      summary: Получить список блюд
+      security: []
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [MAIN_COURSE, SALAD, DESSERT, SOUP, BAKERY, DRINKS]
+        - name: chefId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: isVegan
+          in: query
+          schema:
+            type: boolean
+        - name: isHalal
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Список блюд
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dishes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Dish'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+    
+    post:
+      tags:
+        - Dishes
+      summary: Создать новое блюдо
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Dish'
+      responses:
+        '201':
+          description: Блюдо создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Нет прав (не повар)
+  
+  /dishes/{dishId}:
+    get:
+      tags:
+        - Dishes
+      summary: Получить блюдо по ID
+      security: []
+      parameters:
+        - name: dishId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Данные блюда
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '404':
+          description: Блюдо не найдено
+    
+    put:
+      tags:
+        - Dishes
+      summary: Обновить блюдо
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: dishId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Dish'
+      responses:
+        '200':
+          description: Блюдо обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Нет прав
+        '404':
+          description: Блюдо не найдено
+    
+    delete:
+      tags:
+        - Dishes
+      summary: Удалить блюдо
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: dishId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Блюдо удалено
+        '401':
+          description: Не авторизован
+        '403':
+          description: Нет прав
+        '404':
+          description: Блюдо не найдено
+  
+  # ============================================
+  # ORDERS ENDPOINTS
+  # ============================================
+  
+  /orders:
+    post:
+      tags:
+        - Orders
+      summary: Создать заказ
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - items
+                - deliveryAddress
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      dishId:
+                        type: string
+                        format: uuid
+                      quantity:
+                        type: integer
+                deliveryAddress:
+                  type: string
+                deliveryTime:
+                  type: string
+                  format: date-time
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Заказ создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Ошибка валидации
+        '401':
+          description: Не авторизован
+  
+  /orders/client:
+    get:
+      tags:
+        - Orders
+      summary: Получить заказы клиента
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Список заказов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  total:
+                    type: integer
+        '401':
+          description: Не авторизован
+  
+  /orders/chef:
+    get:
+      tags:
+        - Orders
+      summary: Получить заказы повара
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Список заказов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Нет прав (не повар)
+  
+  /orders/{orderId}/status:
+    patch:
+      tags:
+        - Orders
+      summary: Обновить статус заказа
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [ACCEPTED, PREPARING, READY, DELIVERING, COMPLETED, CANCELLED]
+      responses:
+        '200':
+          description: Статус обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Нет прав
+        '404':
+          description: Заказ не найден
+  
+  # ============================================
+  # PAYMENTS ENDPOINTS
+  # ============================================
+  
+  /payments:
+    post:
+      tags:
+        - Payments
+      summary: Создать платеж
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - orderId
+                - amount
+                - provider
+              properties:
+                orderId:
+                  type: string
+                  format: uuid
+                amount:
+                  type: number
+                provider:
+                  type: string
+                  enum: [STRIPE, YOOKASSA]
+      responses:
+        '201':
+          description: Платеж создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: Ошибка валидации
+        '401':
+          description: Не авторизован
+  
+  /payments/{paymentId}/refund:
+    post:
+      tags:
+        - Payments
+      summary: Вернуть платеж
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - reason
+              properties:
+                amount:
+                  type: number
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Возврат выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Нет прав
+        '404':
+          description: Платеж не найден
+  
+  # ============================================
+  # HEALTH CHECK
+  # ============================================
+  
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: Система работает
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                    example: "2.0.0"
+                  uptime:
+                    type: number
+                    example: 3600
+
+security:
+  - cookieAuth: []
+

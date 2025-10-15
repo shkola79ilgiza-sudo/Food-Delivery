@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import FeedbackModal from './FeedbackModal';
 
 const OrderConfirmation = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -27,6 +29,29 @@ const OrderConfirmation = () => {
   const handleContinueShopping = () => {
     localStorage.removeItem('lastOrder');
     navigate('/client/menu');
+  };
+
+  const handleRateOrder = () => {
+    setShowFeedbackModal(true);
+  };
+
+  const handleFeedbackSubmit = (feedback) => {
+    // Сохраняем оценку заказа
+    try {
+      const orders = JSON.parse(localStorage.getItem('clientOrders') || '[]');
+      const orderIndex = orders.findIndex(o => o.id === order.id);
+      
+      if (orderIndex !== -1) {
+        orders[orderIndex].rating = feedback.rating;
+        orders[orderIndex].review = feedback.review;
+        orders[orderIndex].ratedAt = new Date().toISOString();
+        localStorage.setItem('clientOrders', JSON.stringify(orders));
+      }
+      
+      setShowFeedbackModal(false);
+    } catch (error) {
+      console.error('Error saving order rating:', error);
+    }
   };
 
   if (loading) {
@@ -148,6 +173,9 @@ const OrderConfirmation = () => {
         </div>
         
         <div className="confirmation-actions">
+          <button onClick={handleRateOrder} className="rate-order-button">
+            ⭐ Оценить заказ
+          </button>
           <button onClick={handleContinueShopping} className="continue-shopping-button">
             Продолжить покупки
           </button>
@@ -163,6 +191,15 @@ const OrderConfirmation = () => {
           <p><strong>Email:</strong> support@fooddelivery.com</p>
         </div>
       </div>
+      
+      {/* Модальное окно оценки заказа */}
+      {showFeedbackModal && (
+        <FeedbackModal
+          orderId={order.id}
+          onClose={() => setShowFeedbackModal(false)}
+          onSubmit={handleFeedbackSubmit}
+        />
+      )}
     </div>
   );
 };

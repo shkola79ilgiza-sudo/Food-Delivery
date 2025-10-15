@@ -183,7 +183,7 @@ const AITextHelper = ({ onInsertToDishDescription }) => {
 
   return (
     <div className="ai-text-helper-container">
-      <h3 className="ai-text-helper-title">{t.aiTextHelper.title}</h3>
+      <h3 className="ai-text-helper-title">{t.aiTextHelper?.title || 'Помощник по созданию текстов'}</h3>
       
       <div className="ai-text-helper-controls">
         <div className="action-selector">

@@ -10,7 +10,7 @@ const HolidayAnalytics = ({ onClose }) => {
   const [selectedRegion, setSelectedRegion] = useState('all'); // 'all', 'Россия', 'Татарстан'
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
 
   // База данных праздников России и Татарстана с традиционными блюдами
   const holidaysDatabase = useMemo(() => ({
@@ -431,7 +431,15 @@ const HolidayAnalytics = ({ onClose }) => {
 
   // Генерация праздничного меню
   const generateHolidayMenu = () => {
-    if (!holidayData) return;
+    if (!holidayData) {
+      showError('Сначала выберите праздник из списка выше!');
+      return;
+    }
+    
+    if (!holidayData.traditionalDishes || holidayData.traditionalDishes.length === 0) {
+      showError('Нет блюд для этого праздника. Попробуйте другой праздник!');
+      return;
+    }
     
     const menu = holidayData.traditionalDishes.map(dish => ({
       ...dish,
@@ -441,7 +449,7 @@ const HolidayAnalytics = ({ onClose }) => {
     
     // Сохраняем в localStorage для использования в корзине
     localStorage.setItem('holidayMenu', JSON.stringify(menu));
-    showSuccess(`Праздничное меню "${holidayData.name}" сохранено!`);
+    showSuccess(`✅ Праздничное меню "${holidayData.name}" сохранено! Перейдите в корзину для оформления.`);
   };
 
   // Загрузка данных при монтировании

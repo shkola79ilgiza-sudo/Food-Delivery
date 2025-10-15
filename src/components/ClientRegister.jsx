@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { register } from '../api';
+import { register } from '../api/adapter';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const ClientRegister = () => {

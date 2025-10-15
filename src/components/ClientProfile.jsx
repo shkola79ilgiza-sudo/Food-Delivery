@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import VIPSystem from './VIPSystem';
 
 const ClientProfile = () => {
   const [profile, setProfile] = useState({
@@ -262,6 +263,9 @@ const ClientProfile = () => {
           </div>
 
 
+          {/* VIP-система */}
+          <VIPSystem />
+          
           <div className="profile-actions-bottom">
             <Link to="/client/orders" className="view-orders-button">
               Мои заказы
