@@ -43,6 +43,7 @@ import TestShareNutrition from "./components/TestShareNutrition";
 import TestSmartTagging from "./components/TestSmartTagging";
 import SmartNotifications from "./components/SmartNotifications";
 import RealTimeAnalytics from "./components/RealTimeAnalytics";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
 
 function ProtectedRoute({ children, requireAdmin = false }) {
   const token = localStorage.getItem("authToken");
@@ -281,6 +282,7 @@ function App() {
                     {/* Новые компоненты */}
                     <SmartNotifications />
                     <RealTimeAnalytics />
+                    <PWAInstallPrompt />
                   </Router>
                 </WebSocketProvider>
               </NotificationProvider>
