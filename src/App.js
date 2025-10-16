@@ -73,7 +73,7 @@ function App() {
             <AuthProvider>
               <NotificationProvider>
                 <WebSocketProvider>
-                  <Router>
+                  <Router basename="/Food-Delivery">
                     <div className="AppWrapper">
                   {/* Навигация */}
                   <Navigation />
