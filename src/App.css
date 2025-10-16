@@ -11910,6 +11910,113 @@ html, body {
     box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
   }
 }
+
+/* ===== КРИТИЧЕСКИЕ СТИЛИ ДЛЯ ДЕСКТОПА - ПЕРЕОПРЕДЕЛЯЕМ МОБИЛЬНЫЕ ===== */
+@media (min-width: 769px) {
+  /* ПРИНУДИТЕЛЬНО исправляем навигацию на десктопе */
+  nav.top-nav {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 15px !important;
+    padding: 15px 20px !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  nav.top-nav .nav-track {
+    display: flex !important;
+    align-items: center !important;
+    gap: 25px !important;
+    flex-wrap: wrap !important;
+    flex: 1 !important;
+    max-width: calc(100% - 200px) !important;
+    overflow-x: visible !important;
+    -webkit-overflow-scrolling: auto !important;
+    scroll-behavior: auto !important;
+    touch-action: auto !important;
+    white-space: normal !important;
+    padding-bottom: 0 !important;
+  }
+
+  nav.top-nav .nav-section {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 8px 15px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    margin-right: 12px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  nav.top-nav .nav-label {
+    font-weight: bold !important;
+    color: #666 !important;
+    margin-right: 8px !important;
+    font-size: 14px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  nav.top-nav a, nav.top-nav button, nav.top-nav span {
+    display: inline-block !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    white-space: nowrap !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    text-decoration: none !important;
+    color: #333 !important;
+    font-weight: 500 !important;
+    margin-right: 10px !important;
+    flex-shrink: 0 !important;
+    min-width: fit-content !important;
+    max-width: none !important;
+  }
+
+  nav.top-nav a:hover, nav.top-nav button:hover {
+    background: rgba(46, 204, 113, 0.1) !important;
+    transform: translateY(-1px) !important;
+    border-color: #2ecc71 !important;
+  }
+
+  nav.top-nav .nav-controls {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    margin-left: auto !important;
+  }
+
+  nav.top-nav .logout-btn {
+    background: #e74c3c !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 8px 15px !important;
+    font-size: 14px !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+  }
+
+  nav.top-nav .logout-btn:hover {
+    background: #c0392b !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3) !important;
+  }
+}
 /* Стили для кнопок действий */
 .action-button {
   position: relative;
