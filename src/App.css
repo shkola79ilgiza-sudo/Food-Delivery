@@ -12063,5 +12063,104 @@ html, body {
   margin-right: 10px;
 }
 
+/* ===== ДЕСКТОПНАЯ АДАПТАЦИЯ - УЛУЧШЕНИЯ ===== */
+@media (min-width: 1200px) {
+  /* Улучшенная главная страница для больших экранов */
+  .FeaturesSection {
+    max-width: 1000px;
+    margin: 0 auto;
+    gap: 25px;
+  }
+  
+  .FeatureCard {
+    max-width: 280px;
+    padding: 25px;
+    min-height: 200px;
+  }
+  
+  .FeatureCard h4 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+  }
+  
+  .FeatureCard p {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  
+  .IconWrapper {
+    font-size: 40px;
+    margin-bottom: 15px;
+  }
+}
+
+@media (min-width: 1400px) {
+  /* Для очень больших экранов */
+  .FeaturesSection {
+    max-width: 1200px;
+    gap: 30px;
+  }
+  
+  .FeatureCard {
+    max-width: 320px;
+    padding: 30px;
+    min-height: 220px;
+  }
+  
+  .FeatureCard h4 {
+    font-size: 1.3rem;
+  }
+  
+  .FeatureCard p {
+    font-size: 1.1rem;
+  }
+}
+
+/* ===== УЛУЧШЕНИЯ ДЛЯ СРЕДНИХ ЭКРАНОВ ===== */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .FeaturesSection {
+    max-width: 900px;
+    margin: 0 auto;
+    gap: 20px;
+  }
+  
+  .FeatureCard {
+    max-width: 260px;
+    padding: 20px;
+    min-height: 180px;
+  }
+  
+  .IconWrapper {
+    font-size: 35px;
+  }
+}
+
+/* ===== УЛУЧШЕНИЯ ДЛЯ ГЛАВНОЙ СТРАНИЦЫ НА ДЕСКТОПЕ ===== */
+@media (min-width: 992px) {
+  /* Улучшенная центральная карточка для десктопа */
+  .AppWrapper > div:first-child {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 40px;
+  }
+  
+  /* Улучшенные заголовки */
+  .AppWrapper h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .AppWrapper h2 {
+    font-size: 1.8rem;
+    margin-top: 50px;
+    margin-bottom: 30px;
+  }
+  
+  /* Лучшие отступы между секциями */
+  .FeaturesSection {
+    margin-top: 40px;
+  }
+}
+
 /* Закрывающая скобка для последнего медиа-запроса */
 }
