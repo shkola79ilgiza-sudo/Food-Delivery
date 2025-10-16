@@ -2949,7 +2949,29 @@ function ChefMenu() {
               {t.chefMenu.mainPhoto}:
             </label>
             <input type="file" accept="image/*" onChange={handlePhotoChange} />
-            {dishPhoto && <img src={dishPhoto} alt={t.chefMenu.preview} className="DishPreview" />}
+            {dishPhoto && (
+              <div style={{ marginTop: '10px' }}>
+                <img src={dishPhoto} alt={t.chefMenu.preview} className="DishPreview" />
+                <button
+                  onClick={() => setShowPhotoAnalyzer(true)}
+                  style={{
+                    marginTop: '10px',
+                    padding: '8px 16px',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  📸 AI Анализ фото
+                </button>
+              </div>
+            )}
           </div>
           
           {/* Фото "до" и "после" для блюд из продуктов клиента */}
