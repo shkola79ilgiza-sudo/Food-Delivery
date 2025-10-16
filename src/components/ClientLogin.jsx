@@ -29,7 +29,7 @@ const ClientLogin = () => {
       console.log('🔗 URL изображения:', img.src);
     };
     img.onerror = () => console.log('❌ Ошибка загрузки татарского фона');
-    img.src = '/images/tatar.jpg';
+    img.src = process.env.PUBLIC_URL + '/images/tatar.jpg';
   }, [navigate]);
 
   const handleSubmit = async (e) => {
@@ -93,7 +93,7 @@ const ClientLogin = () => {
   return (
     <div className="client-login-container" style={{
       background: `
-        url("/images/tatar.jpg"),
+        url("${process.env.PUBLIC_URL}/images/tatar.jpg"),
         linear-gradient(135deg, 
           #2D5016 0%, 
           #4A7C59 25%, 
