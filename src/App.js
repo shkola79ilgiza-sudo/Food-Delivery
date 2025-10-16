@@ -68,7 +68,7 @@ function App() {
           <ToastProvider>
             <AuthProvider>
               <WebSocketProvider>
-                <Router>
+                <Router basename="/Food-Delivery">
                 <div className="AppWrapper">
                   {/* Навигация */}
                   <Navigation />
