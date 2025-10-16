@@ -117,8 +117,8 @@ jobs:
       - name: 🏗️ Build application
         run: npm run build
         env:
-          REACT_APP_API_BASE_URL: ${{ secrets.API_BASE_URL }}
-          REACT_APP_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          REACT_APP_API_BASE_URL: ${{ secrets.API_BASE_URL || '' }}
+          REACT_APP_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
           REACT_APP_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
       
       - name: 📦 Upload build artifacts
@@ -193,20 +193,21 @@ jobs:
           path: build/
       
       - name: 🚀 Deploy to staging
+        if: ${{ secrets.STAGING_HOST != '' }}
         uses: easingthemes/ssh-deploy@v2
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.STAGING_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.STAGING_HOST }}
-          REMOTE_USER: ${{ secrets.STAGING_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING_SSH_KEY || '' }}
+          REMOTE_HOST: ${{ secrets.STAGING_HOST || '' }}
+          REMOTE_USER: ${{ secrets.STAGING_USER || '' }}
           SOURCE: "build/"
           TARGET: "/var/www/staging"
       
       - name: 🔄 Restart Nginx
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
+          host: ${{ secrets.STAGING_HOST || '' }}
+          username: ${{ secrets.STAGING_USER || '' }}
+          key: ${{ secrets.STAGING_SSH_KEY || '' }}
           script: |
             sudo systemctl reload nginx
             echo "✅ Staging deployed successfully"
@@ -215,7 +216,7 @@ jobs:
         uses: 8398a7/action-slack@v3
         if: always()
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK || '' }}
         with:
           status: ${{ job.status }}
           text: 'Staging deployment completed'
@@ -260,20 +261,21 @@ jobs:
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
       
       - name: 🚀 Deploy to production
+        if: ${{ secrets.PRODUCTION_HOST != '' }}
         uses: easingthemes/ssh-deploy@v2
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.PRODUCTION_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.PRODUCTION_HOST }}
-          REMOTE_USER: ${{ secrets.PRODUCTION_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.PRODUCTION_SSH_KEY || '' }}
+          REMOTE_HOST: ${{ secrets.PRODUCTION_HOST || '' }}
+          REMOTE_USER: ${{ secrets.PRODUCTION_USER || '' }}
           SOURCE: "build/"
           TARGET: "/var/www/production"
       
       - name: 🔄 Blue-Green Deployment
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.PRODUCTION_HOST }}
-          username: ${{ secrets.PRODUCTION_USER }}
-          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          host: ${{ secrets.PRODUCTION_HOST || '' }}
+          username: ${{ secrets.PRODUCTION_USER || '' }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY || '' }}
           script: |
             # Blue-green deployment script
             docker-compose -f /opt/app/docker-compose.yml pull
@@ -291,9 +293,9 @@ jobs:
       - name: 📊 Create Sentry release
         uses: getsentry/action-release@v1
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN || '' }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG || '' }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT || '' }}
         with:
           environment: production
           version: ${{ github.sha }}
@@ -302,7 +304,7 @@ jobs:
         uses: 8398a7/action-slack@v3
         if: always()
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK || '' }}
         with:
           status: ${{ job.status }}
           text: '🚀 Production deployment completed'
@@ -311,7 +313,7 @@ jobs:
         if: failure()
         uses: Entle/action-pagerduty-alert@v1
         with:
-          pagerduty-integration-key: ${{ secrets.PAGERDUTY_KEY }}
+          pagerduty-integration-key: ${{ secrets.PAGERDUTY_KEY || '' }}
           pagerduty-dedup-key: deployment-${{ github.sha }}
 
   # ============================================
@@ -358,7 +360,7 @@ jobs:
       - name: 🔒 Run Snyk Security Scan
         uses: snyk/actions/node@master
         env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
         with:
           args: --severity-threshold=high
       
