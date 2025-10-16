@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAvailableDishes } from '../api';
+import { getAvailableDishes } from '../api/adapter';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import SearchBar from './SearchBar';
@@ -20,6 +20,8 @@ import StarRating from './StarRating';
 import ReviewModal from './ReviewModal';
 import AIRecommendations from './AIRecommendations';
 import AnimatedIcon from './AnimatedIcon';
+import AIDishChatbot from './AIDishChatbot';
+import './ClientMenu.css';
 
 const ClientMenu = () => {
   const [dishes, setDishes] = useState([]);
@@ -71,6 +73,8 @@ const ClientMenu = () => {
   const [showHelpGuestRequest, setShowHelpGuestRequest] = useState(false);
   const [selectedHelpGuestDish, setSelectedHelpGuestDish] = useState(null);
   const [showMasterClassRequest, setShowMasterClassRequest] = useState(false);
+  const [showAIChatbot, setShowAIChatbot] = useState(false);
+  const [selectedChatbotDish, setSelectedChatbotDish] = useState(null);
   const [selectedMasterClassDish, setSelectedMasterClassDish] = useState(null);
   const [showClientNotifications, setShowClientNotifications] = useState(false);
   const [showDiabeticMenu, setShowDiabeticMenu] = useState(false);
@@ -231,7 +235,7 @@ const ClientMenu = () => {
     { id: 'soups', name: t.soups, icon: '🍲' },
     { id: 'salads', name: t.salads, icon: '🥗' },
     { id: 'desserts', name: t.desserts, icon: '🍰' },
-    { id: 'beverages', name: t.beverages, icon: '☕•' },
+    { id: 'beverages', name: t.beverages, icon: '☕' },
     { id: 'diet', name: t.dietMenu, icon: '🥗' },
     { id: 'diabetic', name: t.diabeticMenu.title, icon: '🩺', isSpecial: true },
     { id: 'client_cook', name: t.clientCooking, icon: '👨‍🍳' },
@@ -862,8 +866,21 @@ const ClientMenu = () => {
 
   // Загрузка избранного
   useEffect(() => {
-    const savedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    setFavorites(savedFavorites);
+    try {
+      const savedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      // Проверяем, что это массив
+      if (Array.isArray(savedFavorites)) {
+        setFavorites(savedFavorites);
+      } else {
+        console.warn('Favorites is not an array, resetting to empty array');
+        setFavorites([]);
+        localStorage.setItem('favorites', '[]');
+      }
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+      setFavorites([]);
+      localStorage.setItem('favorites', '[]');
+    }
   }, []);
 
 
@@ -1014,15 +1031,56 @@ const ClientMenu = () => {
             )}
           </Link>
           <button 
-            onClick={() => setShowQuickOrder(true)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('⚡ Клик по кнопке "Быстрый заказ"');
+              console.log('⚡ Текущее состояние showQuickOrder:', showQuickOrder);
+              console.log('⚡ Количество блюд:', dishes?.length || 0);
+              
+              // Закрываем уведомления если они открыты
+              if (showClientNotifications) {
+                setShowClientNotifications(false);
+              }
+              
+              setShowQuickOrder(true);
+            }}
             className="modern-button light nav-button"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px',
+              background: 'linear-gradient(135deg, #ff9800, #f57c00)',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)',
+              transition: 'all 0.3s ease',
+              zIndex: 1000,
+              position: 'relative'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 152, 0, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(255, 152, 0, 0.3)';
+            }}
           >
             <AnimatedIcon name="lightning" size={20} animation="glow" />
-            Быстрый заказ
+            ⚡ Быстрый заказ
           </button>
           <button 
-            onClick={() => setShowClientNotifications(!showClientNotifications)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowClientNotifications(!showClientNotifications);
+            }}
             className={`modern-button light nav-button ${showClientNotifications ? 'active' : ''}`}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}
           >
@@ -1053,14 +1111,20 @@ const ClientMenu = () => {
           {/* Кнопка для тестиро☕ания у☕едомлений */}
           <button
             onClick={() => {
-              const testNotification = {
-                type: 'test',
-                title: 'Тестовое уведомление',
-                message: 'Это тестовое уведомление для проверки системы',
-                timestamp: new Date().toISOString()
-              };
-              addNotification(testNotification);
-              console.log('Test notification added');
+              try {
+                const testNotification = {
+                  type: 'test',
+                  title: 'Тестовое уведомление',
+                  message: 'Это тестовое уведомление для проверки системы',
+                  timestamp: new Date().toISOString()
+                };
+                addNotification(testNotification);
+                showSuccess('Тестовое уведомление добавлено!');
+                console.log('Test notification added');
+              } catch (error) {
+                console.error('Error adding test notification:', error);
+                showError('Ошибка при добавлении уведомления');
+              }
             }}
             className="modern-button light nav-button"
             style={{
@@ -1089,12 +1153,18 @@ const ClientMenu = () => {
             Мои запросы
           </button>
           <button 
-            onClick={() => setShowDiabeticMenu(!showDiabeticMenu)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowDiabeticMenu(!showDiabeticMenu);
+            }}
             className={`modern-button light nav-button ${showDiabeticMenu ? 'active' : ''}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
           >
-            <AnimatedIcon name="health" size={20} animation="glow" />
-            Меню для диабетиков
+            <span style={{ pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+              <AnimatedIcon name="health" size={20} animation="glow" />
+            </span>
+            <span style={{ pointerEvents: 'none' }}>Меню для диабетиков</span>
           </button>
           <button 
             onClick={() => {
@@ -1637,8 +1707,8 @@ const ClientMenu = () => {
 
             <div className="categories-grid" style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '20px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '15px',
               marginTop: '20px'
             }}>
               {categories.map(category => (
@@ -1712,7 +1782,11 @@ const ClientMenu = () => {
                 </button>
                 
                 <button
-                  onClick={() => setShowHolidayAnalytics(!showHolidayAnalytics)}
+                  onClick={() => {
+                    console.log('🎉 Клик по кнопке "AI-аналитика праздников"');
+                    console.log('🎉 Текущее состояние:', showHolidayAnalytics);
+                    setShowHolidayAnalytics(!showHolidayAnalytics);
+                  }}
                   style={{
                     background: showHolidayAnalytics ? 
                       'linear-gradient(135deg, #ff6b6b, #ff8e53)' : 
@@ -1727,7 +1801,9 @@ const ClientMenu = () => {
                     boxShadow: showHolidayAnalytics ? 
                       '0 4px 15px rgba(255, 107, 107, 0.4)' : 
                       '0 4px 15px rgba(40, 167, 69, 0.4)',
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.3s ease',
+                    pointerEvents: 'auto',
+                    zIndex: 10
                   }}
                   onMouseEnter={(e) => {
                     e.target.style.transform = 'translateY(-2px)';
@@ -1862,7 +1938,7 @@ const ClientMenu = () => {
           ) : (
             <div className="dishes-grid" style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
               gap: '20px',
               marginTop: '20px'
             }}>
@@ -1901,7 +1977,7 @@ const ClientMenu = () => {
                         className="qr-button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/dish/${dish.chefId || 'unknown'}/${dish.id}/passport`);
+                          navigate(`/dish/${dish.chef?.id || dish.chefId || 'unknown'}/${dish.id}/passport`);
                         }}
                         title="Паспорт блюда"
                       >
@@ -2062,6 +2138,38 @@ const ClientMenu = () => {
                         }}
                       >
                         ⭐ Отзыв
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedChatbotDish(dish);
+                          setShowAIChatbot(true);
+                        }}
+                        style={{
+                          background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '20px',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'scale(1.05)';
+                          e.target.style.boxShadow = '0 4px 12px rgba(33, 150, 243, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                        title="Спросить AI о блюде"
+                      >
+                        🤖 Спросить AI
                       </button>
                     </div>
 
@@ -2342,10 +2450,88 @@ const ClientMenu = () => {
       ))}
 
       {showQuickOrder && (
-        <QuickOrder 
-          dishes={dishes} 
-          onClose={() => setShowQuickOrder(false)} 
-        />
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 10000
+        }}>
+          {(() => {
+            try {
+              return (
+                <QuickOrder 
+                  dishes={Array.isArray(dishes) ? dishes : []} 
+                  onClose={() => {
+                    console.log('⚡ Закрытие QuickOrder');
+                    setShowQuickOrder(false);
+                  }} 
+                />
+              );
+            } catch (error) {
+              console.error('❌ Ошибка рендера QuickOrder:', error);
+              return (
+                <div style={{
+                  background: 'white',
+                  padding: '30px',
+                  borderRadius: '12px',
+                  maxWidth: '500px',
+                  textAlign: 'center',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+                }}>
+                  <h3 style={{ color: '#f44336', marginBottom: '15px' }}>⚠️ Ошибка загрузки</h3>
+                  <p style={{ marginBottom: '20px', color: '#666' }}>
+                    Не удалось открыть "Быстрый заказ". Попробуйте:
+                  </p>
+                  <ul style={{ textAlign: 'left', marginBottom: '20px', color: '#666' }}>
+                    <li>Обновить страницу (F5)</li>
+                    <li>Очистить корзину</li>
+                    <li>Перейти в меню и выбрать блюда заново</li>
+                  </ul>
+                  <button 
+                    onClick={() => {
+                      setShowQuickOrder(false);
+                      window.location.reload();
+                    }}
+                    style={{
+                      background: '#4CAF50',
+                      color: 'white',
+                      border: 'none',
+                      padding: '12px 24px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      marginRight: '10px'
+                    }}
+                  >
+                    🔄 Обновить страницу
+                  </button>
+                  <button 
+                    onClick={() => setShowQuickOrder(false)}
+                    style={{
+                      background: '#999',
+                      color: 'white',
+                      border: 'none',
+                      padding: '12px 24px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    Закрыть
+                  </button>
+                </div>
+              );
+            }
+          })()}
+        </div>
       )}
 
       {showCookingRequest && selectedCookingDish && (
@@ -3098,8 +3284,55 @@ const ClientMenu = () => {
         </div>
       )}
 
+      {/* AI Chatbot Modal */}
+      {showAIChatbot && selectedChatbotDish && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '15px',
+            maxWidth: '600px',
+            width: '100%',
+            overflow: 'hidden',
+            position: 'relative'
+          }}>
+            <AIDishChatbot
+              dish={selectedChatbotDish}
+              userProfile={{
+                goal: localStorage.getItem('userGoal') || 'healthy',
+                allergies: JSON.parse(localStorage.getItem('userAllergies') || '[]'),
+                isDiabetic: diabeticFilter
+              }}
+              onEscalateToChef={(data) => {
+                console.log('Escalating to chef:', data);
+                // Здесь можно интегрировать с ClientChefChat
+                navigate(`/client/chef-chat/${selectedChatbotDish.chefId || 'unknown'}`);
+              }}
+              onClose={() => {
+                setShowAIChatbot(false);
+                setSelectedChatbotDish(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
 
 export default ClientMenu;
+
+
+

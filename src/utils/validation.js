@@ -1,119 +1,180 @@
-// Утилиты для валидации данных
+/**
+ * Утилиты для валидации данных в Food Delivery приложении
+ * @author Food Delivery Team
+ * @version 1.1.0
+ */
 
+/**
+ * Валидация email адреса
+ * @param {string} email - Email для валидации
+ * @returns {boolean} - true если email валидный
+ */
 export const validateEmail = (email) => {
+  if (!email || typeof email !== 'string') {
+    return false;
+  }
+  
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  return emailRegex.test(email.trim());
 };
 
-export const validatePhone = (phone) => {
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-  return phoneRegex.test(phone.replace(/\s/g, ''));
-};
-
+/**
+ * Валидация пароля
+ * @param {string} password - Пароль для валидации
+ * @returns {object} - Объект с результатом валидации
+ */
 export const validatePassword = (password) => {
-  return {
-    isValid: password.length >= 8,
-    hasUpperCase: /[A-Z]/.test(password),
-    hasLowerCase: /[a-z]/.test(password),
-    hasNumbers: /\d/.test(password),
-    hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+  const result = {
+    isValid: false,
+    errors: []
   };
-};
-
-export const validateRequired = (value) => {
-  return value && value.toString().trim().length > 0;
-};
-
-export const validateMinLength = (value, minLength) => {
-  return value && value.toString().length >= minLength;
-};
-
-export const validateMaxLength = (value, maxLength) => {
-  return value && value.toString().length <= maxLength;
-};
-
-export const validateNumber = (value, min = null, max = null) => {
-  const num = parseFloat(value);
-  if (isNaN(num)) return false;
-  if (min !== null && num < min) return false;
-  if (max !== null && num > max) return false;
-  return true;
-};
-
-export const validateDishData = (dishData) => {
-  const errors = {};
   
-  if (!validateRequired(dishData.name)) {
-    errors.name = 'Название блюда обязательно';
-  } else if (!validateMinLength(dishData.name, 2)) {
-    errors.name = 'Название должно содержать минимум 2 символа';
+  if (!password || typeof password !== 'string') {
+    result.errors.push('Пароль обязателен');
+    return result;
   }
   
-  if (!validateRequired(dishData.description)) {
-    errors.description = 'Описание блюда обязательно';
-  } else if (!validateMinLength(dishData.description, 10)) {
-    errors.description = 'Описание должно содержать минимум 10 символов';
+  if (password.length < 6) {
+    result.errors.push('Пароль должен содержать минимум 6 символов');
   }
   
-  if (!validateRequired(dishData.price)) {
-    errors.price = 'Цена обязательна';
-  } else if (!validateNumber(dishData.price, 0.01, 10000)) {
-    errors.price = 'Цена должна быть от 0.01 до 10000';
+  if (password.length > 128) {
+    result.errors.push('Пароль не должен превышать 128 символов');
   }
   
-  if (!validateRequired(dishData.category)) {
-    errors.category = 'Категория обязательна';
+  if (!/[A-Za-z]/.test(password)) {
+    result.errors.push('Пароль должен содержать хотя бы одну букву');
   }
+  
+  if (!/\d/.test(password)) {
+    result.errors.push('Пароль должен содержать хотя бы одну цифру');
+  }
+  
+  result.isValid = result.errors.length === 0;
+  return result;
+};
+
+/**
+ * Валидация телефона
+ * @param {string} phone - Номер телефона для валидации
+ * @returns {boolean} - true если номер валидный
+ */
+export const validatePhone = (phone) => {
+  if (!phone || typeof phone !== 'string') {
+    return false;
+  }
+  
+  // Убираем все символы кроме цифр
+  const cleanPhone = phone.replace(/\D/g, '');
+  
+  // Проверяем длину (от 10 до 15 цифр)
+  return cleanPhone.length >= 10 && cleanPhone.length <= 15;
+};
+
+/**
+ * Валидация цены блюда
+ * @param {number} price - Цена для валидации
+ * @returns {boolean} - true если цена валидная
+ */
+export const validatePrice = (price) => {
+  if (typeof price !== 'number' || isNaN(price)) {
+    return false;
+  }
+  
+  return price > 0 && price <= 10000; // Максимум 10000 рублей
+};
+
+/**
+ * Валидация названия блюда
+ * @param {string} name - Название для валидации
+ * @returns {boolean} - true если название валидное
+ */
+export const validateDishName = (name) => {
+  if (!name || typeof name !== 'string') {
+    return false;
+  }
+  
+  const trimmedName = name.trim();
+  return trimmedName.length >= 2 && trimmedName.length <= 100;
+};
+
+/**
+ * Валидация описания блюда
+ * @param {string} description - Описание для валидации
+ * @returns {boolean} - true если описание валидное
+ */
+export const validateDishDescription = (description) => {
+  if (!description || typeof description !== 'string') {
+    return false;
+  }
+  
+  const trimmedDescription = description.trim();
+  return trimmedDescription.length >= 10 && trimmedDescription.length <= 500;
+};
+
+/**
+ * Валидация корзины покупок
+ * @param {Array} cart - Корзина для валидации
+ * @returns {Object} - { isValid: boolean, errors: Array<string> }
+ */
+export const validateCart = (cart) => {
+  const errors = [];
+  
+  if (!Array.isArray(cart)) {
+    errors.push('Корзина должна быть массивом');
+    return { isValid: false, errors };
+  }
+  
+  if (cart.length === 0) {
+    errors.push('Корзина пуста');
+    return { isValid: false, errors };
+  }
+  
+  // Проверяем на дублированные IDs
+  const ids = cart.map(item => item.id).filter(id => id !== null && id !== undefined);
+  const uniqueIds = [...new Set(ids)];
+  
+  if (ids.length !== uniqueIds.length) {
+    errors.push('Обнаружены дублированные ID в корзине');
+  }
+  
+  // Проверяем каждый элемент корзины
+  cart.forEach((item, index) => {
+    if (item.id === null || item.id === undefined) {
+      errors.push(`Элемент ${index + 1}: отсутствует ID`);
+    }
+    if (!item.name || typeof item.name !== 'string') {
+      errors.push(`Элемент ${index + 1}: неверное название`);
+    }
+    if (typeof item.quantity !== 'number' || item.quantity <= 0) {
+      errors.push(`Элемент ${index + 1}: неверное количество`);
+    }
+    if (typeof item.price !== 'number' || item.price < 0) {
+      errors.push(`Элемент ${index + 1}: неверная цена`);
+    }
+  });
   
   return {
-    isValid: Object.keys(errors).length === 0,
+    isValid: errors.length === 0,
     errors
   };
 };
 
-export const validateOrderData = (orderData) => {
-  const errors = {};
-  
-  if (!validateRequired(orderData.customerName)) {
-    errors.customerName = 'Имя получателя обязательно';
+/**
+ * Валидация массива блюд на дублированные ID
+ * @param {Array} dishes - Массив блюд для валидации
+ * @returns {Object} - { isValid: boolean, duplicates: Array<string> }
+ */
+export const validateDishesForDuplicates = (dishes) => {
+  if (!Array.isArray(dishes)) {
+    return { isValid: false, duplicates: [] };
   }
   
-  if (!validateRequired(orderData.customerPhone)) {
-    errors.customerPhone = 'Телефон обязателен';
-  } else if (!validatePhone(orderData.customerPhone)) {
-    errors.customerPhone = 'Неверный формат телефона';
-  }
-  
-  if (!validateRequired(orderData.deliveryAddress)) {
-    errors.deliveryAddress = 'Адрес доставки обязателен';
-  }
-  
-  if (!validateRequired(orderData.deliveryTime)) {
-    errors.deliveryTime = 'Время доставки обязательно';
-  }
+  const ids = dishes.map(dish => dish.id).filter(id => id !== null && id !== undefined);
+  const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
   
   return {
-    isValid: Object.keys(errors).length === 0,
-    errors
+    isValid: duplicates.length === 0,
+    duplicates: [...new Set(duplicates)]
   };
-};
-
-export const sanitizeInput = (input) => {
-  if (typeof input !== 'string') return input;
-  
-  return input
-    .trim()
-    .replace(/[<>]/g, '') // Удаляем потенциально опасные символы
-    .substring(0, 1000); // Ограничиваем длину
-};
-
-export const formatPhoneNumber = (phone) => {
-  const cleaned = phone.replace(/\D/g, '');
-  const match = cleaned.match(/^(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})$/);
-  
-  if (match) {
-    return `+${match[1]} (${match[2]}) ${match[3]}-${match[4]}-${match[5]}`;
-  }
-  
-  return phone;
 };

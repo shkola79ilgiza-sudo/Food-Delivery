@@ -18,6 +18,8 @@ export const ru = {
     title: 'Вход',
     email: 'Email',
     password: 'Пароль',
+    loginWithGoogle: 'Войти через Google',
+    chefLoginWithGoogle: 'Войти как повар через Google',
     submit: 'Войти',
     noAccount: 'Нет аккаунта?',
     registerLink: 'Зарегистрироваться',

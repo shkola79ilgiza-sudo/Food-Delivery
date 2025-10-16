@@ -8,10 +8,13 @@ import ChefMenu from "./components/ChefMenu";
 import ClientLogin from "./components/ClientLogin";
 import ClientRegister from "./components/ClientRegister";
 import ClientMenu from "./components/ClientMenu";
+import GuestMenu from "./components/GuestMenu";
 import Cart from "./components/Cart";
-import Checkout from "./components/Checkout";
+// import Checkout from "./components/Checkout"; // Не используется в текущей версии
+import RealCheckout from "./components/RealCheckout";
 import OrderConfirmation from "./components/OrderConfirmation";
 import ClientOrders from "./components/ClientOrders";
+import ClientChat from "./components/ClientChat";
 import ClientProfile from "./components/ClientProfile";
 import AdminLogin from "./components/AdminLogin";
 import AdminLayout from "./components/AdminLayout";
@@ -30,8 +33,13 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import IconShowcase from "./components/IconShowcase";
+import OrderLifecycleTest from "./components/OrderLifecycleTest";
+import OrderTestMonitor from "./components/OrderTestMonitor";
+import TestShareNutrition from "./components/TestShareNutrition";
+import TestSmartTagging from "./components/TestSmartTagging";
 
 function ProtectedRoute({ children, requireAdmin = false }) {
   const token = localStorage.getItem("authToken");
@@ -58,8 +66,9 @@ function App() {
       <ThemeProvider>
         <LanguageProvider>
           <ToastProvider>
-            <WebSocketProvider>
-              <Router>
+            <AuthProvider>
+              <WebSocketProvider>
+                <Router>
                 <div className="AppWrapper">
                   {/* Навигация */}
                   <Navigation />
@@ -67,6 +76,7 @@ function App() {
         {/* Маршрутизация */}
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/guest/menu" element={<GuestMenu />} />
           
           {/* Поварские маршруты */}
           <Route path="/register" element={<Register />} />
@@ -113,7 +123,7 @@ function App() {
             path="/client/checkout"
             element={
               <ProtectedRoute>
-                <Checkout />
+                <RealCheckout />
               </ProtectedRoute>
             }
           />
@@ -130,6 +140,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ClientOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/client/chat"
+            element={
+              <ProtectedRoute>
+                <ClientChat />
               </ProtectedRoute>
             }
           />
@@ -247,10 +265,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          {/* Тест жизненного цикла заказа */}
+          <Route path="/test/order-lifecycle" element={<OrderLifecycleTest />} />
+          <Route path="/test/monitor" element={<OrderTestMonitor />} />
+          <Route path="/test/share-nutrition" element={<TestShareNutrition />} />
+          <Route path="/test/smart-tagging" element={<TestSmartTagging />} />
         </Routes>
                 </div>
               </Router>
-            </WebSocketProvider>
+              </WebSocketProvider>
+            </AuthProvider>
           </ToastProvider>
         </LanguageProvider>
       </ThemeProvider>
@@ -261,8 +286,16 @@ function App() {
 function ChefRedirect() {
   const token = localStorage.getItem("authToken");
   const chefId = localStorage.getItem("chefId");
-  if (!token) return <Navigate to="/login" replace />;
-  const target = chefId ? `/chef/${encodeURIComponent(chefId)}/menu` : "/login";
+  const userId = localStorage.getItem("userId");
+  
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Если нет chefId, используем userId или создаем временный ID
+  const targetChefId = chefId || userId || "temp-chef-id";
+  const target = `/chef/${encodeURIComponent(targetChefId)}/menu`;
+  
   return <Navigate to={target} replace />;
 }
 

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { safeSetClientOrders } from '../utils/safeStorage';
 import { useToast } from '../contexts/ToastContext';
+import AIOrderAnalysis from './AIOrderAnalysis';
+import AIMealPlanner from './AIMealPlanner';
 import '../App.css';
 
 const AICoach = () => {
@@ -11,14 +13,25 @@ const AICoach = () => {
   const [advice, setAdvice] = useState('');
   const [weeklyPlan, setWeeklyPlan] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showOrderAnalysis, setShowOrderAnalysis] = useState(false);
+  const [showMealPlanner, setShowMealPlanner] = useState(false);
+  const [availableDishes, setAvailableDishes] = useState([]);
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { showSuccess } = useToast();
 
-  // Загружаем историю заказов из localStorage
+  // Загружаем историю заказов и доступные блюда из localStorage
   useEffect(() => {
     // Пробуем загрузить заказы из разных источников
     let savedOrders = JSON.parse(localStorage.getItem('clientOrders') || '[]');
+    
+    // Загружаем доступные блюда
+    let dishes = JSON.parse(localStorage.getItem('allDishes') || '[]');
+    if (dishes.length === 0) {
+      // Пробуем другие ключи
+      dishes = JSON.parse(localStorage.getItem('dishes') || '[]');
+    }
+    setAvailableDishes(dishes);
     
     // Если заказы не найдены, пробуем другие ключи
     if (savedOrders.length === 0) {
@@ -296,7 +309,7 @@ const AICoach = () => {
       <div style={{ position: 'relative', zIndex: 2 }}>
         <div className="ai-coach-header">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2>🤖 {t.aiCoach.title}</h2>
+            <h2>🤖 {t.aiCoach?.title || 'AI Консультант по питанию'}</h2>
             <button
               onClick={() => navigate('/client/menu')}
               style={{
@@ -323,7 +336,7 @@ const AICoach = () => {
                 e.target.style.boxShadow = '0 4px 15px rgba(108, 117, 125, 0.4)';
               }}
             >
-              ← {t.common.back} {t.clientMenu.title}
+              ← {t.common?.back || 'Назад'} {(typeof t.clientMenu === 'string' ? t.clientMenu : t.clientMenu?.title) || 'Меню'}
             </button>
           </div>
           <p>{t.aiCoach.subtitle}</p>
@@ -376,6 +389,66 @@ const AICoach = () => {
               disabled={isAnalyzing}
             >
               {isAnalyzing ? `🔄 ${t.aiCoach.analyzing}` : `🔍 ${t.aiCoach.analyzeButton}`}
+            </button>
+            
+            <button 
+              onClick={() => setShowOrderAnalysis(true)}
+              style={{
+                background: 'linear-gradient(135deg, #2196f3, #1976d2)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 15px rgba(33, 150, 243, 0.4)',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginTop: '10px'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(33, 150, 243, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(33, 150, 243, 0.4)';
+              }}
+            >
+              🤖 Углубленный AI-анализ
+            </button>
+            
+            <button 
+              onClick={() => setShowMealPlanner(true)}
+              style={{
+                background: 'linear-gradient(135deg, #ff9800, #f57c00)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 15px rgba(255, 152, 0, 0.4)',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginTop: '10px'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(255, 152, 0, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(255, 152, 0, 0.4)';
+              }}
+            >
+              🍽️ План питания на 3 дня
             </button>
             
             {orderHistory.length === 0 && (
@@ -470,6 +543,71 @@ const AICoach = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* AI Order Analysis Modal */}
+        {showOrderAnalysis && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '15px',
+              maxWidth: '800px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <AIOrderAnalysis
+                orders={orderHistory}
+                userGoals={userGoals}
+                onClose={() => setShowOrderAnalysis(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* AI Meal Planner Modal */}
+        {showMealPlanner && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '15px',
+              maxWidth: '900px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <AIMealPlanner
+                availableDishes={availableDishes}
+                onClose={() => setShowMealPlanner(false)}
+              />
             </div>
           </div>
         )}

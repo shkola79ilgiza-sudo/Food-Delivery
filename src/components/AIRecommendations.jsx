@@ -58,29 +58,82 @@ const AIRecommendations = ({ dishes, onDishSelect }) => {
     return reasons[Math.floor(Math.random() * reasons.length)];
   };
 
-  const generateAIRecommendations = useCallback((dishes, preferences) => {
+  const generateAIRecommendations = useCallback((dishes, preferences, userPrefs) => {
+    console.log('🤖 Генерация AI рекомендаций:', { dishes: dishes.length, preferences, userPrefs });
+    
+    // Определяем, является ли пользователь новым (без истории заказов)
+    const isNewUser = preferences.favoriteCuisines.length === 0 || 
+                     (preferences.favoriteCuisines.includes('tatar') && preferences.favoriteCuisines.includes('russian'));
+    
+    console.log('🤖 Новый пользователь:', isNewUser);
+    
     // Фильтруем блюда по предпочтениям
     let filteredDishes = dishes.filter(dish => {
-      // Фильтр по кухне
-      if (preferences.favoriteCuisines.length > 0 && 
-          !preferences.favoriteCuisines.includes(dish.category)) {
-        return false;
+      // Фильтр по кухне (из UI ИЛИ из истории)
+      if (userPrefs.cuisine !== 'all') {
+        if (dish.category !== userPrefs.cuisine) return false;
+      } else if (!isNewUser) {
+        // Для опытных пользователей используем историю заказов
+        if (!preferences.favoriteCuisines.includes(dish.category)) return false;
       }
+      // Для новых пользователей пропускаем фильтр по кухне
 
-      // Фильтр по цене (в пределах 50% от средней)
-      const priceRange = preferences.averagePrice * 0.5;
-      if (Math.abs(dish.price - preferences.averagePrice) > priceRange) {
-        return false;
+      // Фильтр по цене (из UI ИЛИ из истории)
+      if (userPrefs.priceRange !== 'all') {
+        const price = dish.price || 0;
+        switch (userPrefs.priceRange) {
+          case 'budget':
+            if (price > 300) return false;
+            break;
+          case 'medium':
+            if (price < 300 || price > 600) return false;
+            break;
+          case 'premium':
+            if (price < 600) return false;
+            break;
+        }
+      } else if (!isNewUser) {
+        // Для опытных пользователей используем историю заказов
+        const priceRange = preferences.averagePrice * 0.5;
+        if (Math.abs(dish.price - preferences.averagePrice) > priceRange) {
+          return false;
+        }
       }
+      // Для новых пользователей пропускаем фильтр по цене
 
-      // Фильтр по времени приготовления (в пределах 30 минут)
-      const timeDiff = Math.abs((dish.cookingTime || 30) - preferences.preferredCookingTime);
-      if (timeDiff > 30) {
-        return false;
+      // Фильтр по времени приготовления (из UI ИЛИ из истории)
+      if (userPrefs.cookingTime !== 'all') {
+        const cookingTime = dish.cookingTime || 30;
+        switch (userPrefs.cookingTime) {
+          case 'fast':
+            if (cookingTime > 30) return false;
+            break;
+          case 'medium':
+            if (cookingTime < 30 || cookingTime > 60) return false;
+            break;
+          case 'slow':
+            if (cookingTime < 60) return false;
+            break;
+        }
+      } else if (!isNewUser) {
+        // Для опытных пользователей используем историю заказов
+        const timeDiff = Math.abs((dish.cookingTime || 30) - preferences.preferredCookingTime);
+        if (timeDiff > 30) {
+          return false;
+        }
       }
+      // Для новых пользователей пропускаем фильтр по времени
 
       return true;
     });
+
+    console.log('🤖 Отфильтровано блюд:', filteredDishes.length);
+    
+    // Если для новых пользователей нет результатов, показываем все блюда
+    if (filteredDishes.length === 0 && isNewUser) {
+      console.log('🤖 Для нового пользователя показываем все блюда');
+      filteredDishes = dishes.slice(0, 6);
+    }
 
     // Сортируем по рейтингу и популярности
     filteredDishes = filteredDishes.sort((a, b) => {
@@ -108,7 +161,7 @@ const AIRecommendations = ({ dishes, onDishSelect }) => {
       const preferences = analyzeUserPreferences(recentOrders);
       
       // Генерируем рекомендации на основе предпочтений
-      const aiRecommendations = generateAIRecommendations(dishes, preferences);
+      const aiRecommendations = generateAIRecommendations(dishes, preferences, userPreferences);
       
       setRecommendations(aiRecommendations);
     } catch (error) {
@@ -128,6 +181,11 @@ const AIRecommendations = ({ dishes, onDishSelect }) => {
       ...prev,
       [key]: value
     }));
+    
+    // Пересчитываем рекомендации при изменении фильтров
+    setTimeout(() => {
+      generateRecommendations();
+    }, 100);
   };
 
   if (loading) {
@@ -229,6 +287,27 @@ const AIRecommendations = ({ dishes, onDishSelect }) => {
             <option value="budget">До 300₽</option>
             <option value="medium">300-600₽</option>
             <option value="premium">600₽+</option>
+          </select>
+        </div>
+        <div>
+          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#2c3e50' }}>
+            Время:
+          </label>
+          <select
+            value={userPreferences.cookingTime}
+            onChange={(e) => handlePreferenceChange('cookingTime', e.target.value)}
+            style={{
+              width: '100%',
+              padding: '4px',
+              borderRadius: '4px',
+              border: '1px solid #ddd',
+              fontSize: '12px'
+            }}
+          >
+            <option value="all">Любое</option>
+            <option value="fast">До 30 мин</option>
+            <option value="medium">30-60 мин</option>
+            <option value="slow">60+ мин</option>
           </select>
         </div>
       </div>

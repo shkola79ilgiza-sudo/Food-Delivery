@@ -1,6 +1,6 @@
 import { safeSetClientOrders } from './utils/safeStorage';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "";
+const API_BASE_URL = ""; // process.env.REACT_APP_API_BASE_URL || "";
 
 function getAuthToken() {
   // Adjust to your auth storage. Placeholder: token in localStorage
@@ -36,6 +36,70 @@ function demoKey(chefId) {
   return `demo_menu_${chefId}`;
 }
 
+// Демо-данные поваров с верификацией
+const demoChefs = [
+  {
+    id: 'chef1@demo.com',
+    email: 'chef1@demo.com',
+    name: 'Анна Петрова',
+    role: 'chef',
+    avatar: '/images/chef1.jpg',
+    rating: 4.8,
+    reviewsCount: 24,
+    verification: {
+      phoneVerified: true,
+      idVerified: true,
+      sanitaryVerified: true,
+      kitchenVerified: true,
+      businessVerified: false,
+      topChef: true
+    },
+    tier: 'pro',
+    acceptanceRate: 95,
+    responseTime: 5
+  },
+  {
+    id: 'chef2@demo.com',
+    email: 'chef2@demo.com',
+    name: 'Мухаммад Алиев',
+    role: 'chef',
+    avatar: '/images/chef2.jpg',
+    rating: 4.9,
+    reviewsCount: 18,
+    verification: {
+      phoneVerified: true,
+      idVerified: true,
+      sanitaryVerified: true,
+      kitchenVerified: false,
+      businessVerified: true,
+      topChef: true
+    },
+    tier: 'business',
+    acceptanceRate: 88,
+    responseTime: 3
+  },
+  {
+    id: 'chef3@demo.com',
+    email: 'chef3@demo.com',
+    name: 'Гульнара Хакимова',
+    role: 'chef',
+    avatar: '/images/chef3.jpg',
+    rating: 4.7,
+    reviewsCount: 35,
+    verification: {
+      phoneVerified: true,
+      idVerified: false,
+      sanitaryVerified: false,
+      kitchenVerified: false,
+      businessVerified: false,
+      topChef: false
+    },
+    tier: 'free',
+    acceptanceRate: 72,
+    responseTime: 8
+  }
+];
+
 function demoRead(chefId) {
   try {
     const raw = localStorage.getItem(demoKey(chefId));
@@ -50,6 +114,41 @@ function demoWrite(chefId, dishes) {
   try {
     localStorage.setItem(demoKey(chefId), JSON.stringify(dishes || []));
   } catch {}
+}
+
+// Получить данные повара
+export function getChefData(chefId) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const chef = demoChefs.find(c => c.id === chefId);
+      if (chef) {
+        resolve(chef);
+      } else {
+        // Создать базовые данные для нового повара
+        const newChef = {
+          id: chefId,
+          email: chefId,
+          name: chefId.split('@')[0],
+          role: 'chef',
+          avatar: '/images/default-chef.jpg',
+          rating: 0,
+          reviewsCount: 0,
+          verification: {
+            phoneVerified: false,
+            idVerified: false,
+            sanitaryVerified: false,
+            kitchenVerified: false,
+            businessVerified: false,
+            topChef: false
+          },
+          tier: 'free',
+          acceptanceRate: 0,
+          responseTime: 0
+        };
+        resolve(newChef);
+      }
+    }, 500);
+  });
 }
 
 // Функция для создания уведомления повару
@@ -273,11 +372,25 @@ export const Categories = [
 ];
 
 // Auth APIs (assumed)
+// Валидация email
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 export async function login(email, password, role = 'chef') {
+  // Валидация входных данных
+  if (!email || !password) {
+    throw new Error('Email и пароль обязательны');
+  }
+  
+  if (!validateEmail(email)) {
+    throw new Error('Неверный формат email');
+  }
+  
   if (!API_BASE_URL || API_BASE_URL === "") {
     // Demo login for testing
-    console.log("DEMO: Login", { email, password, role });
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       setTimeout(() => {
         if (role === 'client') {
           // Demo client login
@@ -292,24 +405,48 @@ export async function login(email, password, role = 'chef') {
                 role: 'client'
               });
             } else {
-              throw new Error("Неверный email или пароль");
+              reject(new Error("Неверный email или пароль"));
             }
           } else {
-            throw new Error("Клиент не найден. Зарегистрируйтесь сначала.");
+            reject(new Error("Клиент не найден. Зарегистрируйтесь сначала."));
           }
         } else {
           // Demo chef login
-          const savedEmail = localStorage.getItem("chefEmail");
-          const savedPassword = localStorage.getItem("chefPassword");
-          if (email === savedEmail && password === savedPassword) {
-            resolve({ 
+          // Тестовые аккаунты поваров
+          const testChefs = [
+            { email: 'chef@test.com', password: 'password123' },
+            { email: 'chef1@demo.com', password: 'password123' },
+            { email: 'chef2@demo.com', password: 'password123' },
+            { email: 'chef3@demo.com', password: 'password123' },
+          ];
+          
+          const testChef = testChefs.find(chef => chef.email === email && chef.password === password);
+          
+          if (testChef) {
+            // Успешный вход с тестовым аккаунтом
+            // НЕ сохраняем пароль в localStorage по соображениям безопасности
+            localStorage.setItem("chefEmail", email);
+            const result = { 
               success: true, 
               token: `demo-chef-token-${Date.now()}`,
               chefId: email,
               role: 'chef'
-            });
+            };
+            resolve(result);
           } else {
-            throw new Error("Неверный email или пароль");
+            // Проверяем только email (без пароля)
+            const savedEmail = localStorage.getItem("chefEmail");
+            if (email === savedEmail) {
+              const result = { 
+                success: true, 
+                token: `demo-chef-token-${Date.now()}`,
+                chefId: email,
+                role: 'chef'
+              };
+              resolve(result);
+            } else {
+              reject(new Error("Неверный email или пароль"));
+            }
           }
         }
       }, 500);
@@ -337,9 +474,8 @@ export async function register(userData) {
             address: userData.address
           }));
         } else {
-          // Save chef data
+          // Save chef data (без пароля по соображениям безопасности)
           localStorage.setItem("chefEmail", userData.email);
-          localStorage.setItem("chefPassword", userData.password);
           if (userData.avatar) {
             localStorage.setItem("chefAvatar", userData.avatar);
           }
@@ -417,12 +553,25 @@ export async function getAvailableDishes(category = null) {
               name: 'Борщ украинский',
               description: 'Классический борщ с говядиной и сметаной',
               price: 350,
-              category: 'soups',
-              category_id: 'soups',
+              category: 'russian',
+              category_id: 'russian',
+              cookingTime: 90,
               image: null,
               chef: 'Демо повар',
               chefId: 'demo-chef-1',
-              rating: 4.5
+              rating: 4.5,
+              // Расширенные поля
+              allergens: ['глютен', 'молочные продукты'],
+              weight: '400г',
+              portionSize: '1 порция',
+              shelfLife: '24 часа',
+              ingredients: ['говядина', 'свекла', 'капуста', 'морковь', 'лук', 'сметана'],
+              nutritionalValue: {
+                calories: 280,
+                protein: 18,
+                fat: 12,
+                carbs: 25
+              }
             },
             {
               id: 'demo-dish-2',
@@ -431,30 +580,133 @@ export async function getAvailableDishes(category = null) {
               price: 450,
               category: 'tatar',
               category_id: 'tatar',
+              cookingTime: 120,
               image: null,
               chef: 'Демо повар',
               chefId: 'demo-chef-1',
-              rating: 4.8
+              rating: 4.8,
+              // Расширенные поля
+              allergens: ['глютен'],
+              weight: '500г',
+              portionSize: '1 порция',
+              shelfLife: '48 часов',
+              ingredients: ['баранина', 'рис', 'морковь', 'лук', 'чеснок', 'специи'],
+              nutritionalValue: {
+                calories: 420,
+                protein: 25,
+                fat: 18,
+                carbs: 35
+              }
             },
             {
               id: 'demo-dish-3',
+              name: 'Эчпочмак',
+              description: 'Татарские треугольные пирожки с мясом и картошкой',
+              price: 180,
+              category: 'tatar',
+              category_id: 'tatar',
+              cookingTime: 45,
+              image: null,
+              chef: 'Демо повар',
+              chefId: 'demo-chef-1',
+              rating: 4.9,
+              // Расширенные поля
+              allergens: ['глютен'],
+              weight: '150г',
+              portionSize: '3 штуки',
+              shelfLife: '12 часов',
+              ingredients: ['мука', 'говядина', 'картофель', 'лук', 'специи'],
+              nutritionalValue: {
+                calories: 320,
+                protein: 15,
+                fat: 12,
+                carbs: 35
+              }
+            },
+            {
+              id: 'demo-dish-4',
+              name: 'Бешбармак',
+              description: 'Традиционное татарское блюдо с лапшой и мясом',
+              price: 520,
+              category: 'tatar',
+              category_id: 'tatar',
+              cookingTime: 150,
+              image: null,
+              chef: 'Демо повар',
+              chefId: 'demo-chef-1',
+              rating: 4.8,
+              // Расширенные поля
+              allergens: ['глютен'],
+              weight: '600г',
+              portionSize: '1 порция',
+              shelfLife: '24 часа',
+              ingredients: ['лапша', 'говядина', 'лук', 'специи'],
+              nutritionalValue: {
+                calories: 480,
+                protein: 28,
+                fat: 20,
+                carbs: 45
+              }
+            },
+            {
+              id: 'demo-dish-5',
+              name: 'Чак-чак',
+              description: 'Сладкое татарское лакомство с медом',
+              price: 200,
+              category: 'tatar',
+              category_id: 'tatar',
+              cookingTime: 60,
+              image: null,
+              chef: 'Демо повар',
+              chefId: 'demo-chef-1',
+              rating: 4.9,
+              // Расширенные поля
+              allergens: ['глютен', 'мед'],
+              weight: '200г',
+              portionSize: '1 порция',
+              shelfLife: '7 дней',
+              ingredients: ['мука', 'мед', 'сахар', 'масло'],
+              nutritionalValue: {
+                calories: 380,
+                protein: 8,
+                fat: 15,
+                carbs: 55
+              }
+            },
+            {
+              id: 'demo-dish-6',
               name: 'Цезарь с курицей',
               description: 'Салат с куриной грудкой, сухариками и соусом цезарь',
               price: 280,
-              category: 'salads',
-              category_id: 'salads',
+              category: 'european',
+              category_id: 'european',
+              cookingTime: 15,
               image: null,
               chef: 'Демо повар',
               chefId: 'demo-chef-1',
               rating: 4.2
             },
             {
-              id: 'demo-dish-4',
-              name: 'Хлеб домашний',
-              description: 'Свежий домашний хлеб из печи',
-              price: 120,
-              category: 'bakery',
-              category_id: 'bakery',
+              id: 'demo-dish-7',
+              name: 'Пицца Маргарита',
+              description: 'Классическая пицца с томатами и моцареллой',
+              price: 420,
+              category: 'european',
+              category_id: 'european',
+              cookingTime: 25,
+              image: null,
+              chef: 'Демо повар',
+              chefId: 'demo-chef-1',
+              rating: 4.7
+            },
+            {
+              id: 'demo-dish-8',
+              name: 'Щи русские',
+              description: 'Традиционные русские щи с капустой',
+              price: 320,
+              category: 'russian',
+              category_id: 'russian',
+              cookingTime: 75,
               image: null,
               chef: 'Демо повар',
               chefId: 'demo-chef-1',

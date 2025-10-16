@@ -18,6 +18,8 @@ export const en = {
     title: 'Login',
     email: 'Email',
     password: 'Password',
+    loginWithGoogle: 'Login with Google',
+    chefLoginWithGoogle: 'Login as Chef with Google',
     submit: 'Login',
     noAccount: 'No account?',
     registerLink: 'Register',

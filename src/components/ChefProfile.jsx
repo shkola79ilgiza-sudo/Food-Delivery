@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../contexts/ToastContext';
+import VerificationBadges from './VerificationBadges';
+import ChefTiers from './ChefTiers';
+import { getChefData } from '../api/adapter';
 import '../App.css';
 
 const ChefProfile = ({ onClose }) => {
@@ -40,6 +43,29 @@ const ChefProfile = ({ onClose }) => {
     } catch (error) {
       console.error('Error loading chef profile:', error);
     }
+
+    // Загружаем данные верификации повара
+    const chefId = localStorage.getItem('chefEmail') || 'demo-chef';
+    getChefData(chefId).then(chefData => {
+      setProfile(prev => ({
+        ...prev,
+        ...chefData,
+        // Сохраняем локальные настройки
+        location: prev.location,
+        description: prev.description,
+        specialties: prev.specialties,
+        cuisines: prev.cuisines,
+        dishes: prev.dishes,
+        priceCategory: prev.priceCategory,
+        deliveryTime: prev.deliveryTime,
+        workingHours: prev.workingHours,
+        availableForTravel: prev.availableForTravel,
+        travelRadius: prev.travelRadius,
+        travelFee: prev.travelFee,
+        travelDiscount: prev.travelDiscount,
+        minOrderAmount: prev.minOrderAmount
+      }));
+    });
   };
 
   const saveProfile = () => {
@@ -117,6 +143,23 @@ const ChefProfile = ({ onClose }) => {
                 rows={3}
               />
             </div>
+          </div>
+
+          {/* Бейджи верификации */}
+          <div className="profile-section">
+            <h4>Статус верификации</h4>
+            <VerificationBadges chef={profile} showTooltips={true} />
+          </div>
+
+          {/* Тарифный план */}
+          <div className="profile-section">
+            <ChefTiers 
+              chefId={localStorage.getItem('chefEmail') || 'demo-chef'}
+              onTierChange={(tier, tierInfo) => {
+                console.log('Tier changed:', tier, tierInfo);
+                showSuccess(`Тариф обновлен на "${tierInfo.name}"`);
+              }}
+            />
           </div>
 
           <div className="profile-section">

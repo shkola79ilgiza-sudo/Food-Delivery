@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../contexts/ToastContext';
-import { updateOrderStatus } from '../api';
+import { updateOrderStatus } from '../api/adapter';
 import '../App.css';
 
 function ChefOrderDetails({ orderId, onClose, onStatusUpdate }) {
@@ -88,6 +88,13 @@ function ChefOrderDetails({ orderId, onClose, onStatusUpdate }) {
       setOrder(prev => ({ ...prev, status: newStatus }));
       
       showSuccess(`Статус заказа изменен на: ${getStatusText(newStatus)}`);
+      
+      // Обновляем счетчик неподтвержденных заказов в localStorage
+      if (newStatus === 'confirmed') {
+        const currentCount = parseInt(localStorage.getItem('pendingOrdersCount') || '0');
+        const newCount = Math.max(0, currentCount - 1);
+        localStorage.setItem('pendingOrdersCount', newCount.toString());
+      }
       
       if (onStatusUpdate) {
         onStatusUpdate(orderId, newStatus);

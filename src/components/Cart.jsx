@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import SmartCart from './SmartCart';
+import PromoCodeSystem from './PromoCodeSystem';
+import LoyaltySystem from './LoyaltySystem';
+import ComplaintSystem from './ComplaintSystem';
+import DeliveryOptions from './DeliveryOptions';
 
 const Cart = () => {
   const [cart, setCart] = useState([]);
@@ -10,6 +14,15 @@ const Cart = () => {
   const [appliedPromo, setAppliedPromo] = useState(null);
   const [promoError, setPromoError] = useState('');
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const [showPromoSystem, setShowPromoSystem] = useState(false);
+  const [showLoyaltySystem, setShowLoyaltySystem] = useState(false);
+  const [deliveryOption, setDeliveryOption] = useState({
+    option: 'pickup',
+    fee: 0,
+    estimatedTime: '15-30 мин',
+    address: '',
+    radius: 10
+  });
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { showSuccess } = useToast();
@@ -17,28 +30,35 @@ const Cart = () => {
   // Загрузка корзины из localStorage
   useEffect(() => {
     const loadCart = () => {
-      console.log('=== LOAD CART FUNCTION CALLED ===');
-      const savedCart = localStorage.getItem('cart');
-      console.log('Loading cart from localStorage:', savedCart);
-      if (savedCart) {
-        try {
+      try {
+        console.log('=== LOAD CART FUNCTION CALLED ===');
+        const savedCart = localStorage.getItem('cart');
+        console.log('Loading cart from localStorage:', savedCart);
+        
+        if (savedCart && savedCart !== 'null' && savedCart !== 'undefined') {
           const parsedCart = JSON.parse(savedCart);
           console.log('Parsed cart:', parsedCart);
           console.log('Parsed cart length:', parsedCart.length);
           
-          // Всегда обновляем состояние корзины
-          setCart(parsedCart);
-          console.log('Cart state set to:', parsedCart);
-          
-        } catch (err) {
-          console.error('Error parsing cart from localStorage:', err);
+          // Проверяем, что это массив
+          if (Array.isArray(parsedCart)) {
+            setCart(parsedCart);
+            console.log('Cart state set to:', parsedCart);
+          } else {
+            console.error('Parsed cart is not an array:', parsedCart);
+            setCart([]);
+          }
+        } else {
+          console.log('No valid cart data in localStorage');
           setCart([]);
         }
-      } else {
-        console.log('No cart data in localStorage');
+        console.log('=== END LOAD CART FUNCTION ===');
+      } catch (err) {
+        console.error('Error loading cart from localStorage:', err);
         setCart([]);
+        // Очищаем поврежденные данные
+        localStorage.removeItem('cart');
       }
-      console.log('=== END LOAD CART FUNCTION ===');
     };
 
     // Загружаем корзину при инициализации
@@ -67,13 +87,9 @@ const Cart = () => {
     };
   }, []);
 
-  // Сохранение корзины в localStorage при изменении (только если корзина не пустая)
-  useEffect(() => {
-    if (cart.length > 0) {
-      console.log('Saving cart to localStorage:', cart);
-      localStorage.setItem('cart', JSON.stringify(cart));
-    }
-  }, [cart]);
+  // УБРАН автоматический useEffect для сохранения корзины
+  // Корзина сохраняется явно в функциях updateQuantity, removeItem, clearCart и т.д.
+  // Это предотвращает перезапись корзины пустым массивом при монтировании компонента
 
   // Проверка авторизации
   useEffect(() => {
@@ -96,19 +112,49 @@ const Cart = () => {
   // Изменение количества товара
   const updateQuantity = (id, change) => {
     setCart(prevCart => {
-      return prevCart.map(item => {
-        if (item.id === id) {
-          const newQuantity = Math.max(1, item.quantity + change);
-          return { ...item, quantity: newQuantity };
-        }
-        return item;
-      });
+      try {
+        const updatedCart = prevCart.map(item => {
+          if (item.id === id) {
+            const newQuantity = Math.max(1, item.quantity + change);
+            return { ...item, quantity: newQuantity };
+          }
+          return item;
+        });
+        
+        // Сохраняем в localStorage
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        
+        // Отправляем событие для обновления других компонентов
+        window.dispatchEvent(new CustomEvent('cartChanged'));
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+        
+        return updatedCart;
+      } catch (error) {
+        console.error('Error updating quantity:', error);
+        return prevCart; // Возвращаем предыдущее состояние при ошибке
+      }
     });
   };
 
   // Удаление товара из корзины
   const removeItem = (id) => {
-    setCart(prevCart => prevCart.filter(item => item.id !== id));
+    setCart(prevCart => {
+      try {
+        const updatedCart = prevCart.filter(item => item.id !== id);
+        
+        // Сохраняем в localStorage
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        
+        // Отправляем событие для обновления других компонентов
+        window.dispatchEvent(new CustomEvent('cartChanged'));
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+        
+        return updatedCart;
+      } catch (error) {
+        console.error('Error removing item:', error);
+        return prevCart; // Возвращаем предыдущее состояние при ошибке
+      }
+    });
     showToast('Товар удален из корзины');
   };
 
@@ -148,7 +194,7 @@ const Cart = () => {
   };
 
   // Расчет стоимости доставки
-  const deliveryCost = appliedPromo?.freeDelivery ? 0 : 200;
+  const deliveryCost = appliedPromo?.freeDelivery ? 0 : deliveryOption.fee;
 
   // Расчет суммы товаров
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -187,17 +233,250 @@ const Cart = () => {
   console.log('All localStorage values:', Object.keys(localStorage).map(key => ({ key, value: localStorage.getItem(key) })));
   console.log('=== END CART DEBUG ===');
 
+  const goToMenu = (e) => {
+    try {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      // 1) обычная навигация
+      navigate('/client/menu', { replace: false });
+      // 2) фоллбек через history
+      setTimeout(() => {
+        if (!/\/client\/menu$/.test(window.location.pathname)) {
+          window.history.pushState({}, '', '/client/menu');
+        }
+      }, 10);
+      // 3) фоллбек через полную загрузку
+      setTimeout(() => {
+        if (!/\/client\/menu$/.test(window.location.pathname)) {
+          const origin = window.location.origin;
+          // пробуем HashRouter-вариант на случай другой конфигурации
+          window.location.assign(`${origin}/client/menu`);
+        }
+      }, 30);
+    } catch (err) {
+      window.location.assign('/client/menu');
+    }
+  };
+
   return (
-    <div className="cart-container">
+    <div className="cart-container" style={{
+      background: `
+        linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 25%, rgba(240, 147, 251, 0.6) 50%, rgba(245, 87, 108, 0.6) 75%, rgba(79, 172, 254, 0.6) 100%),
+        url('/images/cart-background.jpg')
+      `,
+      backgroundSize: 'cover, cover',
+      backgroundPosition: 'center, center',
+      backgroundRepeat: 'no-repeat, no-repeat',
+      minHeight: '100vh',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Декоративные элементы фона */}
+      <div style={{
+        position: 'absolute',
+        top: '-100px',
+        right: '-100px',
+        width: '300px',
+        height: '300px',
+        background: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: '50%',
+        zIndex: 0
+      }}></div>
+      <div style={{
+        position: 'absolute',
+        bottom: '-150px',
+        left: '-150px',
+        width: '400px',
+        height: '400px',
+        background: 'rgba(255, 182, 193, 0.15)',
+        borderRadius: '50%',
+        zIndex: 0
+      }}></div>
+      <div style={{
+        position: 'absolute',
+        top: '30%',
+        left: '10%',
+        width: '200px',
+        height: '200px',
+        background: 'rgba(255, 218, 185, 0.2)',
+        borderRadius: '50%',
+        zIndex: 0
+      }}></div>
+      <div style={{
+        position: 'absolute',
+        bottom: '20%',
+        right: '20%',
+        width: '150px',
+        height: '150px',
+        background: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: '50%',
+        zIndex: 0
+      }}></div>
+      
+      {/* Полки супермаркета */}
+      <div style={{
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        right: '0',
+        height: '60px',
+        background: 'linear-gradient(180deg, rgba(108, 117, 125, 0.1) 0%, rgba(108, 117, 125, 0.05) 100%)',
+        borderBottom: '2px solid rgba(108, 117, 125, 0.2)',
+        zIndex: 0
+      }}></div>
+      <div style={{
+        position: 'absolute',
+        top: '60px',
+        left: '0',
+        right: '0',
+        height: '40px',
+        background: 'linear-gradient(180deg, rgba(73, 80, 87, 0.08) 0%, rgba(73, 80, 87, 0.03) 100%)',
+        zIndex: 0
+      }}></div>
+      <div style={{
+        position: 'absolute',
+        bottom: '0',
+        left: '0',
+        right: '0',
+        height: '50px',
+        background: 'linear-gradient(0deg, rgba(108, 117, 125, 0.1) 0%, rgba(108, 117, 125, 0.05) 100%)',
+        borderTop: '2px solid rgba(108, 117, 125, 0.2)',
+        zIndex: 0
+      }}></div>
+      
+      {/* Продукты в тележке - декоративные элементы */}
+      <div style={{
+        position: 'absolute',
+        top: '8%',
+        left: '10%',
+        fontSize: '40px',
+        opacity: 0.4,
+        zIndex: 0,
+        transform: 'rotate(-15deg)'
+      }}>🛒</div>
+      <div style={{
+        position: 'absolute',
+        top: '12%',
+        right: '15%',
+        fontSize: '30px',
+        opacity: 0.4,
+        zIndex: 0,
+        transform: 'rotate(10deg)'
+      }}>🍎</div>
+      <div style={{
+        position: 'absolute',
+        bottom: '30%',
+        left: '8%',
+        fontSize: '28px',
+        opacity: 0.4,
+        zIndex: 0,
+        transform: 'rotate(-20deg)'
+      }}>🥖</div>
+      <div style={{
+        position: 'absolute',
+        bottom: '20%',
+        right: '12%',
+        fontSize: '32px',
+        opacity: 0.4,
+        zIndex: 0,
+        transform: 'rotate(15deg)'
+      }}>🥛</div>
+      <div style={{
+        position: 'absolute',
+        top: '65%',
+        left: '5%',
+        fontSize: '26px',
+        opacity: 0.4,
+        zIndex: 0,
+        transform: 'rotate(-10deg)'
+      }}>🥕</div>
+      <div style={{
+        position: 'absolute',
+        top: '75%',
+        right: '8%',
+        fontSize: '24px',
+        opacity: 0.4,
+        zIndex: 0,
+        transform: 'rotate(20deg)'
+      }}>🧀</div>
+      <div style={{
+        position: 'absolute',
+        top: '25%',
+        left: '15%',
+        fontSize: '22px',
+        opacity: 0.4,
+        zIndex: 0,
+        transform: 'rotate(-5deg)'
+      }}>🍌</div>
+      <div style={{
+        position: 'absolute',
+        top: '45%',
+        right: '20%',
+        fontSize: '28px',
+        opacity: 0.4,
+        zIndex: 0,
+        transform: 'rotate(25deg)'
+      }}>🥚</div>
+      <div style={{
+        position: 'absolute',
+        bottom: '40%',
+        left: '20%',
+        fontSize: '26px',
+        opacity: 0.4,
+        zIndex: 0,
+        transform: 'rotate(-25deg)'
+      }}>🍞</div>
+      <div style={{
+        position: 'absolute',
+        top: '35%',
+        right: '5%',
+        fontSize: '30px',
+        opacity: 0.4,
+        zIndex: 0,
+        transform: 'rotate(30deg)'
+      }}>🥔</div>
+      
+      {/* Основной контент */}
+      <div style={{ 
+        position: 'relative', 
+        zIndex: 1,
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(15px)',
+        borderRadius: '20px',
+        margin: '20px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        overflow: 'hidden'
+      }}>
       {toast.show && (
         <div className={`toast ${toast.type}`}>
           {toast.message}
         </div>
       )}
       
-      <header className="cart-header">
-        <h1>{t.cart}</h1>
-        <div className="cart-actions">
+      <header className="cart-header" style={{
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.9) 100%)',
+        backdropFilter: 'blur(20px)',
+        padding: '25px 30px',
+        borderRadius: '0',
+        margin: '0',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+        border: 'none',
+        borderBottom: '3px solid rgba(102, 126, 234, 0.2)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        position: 'relative'
+      }}>
+        <h1 style={{ 
+          margin: 0, 
+          color: '#2c3e50',
+          fontSize: '28px',
+          fontWeight: 'bold',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          🛒 {t.cart}
+        </h1>
+        <div className="cart-actions" style={{ display: 'flex', gap: '10px' }}>
           <button 
             onClick={() => {
               const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -205,6 +484,29 @@ const Cart = () => {
               console.log('Manual cart refresh:', savedCart);
             }}
             className="refresh-cart-button"
+            style={{
+              background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
+              color: 'white',
+              border: 'none',
+              padding: '10px 16px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 15px rgba(79, 172, 254, 0.3)',
+              transition: 'all 0.3s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 6px 20px rgba(79, 172, 254, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 15px rgba(79, 172, 254, 0.3)';
+            }}
           >
             🔄 {t.refresh}
           </button>
@@ -235,7 +537,36 @@ const Cart = () => {
           >
             🗑️ {t.clearAll}
           </button>
-          <Link to="/client/menu" className="back-to-menu">← {t.backToMenu}</Link>
+          <a 
+            href="/client/menu" 
+            className="back-to-menu" 
+            onClick={(e) => { e.stopPropagation(); }}
+            style={{
+              background: 'linear-gradient(135deg, #ff6b6b, #ee5a52)',
+              color: 'white',
+              textDecoration: 'none',
+              padding: '10px 18px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)',
+              transition: 'all 0.3s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 6px 20px rgba(255, 107, 107, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 15px rgba(255, 107, 107, 0.3)';
+            }}
+          >
+            ← {t.backToMenu}
+          </a>
         </div>
       </header>
 
@@ -256,11 +587,135 @@ const Cart = () => {
         }}
       />
 
+      {/* Система промокодов */}
+      {cart.length > 0 && (
+        <div style={{ marginBottom: '20px' }}>
+          <button
+            onClick={() => setShowPromoSystem(!showPromoSystem)}
+            style={{
+              width: '100%',
+              padding: '12px 20px',
+              background: showPromoSystem ? '#e74c3c' : '#3498db',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            }}
+          >
+            <span>🎟️ Промокоды и акции</span>
+            <span>{showPromoSystem ? '▼' : '▶'}</span>
+          </button>
+          
+          {showPromoSystem && (
+            <div style={{
+              marginTop: '10px',
+              padding: '15px',
+              background: 'rgba(52, 152, 219, 0.1)',
+              borderRadius: '8px',
+              border: '1px solid rgba(52, 152, 219, 0.2)',
+              animation: 'fadeIn 0.3s ease-in-out'
+            }}>
+              <PromoCodeSystem 
+                onPromoApplied={(promo) => {
+                  setAppliedPromo(promo);
+                  console.log('Promo applied:', promo);
+                }}
+                cartTotal={cart.reduce((total, item) => total + (item.price * item.quantity), 0)}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Система лояльности */}
+      {cart.length > 0 && (
+        <div style={{ marginBottom: '20px' }}>
+          <button
+            onClick={() => setShowLoyaltySystem(!showLoyaltySystem)}
+            style={{
+              width: '100%',
+              padding: '12px 20px',
+              background: showLoyaltySystem ? '#e74c3c' : '#9b59b6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            }}
+          >
+            <span>⭐ Система лояльности</span>
+            <span>{showLoyaltySystem ? '▼' : '▶'}</span>
+          </button>
+          
+          {showLoyaltySystem && (
+            <div style={{
+              marginTop: '10px',
+              padding: '15px',
+              background: 'rgba(155, 89, 182, 0.1)',
+              borderRadius: '8px',
+              border: '1px solid rgba(155, 89, 182, 0.2)',
+              animation: 'fadeIn 0.3s ease-in-out'
+            }}>
+              <LoyaltySystem 
+                onBonusApplied={(bonusData) => {
+                  console.log('Bonus applied:', bonusData);
+                }}
+                cartTotal={cart.reduce((total, item) => total + (item.price * item.quantity), 0)}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Опции доставки */}
+      {cart.length > 0 && (
+        <DeliveryOptions 
+          order={{
+            id: 'demo-order',
+            items: cart,
+            total: cart.reduce((total, item) => total + (item.price * item.quantity), 0)
+          }}
+          onDeliveryOptionChange={(option) => {
+            setDeliveryOption(option);
+            console.log('Delivery option changed:', option);
+          }}
+        />
+      )}
+
       {cart.length === 0 ? (
         <div className="empty-cart">
           <h2>{t.cartEmpty}</h2>
           <p>{t.cartEmptyDesc}</p>
-          <Link to="/client/menu" className="continue-shopping">{t.goToMenu}</Link>
+          <a href="/client/menu" className="continue-shopping" onClick={(e) => { e.stopPropagation(); }}>{t.goToMenu}</a>
         </div>
       ) : (
         <div className="cart-content">
@@ -363,9 +818,9 @@ const Cart = () => {
               {t.checkout}
             </button>
             
-            <Link to="/client/menu" className="continue-shopping">
+            <a href="/client/menu" className="continue-shopping" onClick={(e) => { e.stopPropagation(); }}>
               {t.continueShopping}
-            </Link>
+            </a>
             
             {/* Кнопка отладки */}
             <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }}>
@@ -413,6 +868,7 @@ const Cart = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

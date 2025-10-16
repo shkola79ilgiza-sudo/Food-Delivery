@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { safeSetClientOrders } from '../utils/safeStorage';
+import PlatformAnalytics from './PlatformAnalytics';
 
 const ChefStats = ({ onClose }) => {
   const { t } = useLanguage();
@@ -224,7 +225,7 @@ const ChefStats = ({ onClose }) => {
           >
             ← {t.common.back}
           </button>
-          <h2 className="chef-stats-title" style={{ margin: 0 }}>{t.chefStats.title}</h2>
+          <h2 className="chef-stats-title" style={{ margin: 0 }}>{t.chefStats?.title || 'Статистика повара'}</h2>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button
@@ -353,6 +354,14 @@ const ChefStats = ({ onClose }) => {
           </button>
         </div>
       </div>
+
+      {/* Расширенная аналитика */}
+      <PlatformAnalytics 
+        chefId={localStorage.getItem('chefEmail') || 'demo-chef'}
+        onAnalyticsUpdate={(analytics) => {
+          console.log('Analytics updated:', analytics);
+        }}
+      />
     </div>
   );
 };

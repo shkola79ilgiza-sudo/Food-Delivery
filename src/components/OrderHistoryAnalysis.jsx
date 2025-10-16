@@ -424,7 +424,7 @@ const OrderHistoryAnalysis = ({ clientId, role = 'client' }) => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <button
-            onClick={() => window.history.back()}
+            onClick={() => { try { window.history.pushState({}, '', '/client/menu'); window.location.assign('/client/menu'); } catch (e) { window.location.assign('/client/menu'); } }}
             style={{
               background: 'linear-gradient(135deg, #6c757d, #495057)',
               color: 'white',

@@ -523,6 +523,60 @@ const ChefProcurementPlanner = ({ onClose }) => {
     }
   };
 
+  const createTestOrder = () => {
+    try {
+      const chefId = localStorage.getItem('chefId') || 'demo-chef-1';
+      const testOrder = {
+        id: `test-order-${Date.now()}`,
+        chefId: chefId,
+        customer: {
+          name: 'Тестовый клиент',
+          phone: '+7 (999) 123-45-67',
+          address: 'Тестовый адрес'
+        },
+        items: [
+          {
+            id: 'test-item-1',
+            name: 'Борщ',
+            quantity: 2,
+            price: 350,
+            chefId: chefId
+          },
+          {
+            id: 'test-item-2',
+            name: 'Плов узбекский',
+            quantity: 1,
+            price: 450,
+            chefId: chefId
+          }
+        ],
+        total: 1150,
+        status: 'delivered',
+        createdAt: new Date().toISOString(),
+        delivery: {
+          date: new Date().toISOString().split('T')[0],
+          time: '12:00'
+        }
+      };
+
+      // Сохраняем тестовый заказ
+      const existingOrders = JSON.parse(localStorage.getItem('clientOrders') || '[]');
+      const updatedOrders = [testOrder, ...existingOrders];
+      localStorage.setItem('clientOrders', JSON.stringify(updatedOrders));
+
+      // Обновляем список заказов
+      setOrders(updatedOrders);
+      
+      // Пересчитываем рекомендации
+      generateRecommendations(updatedOrders);
+      
+      showSuccess('Тестовый заказ создан! Рекомендации обновлены.');
+    } catch (error) {
+      console.error('Error creating test order:', error);
+      showError('Ошибка создания тестового заказа');
+    }
+  };
+
   const handleAddToShoppingList = (recommendation) => {
     try {
       const shoppingList = JSON.parse(localStorage.getItem('chefShoppingList') || '[]');
@@ -681,6 +735,27 @@ const ChefProcurementPlanner = ({ onClose }) => {
                 <div className="stat-label">Выручка</div>
               </div>
             </div>
+          </div>
+
+          {/* Кнопка создания тестового заказа */}
+          <div className="test-actions">
+            <button 
+              onClick={createTestOrder}
+              className="create-test-order-btn"
+              style={{
+                background: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '10px 20px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                marginBottom: '20px'
+              }}
+            >
+              🧪 Создать тестовый заказ
+            </button>
           </div>
 
           {/* Удаленные рекомендации */}
