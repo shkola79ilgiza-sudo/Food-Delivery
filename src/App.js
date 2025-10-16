@@ -34,6 +34,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import IconShowcase from "./components/IconShowcase";
 import OrderLifecycleTest from "./components/OrderLifecycleTest";
@@ -69,7 +70,8 @@ function App() {
         <LanguageProvider>
           <ToastProvider>
             <AuthProvider>
-              <WebSocketProvider>
+              <NotificationProvider>
+                <WebSocketProvider>
                 <Router basename="/Food-Delivery">
                 <div className="AppWrapper">
                   {/* Навигация */}
@@ -280,7 +282,8 @@ function App() {
                 <SmartNotifications />
                 <RealTimeAnalytics />
               </Router>
-              </WebSocketProvider>
+                </WebSocketProvider>
+              </NotificationProvider>
             </AuthProvider>
           </ToastProvider>
         </LanguageProvider>

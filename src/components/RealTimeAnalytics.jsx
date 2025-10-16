@@ -16,7 +16,7 @@ const RealTimeAnalytics = () => {
     const interval = setInterval(() => {
       setAnalytics(prev => ({
         ...prev,
-        activeUsers: prev.activeUsers + Math.floor(Math.random() * 3) - 1,
+        activeUsers: Math.max(0, prev.activeUsers + Math.floor(Math.random() * 3) - 1),
         ordersToday: prev.ordersToday + Math.floor(Math.random() * 2),
         revenue: prev.revenue + Math.floor(Math.random() * 500),
         popularDishes: [

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useToast } from '../contexts/ToastContext';
+import { useNotifications } from '../contexts/NotificationContext';
+import { getPriorityColor } from '../utils/priorityColors';
 
 const SmartNotifications = () => {
-  const [notifications, setNotifications] = useState([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const { showSuccess, showError } = useToast();
+  const { notifications, markAsRead, clearAll, getUnreadCount } = useNotifications();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -19,47 +19,6 @@ const SmartNotifications = () => {
     };
   }, []);
 
-  const addNotification = (type, message, priority = 'normal') => {
-    const notification = {
-      id: Date.now(),
-      type,
-      message,
-      priority,
-      timestamp: new Date(),
-      read: false
-    };
-
-    setNotifications(prev => [notification, ...prev]);
-
-    if (priority === 'high') {
-      showError(message);
-    } else {
-      showSuccess(message);
-    }
-  };
-
-  const markAsRead = (id) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id 
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
-  };
-
-  const clearAll = () => {
-    setNotifications([]);
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high': return '#f44336';
-      case 'medium': return '#ff9800';
-      case 'low': return '#4caf50';
-      default: return '#2196f3';
-    }
-  };
 
   const getTypeIcon = (type) => {
     switch (type) {
@@ -71,7 +30,7 @@ const SmartNotifications = () => {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = getUnreadCount();
 
   return (
     <div style={{
