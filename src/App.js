@@ -70,9 +70,10 @@ function App() {
         <LanguageProvider>
           <ToastProvider>
             <AuthProvider>
-              <WebSocketProvider>
-                <Router>
-                <div className="AppWrapper">
+              <NotificationProvider>
+                <WebSocketProvider>
+                  <Router>
+                    <div className="AppWrapper">
                   {/* Навигация */}
                   <Navigation />
 
@@ -275,12 +276,12 @@ function App() {
           <Route path="/test/share-nutrition" element={<TestShareNutrition />} />
           <Route path="/test/smart-tagging" element={<TestSmartTagging />} />
         </Routes>
-                </div>
-                
-                {/* Новые компоненты */}
-                <SmartNotifications />
-                <RealTimeAnalytics />
-              </Router>
+                    </div>
+                    
+                    {/* Новые компоненты */}
+                    <SmartNotifications />
+                    <RealTimeAnalytics />
+                  </Router>
                 </WebSocketProvider>
               </NotificationProvider>
             </AuthProvider>
