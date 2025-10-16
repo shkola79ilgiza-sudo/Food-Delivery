@@ -31,7 +31,7 @@ const AIPhotoAnalyzer = ({ imageDataUrl, dishInfo = {}, onAnalysisComplete, onCl
     if (imageDataUrl) {
       analyzePhoto();
     }
-  }, [imageDataUrl, dishInfo, onAnalysisComplete, analyzePhoto]);
+  }, [imageDataUrl, dishInfo.name, dishInfo.description, onAnalysisComplete]);
 
   const getScoreColor = (score) => {
     if (score >= 80) return '#4caf50';

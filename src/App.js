@@ -40,6 +40,8 @@ import OrderLifecycleTest from "./components/OrderLifecycleTest";
 import OrderTestMonitor from "./components/OrderTestMonitor";
 import TestShareNutrition from "./components/TestShareNutrition";
 import TestSmartTagging from "./components/TestSmartTagging";
+import SmartNotifications from "./components/SmartNotifications";
+import RealTimeAnalytics from "./components/RealTimeAnalytics";
 
 function ProtectedRoute({ children, requireAdmin = false }) {
   const token = localStorage.getItem("authToken");
@@ -68,7 +70,7 @@ function App() {
           <ToastProvider>
             <AuthProvider>
               <WebSocketProvider>
-                <Router>
+                <Router basename="/Food-Delivery">
                 <div className="AppWrapper">
                   {/* Навигация */}
                   <Navigation />
@@ -273,6 +275,10 @@ function App() {
           <Route path="/test/smart-tagging" element={<TestSmartTagging />} />
         </Routes>
                 </div>
+                
+                {/* Новые компоненты */}
+                <SmartNotifications />
+                <RealTimeAnalytics />
               </Router>
               </WebSocketProvider>
             </AuthProvider>
