@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/Food-Delivery/static/css/main.25434b9e.css",
+    "main.css": "/Food-Delivery/static/css/main.2e8a77df.css",
     "main.js": "/Food-Delivery/static/js/main.47850cfc.js",
     "static/js/453.4b2abb2e.chunk.js": "/Food-Delivery/static/js/453.4b2abb2e.chunk.js",
     "static/media/farmers-market-bg.jpg": "/Food-Delivery/static/media/farmers-market-bg.37d6a8f9b74d42c82307.jpg",
     "index.html": "/Food-Delivery/index.html",
-    "main.25434b9e.css.map": "/Food-Delivery/static/css/main.25434b9e.css.map",
+    "main.2e8a77df.css.map": "/Food-Delivery/static/css/main.2e8a77df.css.map",
     "main.47850cfc.js.map": "/Food-Delivery/static/js/main.47850cfc.js.map",
     "453.4b2abb2e.chunk.js.map": "/Food-Delivery/static/js/453.4b2abb2e.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.25434b9e.css",
+    "static/css/main.2e8a77df.css",
     "static/js/main.47850cfc.js"
   ]
 }
