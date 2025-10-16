@@ -207,13 +207,6 @@
     flex: 1 !important;
     min-width: 120px !important;
   }
-    -webkit-overflow-scrolling: touch;
-    gap: 8px;
-    padding: 8px 0;
-    margin-bottom: 12px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
 
   .quick-actions::-webkit-scrollbar {
     display: none;
@@ -12068,4 +12061,7 @@ html, body {
   animation: iconFloat 3s ease-in-out infinite;
   font-size: 2rem;
   margin-right: 10px;
+}
+
+/* Закрывающая скобка для последнего медиа-запроса */
 }
