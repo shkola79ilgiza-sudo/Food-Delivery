@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../contexts/ToastContext';
 import HelpGuestChat from './HelpGuestChat';
 import HelpGuestBidding from './HelpGuestBidding';
 
 const ClientHelpGuestRequests = () => {
-  const { t } = useLanguage();
-  const { showSuccess, showError } = useToast();
+  const { showError } = useToast();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -14,11 +12,7 @@ const ClientHelpGuestRequests = () => {
   const [chatRequestId, setChatRequestId] = useState(null);
   const [biddingRequest, setBiddingRequest] = useState(null);
 
-  useEffect(() => {
-    loadRequests();
-  }, []);
-
-  const loadRequests = () => {
+  const loadRequests = useCallback(() => {
     try {
       const savedRequests = JSON.parse(localStorage.getItem('helpGuestRequests') || '[]');
       const clientId = localStorage.getItem('clientId') || 'demo_client';
@@ -69,7 +63,11 @@ const ClientHelpGuestRequests = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
+
+  useEffect(() => {
+    loadRequests();
+  }, [loadRequests]);
 
   const getStatusText = (status) => {
     const statusMap = {
