@@ -49,7 +49,7 @@ const Login = () => {
     <div 
       className="login-page-container"
       style={{
-        backgroundImage: `url(${process.env.PUBLIC_URL}/backgrounds/login-pattern.png)`,
+        backgroundImage: `url('/Food-Delivery/backgrounds/login-pattern.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',
@@ -111,7 +111,6 @@ const Login = () => {
                 Зарегистрироваться
               </button></p>
             </div>
-
             <div className="test-accounts">
               <h3>Тестовые аккаунты:</h3>
               <div className="test-account">

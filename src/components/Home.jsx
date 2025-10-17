@@ -1,58 +1,56 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import Navigation from "./Navigation";
+import homePattern from "../assets/home-pattern.png";
 import "../App.css";
 
 function Home() {
   return (
     <div 
+      className="home-container"
       style={{
-        background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-        backgroundImage: `url(${process.env.PUBLIC_URL}/backgrounds/home-pattern.png)`,
+        backgroundImage: `linear-gradient(rgba(255, 215, 0, 0.7), rgba(255, 215, 0, 0.7)), url(${homePattern})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '20px'
+        backgroundAttachment: 'fixed',
+        backgroundColor: '#FFD700',
+        minHeight: '100vh',
+        width: '100%'
       }}
     >
-      <div 
-        style={{
-          background: 'rgba(255, 255, 255, 0.9)',
-          padding: '40px',
-          borderRadius: '12px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-          maxWidth: '800px',
-          width: '100%'
-        }}
-      >
-        <h1>Food Delivery</h1>
-        <p>
-          <Link to="/register">Регистрация</Link> | <Link to="/login">Логин</Link>
-        </p>
-        <h2>Мы выбираем поваров, которые хороши в своём деле</h2>
+      {/* Навигация */}
+      <Navigation />
 
-        <h2 style={{ marginTop: "40px", marginBottom: "20px" }}>КАК РАБОТАЕТ СЕРВИС</h2>
-        <div className="FeaturesSection">
-          <div className="FeatureCard">
-            <div className="IconWrapper">📝</div>
-            <h4>ПРОХОДИ РЕГИСТРАЦИЮ</h4>
-            <p>Зарегистрируйтесь и создайте свое персональное меню.</p>
+      {/* Основной контент */}
+      <div className="home-content">
+        <h1 className="home-title">Food Delivery</h1>
+        <div className="home-links">
+          <Link to="/register">Регистрация</Link>
+          <span>|</span>
+          <Link to="/login">Логин</Link>
+        </div>
+        <p className="home-tagline">Мы выбираем поваров, которые хороши в своём деле</p>
+        
+        <h2 className="how-it-works-title">КАК РАБОТАЕТ СЕРВИС</h2>
+        
+        <div className="features-grid">
+          <div className="feature-card">
+            <div className="feature-icon">📝</div>
+            <h3>ПРОХОДИ РЕГИСТРАЦИЮ</h3>
+            <p>Получите разрешение на приготовление пищи, зарегистрируйтесь и создайте свое персональное меню.</p>
           </div>
-
-          <div className="FeatureCard">
-            <div className="IconWrapper">🍲</div>
-            <h4>СОЗДАВАЙ СВОЁ МЕНЮ</h4>
-            <p>Создай блюдо в личном кабинете. Выбери дни, цену и фото.</p>
+          
+          <div className="feature-card">
+            <div className="feature-icon">👨‍🍳</div>
+            <h3>СОЗДАВАЙ СВОЁ МЕНЮ</h3>
+            <p>Создай блюдо в личном кабинете. Выбери дни, цену и прикрепи качественную фотографию.</p>
           </div>
-
-          <div className="FeatureCard">
-            <div className="IconWrapper">💰</div>
-            <h4>ОТКЛИКАЙСЯ НА ЗАКАЗЫ</h4>
-            <p>Клиенты делают заказ заранее, зарабатывай вместе с нами.</p>
+          
+          <div className="feature-card">
+            <div className="feature-icon">💰</div>
+            <h3>ОТКЛИКАЙСЯ НА ЗАКАЗЫ</h3>
+            <p>Клиенты делают заказ как минимум за день, зарабатывай вместе с нами.</p>
           </div>
         </div>
       </div>
