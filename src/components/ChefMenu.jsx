@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getChefMenu, createDish, deleteDish, updateDish, Categories as CATEGORY_LIST } from "../api/adapter";
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
+import chefPattern from '../assets/chef-pattern.png';
 import Rating from './Rating';
 // import ChefPlanningAssistant from './ChefPlanningAssistant';
 import ChefStats from './ChefStats';
@@ -1183,7 +1184,7 @@ function ChefMenu() {
     <div 
       style={{
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        backgroundImage: `url('/Food-Delivery/chef-pattern.png')`,
+        backgroundImage: `url(${chefPattern})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

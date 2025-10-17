@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import loginPattern from '../assets/login-pattern.png';
 import '../App.css';
 
 const Login = () => {
@@ -49,7 +50,7 @@ const Login = () => {
     <div 
       className="login-page-container"
       style={{
-        backgroundImage: `url('/Food-Delivery/login-pattern.png')`,
+        backgroundImage: `url(${loginPattern})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',

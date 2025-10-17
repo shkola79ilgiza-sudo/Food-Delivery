@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import SimpleNavigation from './SimpleNavigation';
+import registerPattern from '../assets/register-pattern.png';
 import '../App.css';
 
 const Register = () => {
@@ -84,7 +85,7 @@ const Register = () => {
     <div 
       className="register-page-container"
       style={{
-        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), url('/Food-Delivery/register-pattern.png')`,
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), url(${registerPattern})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
