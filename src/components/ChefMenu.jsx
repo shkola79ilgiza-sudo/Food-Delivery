@@ -1183,7 +1183,7 @@ function ChefMenu() {
     <div 
       style={{
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        backgroundImage: `url('/Food-Delivery/backgrounds/chef-pattern.png')`,
+        backgroundImage: `url('/Food-Delivery/chef-pattern.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
