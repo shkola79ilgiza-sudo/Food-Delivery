@@ -1,6 +1,5 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Navigation from "./components/Navigation";
 import Home from "./components/Home";
 import Register from "./components/Register";
 import Login from "./components/Login";
@@ -74,12 +73,10 @@ function App() {
                 <WebSocketProvider>
                 <Router basename="/Food-Delivery">
                 <div className="AppWrapper">
-                  {/* Навигация */}
-                  <Navigation />
-
         {/* Маршрутизация */}
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/Food-Delivery" element={<Home />} />
           <Route path="/guest/menu" element={<GuestMenu />} />
           
           {/* Поварские маршруты */}

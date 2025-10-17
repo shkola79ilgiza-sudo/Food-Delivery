@@ -1,16 +1,18 @@
 {
   "files": {
-    "main.css": "/static/css/main.e6f458a4.css",
-    "main.js": "/static/js/main.23d91f16.js",
-    "static/js/453.4b2abb2e.chunk.js": "/static/js/453.4b2abb2e.chunk.js",
-    "static/media/farmers-market-bg.jpg": "/static/media/farmers-market-bg.37d6a8f9b74d42c82307.jpg",
-    "index.html": "/index.html",
-    "main.e6f458a4.css.map": "/static/css/main.e6f458a4.css.map",
-    "main.23d91f16.js.map": "/static/js/main.23d91f16.js.map",
-    "453.4b2abb2e.chunk.js.map": "/static/js/453.4b2abb2e.chunk.js.map"
+    "main.css": "/Food-Delivery/static/css/main.2297fa0b.css",
+    "main.js": "/Food-Delivery/static/js/main.dedfb3ef.js",
+    "static/js/453.4b2abb2e.chunk.js": "/Food-Delivery/static/js/453.4b2abb2e.chunk.js",
+    "static/media/home-pattern.png": "/Food-Delivery/static/media/home-pattern.44b413b7f2ce81b090f5.png",
+    "static/media/farmers-market-bg.jpg": "/Food-Delivery/static/media/farmers-market-bg.37d6a8f9b74d42c82307.jpg",
+    "static/media/login-pattern.png": "/Food-Delivery/static/media/login-pattern.6c55f8cc660a1906f07b.png",
+    "index.html": "/Food-Delivery/index.html",
+    "main.2297fa0b.css.map": "/Food-Delivery/static/css/main.2297fa0b.css.map",
+    "main.dedfb3ef.js.map": "/Food-Delivery/static/js/main.dedfb3ef.js.map",
+    "453.4b2abb2e.chunk.js.map": "/Food-Delivery/static/js/453.4b2abb2e.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.e6f458a4.css",
-    "static/js/main.23d91f16.js"
+    "static/css/main.2297fa0b.css",
+    "static/js/main.dedfb3ef.js"
   ]
 }
