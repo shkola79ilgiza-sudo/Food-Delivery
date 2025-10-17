@@ -480,11 +480,6 @@ html, body { max-width: 100vw; overflow-x: hidden; }
   min-height: 100vh !important;
   margin: 0;
   padding: 0;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), url('/Food-Delivery/backgrounds/register-pattern.png') !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
-  background-attachment: fixed !important;
 }
 
 /* Форма регистрации как на скриншоте */
@@ -12721,7 +12716,6 @@ html, body {
 /* Страница логина */
 .login-page-container {
   min-height: 100vh;
-  background-image: url('/Food-Delivery/backgrounds/login-pattern.png') !important;
   background-size: cover !important;
   background-position: center center !important;
   background-repeat: no-repeat !important;

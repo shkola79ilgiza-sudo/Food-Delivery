@@ -49,7 +49,7 @@ const Login = () => {
     <div 
       className="login-page-container"
       style={{
-        backgroundImage: `url('/Food-Delivery/backgrounds/login-pattern.png')`,
+        backgroundImage: `url(${process.env.PUBLIC_URL}/backgrounds/login-pattern.png)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',
