@@ -84,7 +84,7 @@ const Register = () => {
     <div 
       className="register-page-container"
       style={{
-        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), url(${process.env.PUBLIC_URL}/backgrounds/register-pattern.png)`,
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), url(${process.env.PUBLIC_URL}/register-pattern.png)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
