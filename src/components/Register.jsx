@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import './Register.css';
+import '../App.css';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -19,15 +19,17 @@ const Register = () => {
     // Для повара
     bio: '',
     specialization: '',
+    agreeTerms: false
   });
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: type === 'checkbox' ? checked : value,
     });
   };
 
@@ -85,53 +87,86 @@ const Register = () => {
   };
 
   return (
-    <div className="register-container">
-      <div className="register-card">
-        <h1>🍽️ Food Delivery</h1>
-        <h2>Регистрация</h2>
+    <div 
+      className="register-page-container"
+      style={{
+        backgroundImage: `url(${process.env.PUBLIC_URL}/backgrounds/register-pattern.png)`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        minHeight: '100vh',
+        width: '100vw',
+        margin: 0,
+        padding: 0
+      }}
+    >
+      {/* Основной контент */}
+      <div className="register-content">
+        {/* Форма регистрации */}
+        <div className="register-form-section">
+          <form onSubmit={handleSubmit}>
+            <div className="register-header">
+              <div className="logo-section">
+                <span className="logo-icon">🍽️</span>
+                <h1 className="app-title">Food Delivery</h1>
+              </div>
+              <h2 className="page-title">Повар - Регистрация</h2>
+            </div>
 
-        {error && (
-          <div className="error-message">
-            ❌ {error}
-            {error.includes('уже зарегистрирован') && (
-              <div style={{ marginTop: '10px' }}>
-                <button 
-                  type="button"
-                  onClick={() => navigate('/login')}
-                  style={{
-                    background: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '14px'
-                  }}
-                >
-                  Войти в систему
-                </button>
+            {error && (
+              <div className="error-message">
+                ❌ {error}
+                {error.includes('уже зарегистрирован') && (
+                  <div className="error-login-button-container">
+                    <button 
+                      className="error-login-button"
+                      onClick={() => navigate('/client/login')}
+                    >
+                      Войти
+                    </button>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
 
-        <form onSubmit={handleSubmit}>
-          {/* Роль */}
-          <div className="form-group">
-            <label>Я хочу:</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <option value="CLIENT">Заказывать еду (Клиент)</option>
-              <option value="CHEF">Готовить еду (Повар)</option>
-            </select>
-          </div>
+            <div className="form-group">
+              <label>Email:</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="example@mail.com"
+                required
+              />
+            </div>
 
-          {/* Основные данные */}
-          <div className="form-row">
+            <div className="form-group">
+              <label>Пароль:</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Минимум 6 символов"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Роль:</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                required
+              >
+                <option value="CLIENT">Клиент</option>
+                <option value="CHEF">Повар</option>
+              </select>
+            </div>
+
             <div className="form-group">
               <label>Имя:</label>
               <input
@@ -139,7 +174,7 @@ const Register = () => {
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
-                placeholder="Иван"
+                placeholder="Ваше имя"
                 required
               />
             </div>
@@ -151,106 +186,113 @@ const Register = () => {
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
-                placeholder="Иванов"
+                placeholder="Ваша фамилия"
                 required
               />
             </div>
-          </div>
 
-          <div className="form-group">
-            <label>Email:</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="example@mail.com"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Телефон:</label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="+7 (999) 123-45-67"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Пароль:</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Минимум 6 символов"
-              minLength="6"
-              required
-            />
-          </div>
-
-          {/* Поля для клиента */}
-          {formData.role === 'CLIENT' && (
             <div className="form-group">
-              <label>Адрес доставки:</label>
+              <label>Телефон:</label>
               <input
-                type="text"
-                name="address"
-                value={formData.address}
+                type="tel"
+                name="phone"
+                value={formData.phone}
                 onChange={handleChange}
-                placeholder="ул. Пушкина, д. 10, кв. 5"
-                required
+                placeholder="+7 (999) 123-45-67"
               />
             </div>
-          )}
 
-          {/* Поля для повара */}
-          {formData.role === 'CHEF' && (
-            <>
+            {formData.role === 'CLIENT' && (
               <div className="form-group">
-                <label>О себе:</label>
-                <textarea
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleChange}
-                  placeholder="Опытный повар с 10-летним стажем..."
-                  rows="3"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Специализация:</label>
+                <label>Адрес:</label>
                 <input
                   type="text"
-                  name="specialization"
-                  value={formData.specialization}
+                  name="address"
+                  value={formData.address}
                   onChange={handleChange}
-                  placeholder="Итальянская кухня, паста, пицца"
-                  required
+                  placeholder="Адрес доставки"
                 />
               </div>
-            </>
-          )}
+            )}
 
-          <button type="submit" disabled={loading}>
-            {loading ? 'Регистрация...' : 'Зарегистрироваться'}
-          </button>
-        </form>
+            {formData.role === 'CHEF' && (
+              <>
+                <div className="form-group">
+                  <label>Биография:</label>
+                  <textarea
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleChange}
+                    placeholder="Расскажите о себе и своем опыте"
+                    rows="3"
+                  />
+                </div>
 
-        <div className="register-footer">
-          <p>Уже есть аккаунт?</p>
-          <button 
-            className="login-link"
-            onClick={() => navigate('/login')}
-          >
-            Войти
-          </button>
+                <div className="form-group">
+                  <label>Специализация:</label>
+                  <input
+                    type="text"
+                    name="specialization"
+                    value={formData.specialization}
+                    onChange={handleChange}
+                    placeholder="Например: Итальянская кухня, Суши, Десерты"
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="form-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="agreeTerms"
+                  checked={formData.agreeTerms}
+                  onChange={handleChange}
+                  required
+                />
+                Я согласен с <button 
+                  type="button" 
+                  className="terms-link-button"
+                  onClick={() => alert('Условия использования')}
+                >
+                  условиями использования
+                </button>
+              </label>
+            </div>
+
+            <button type="submit" disabled={loading}>
+              {loading ? 'Регистрация...' : 'Зарегистрироваться'}
+            </button>
+          </form>
+
+          <div className="register-footer">
+            <p>Уже есть аккаунт?</p>
+            <button 
+              className="login-link"
+              onClick={() => navigate('/client/login')}
+            >
+              Войти
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Информационные карточки */}
+      <div className="register-info-cards">
+        <div className="info-card">
+          <div className="info-card-icon">⭐</div>
+          <h3>Качественные блюда</h3>
+          <p>Только свежие ингредиенты и проверенные рецепты от профессиональных поваров</p>
+        </div>
+        <div className="info-card">
+          <div className="info-card-icon">👥</div>
+          <h3>Быстрая доставка</h3>
+          <p>Доставляем заказы в течение 30-60 минут в любую точку города</p>
+        </div>
+        <div className="info-card">
+          <div className="info-card-icon">💰</div>
+          <h3>Доступные цены</h3>
+          <p>Честные цены без скрытых наценок и комиссий</p>
         </div>
       </div>
     </div>

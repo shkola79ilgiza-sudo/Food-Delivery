@@ -471,24 +471,418 @@ html, body { max-width: 100vw; overflow-x: hidden; }
   min-height: 100vh !important;
 }
 .login-page-container {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
-  background-image: 
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.2) 0%, transparent 50%) !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
   min-height: 100vh !important;
+  width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 .register-page-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  background-image: 
-    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 0%, transparent 50%) !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
   min-height: 100vh !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Форма регистрации как на скриншоте */
+.register-content {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: 80vh !important;
+  padding: 30px !important;
+}
+
+.register-form-section {
+  background-color: #333333 !important;
+  border-radius: 25px !important;
+  padding: 45px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  max-width: 450px !important;
+  width: 100% !important;
+  position: relative !important;
+  border: none !important;
+  backdrop-filter: blur(35px) !important;
+}
+
+/* Заголовок с логотипом - центрированный */
+.register-form-section form .register-header {
+  text-align: center !important;
+  margin-bottom: 30px !important;
+  margin-top: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+}
+
+.register-form-section form .logo-section {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 20px !important;
+  width: 100% !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+}
+
+.logo-icon {
+  font-size: 32px !important;
+  margin-right: 15px !important;
+  color: #ff6b35 !important;
+  text-shadow: 0 3px 6px rgba(255, 107, 53, 0.4) !important;
+  filter: drop-shadow(0 2px 4px rgba(255, 107, 53, 0.3)) !important;
+}
+
+.register-form-section form .app-title {
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  color: #FFFFFF !important;
+  margin: 0 !important;
+  text-align: center !important;
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+  letter-spacing: 1.2px !important;
+}
+
+.register-form-section form .page-title {
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  color: #FFFFFF !important;
+  margin: 0 !important;
+  text-align: center !important;
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+  letter-spacing: 1px !important;
+}
+
+/* Поля ввода - белый фон с черным текстом для темной формы */
+.register-form-section input {
+  background-color: #FFFFFF !important;
+  border: 1px solid #CCCCCC !important;
+  border-radius: 15px !important;
+  padding: 18px 22px !important;
+  font-size: 18px !important;
+  transition: all 0.3s ease !important;
+  width: 100% !important;
+  margin-bottom: 22px !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15) !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+.register-form-section input:focus {
+  border-color: #ff6b35 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 6px rgba(255, 107, 53, 0.35), 0 8px 25px rgba(0, 0, 0, 0.25) !important;
+  transform: translateY(-2px) !important;
+  filter: brightness(1.1) contrast(1.2) saturate(1.1) !important;
+}
+
+.register-form-section input::placeholder {
+  color: #666666 !important;
+  font-weight: 600 !important;
+}
+
+/* Кнопка регистрации - максимально насыщенный оранжево-желтый градиент */
+.register-form-section button[type="submit"] {
+  background: linear-gradient(135deg, #ff6b35 0%, #ffd700 100%) !important;
+  border: none !important;
+  border-radius: 18px !important;
+  padding: 22px 40px !important;
+  font-size: 22px !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+  cursor: pointer !important;
+  transition: all 0.4s ease !important;
+  width: 100% !important;
+  margin-top: 35px !important;
+  box-shadow: 0 12px 35px rgba(255, 107, 53, 0.7), 0 6px 20px rgba(0, 0, 0, 0.25) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+  border: 4px solid rgba(255, 255, 255, 0.4) !important;
+  filter: brightness(1.1) contrast(1.2) saturate(1.15) !important;
+}
+
+.register-form-section button[type="submit"]:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 18px 45px rgba(255, 107, 53, 0.8), 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+  background: linear-gradient(135deg, #e55a2b 0%, #ffcc00 100%) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+  filter: brightness(1.15) contrast(1.25) saturate(1.2) !important;
+}
+
+.register-form-section button[type="submit"]:active {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.5) !important;
+}
+
+/* Лейблы формы - белый цвет для темного фона */
+.register-form-section label {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  font-size: 18px !important;
+  margin-bottom: 12px !important;
+  display: block !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* Группы полей */
+.register-form-section .form-group {
+  margin-bottom: 20px !important;
+}
+
+/* Футер формы */
+.register-form-section .register-footer {
+  text-align: center !important;
+  margin-top: 25px !important;
+  padding-top: 20px !important;
+  border-top: 1px solid #eee !important;
+}
+
+.register-form-section .register-footer p {
+  color: #FFFFFF !important;
+  margin-bottom: 10px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.register-form-section .login-link {
+  background: transparent !important;
+  color: #ff6b35 !important;
+  border: 2px solid #ff6b35 !important;
+  padding: 18px 35px !important;
+  border-radius: 18px !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.4s ease !important;
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4) !important;
+  width: 100% !important;
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  float: none !important;
+  margin: 0 !important;
+  display: block !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.5px !important;
+  text-shadow: 0 3px 6px rgba(255, 107, 53, 0.6) !important;
+  filter: brightness(1.1) contrast(1.2) saturate(1.15) !important;
+}
+
+.register-form-section .login-link:hover {
+  background: #ff6b35 !important;
+  color: #ffffff !important;
+  transform: translateY(-5px) !important;
+  box-shadow: 0 15px 40px rgba(255, 107, 53, 0.7) !important;
+  border-color: #e55a2b !important;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4) !important;
+  filter: brightness(1.15) contrast(1.25) saturate(1.2) !important;
+}
+
+.register-form-section .login-link:active {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5) !important;
+}
+
+/* Чекбокс */
+.register-form-section input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+}
+
+/* Ссылки в форме - яркий акцентный цвет */
+.register-form-section a {
+  color: #ff6b35 !important;
+  text-decoration: none !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 4px rgba(255, 107, 53, 0.3) !important;
+}
+
+.register-form-section a:hover {
+  color: #ffd700 !important;
+  text-decoration: underline !important;
+  text-shadow: 0 2px 4px rgba(255, 215, 0, 0.5) !important;
+}
+
+/* Стили для формы логина */
+.login-content {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: 80vh !important;
+  padding: 30px !important;
+}
+
+.login-form-section {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+
+.login-form-card {
+  background-color: #FFFFFF !important;
+  border-radius: 20px !important;
+  padding: 40px !important;
+  box-shadow: 0 25px 55px rgba(0, 0, 0, 0.35), 0 10px 15px rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+  border: none !important;
+  max-width: 450px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+.login-form-card h1 {
+  font-size: 2.2rem !important;
+  font-weight: 900 !important;
+  color: #000000 !important;
+  text-align: center !important;
+  margin: 0 0 30px 0 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.login-form-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-form-card label {
+  color: #000000 !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+  display: block !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.login-form-card input {
+  width: 100% !important;
+  padding: 15px !important;
+  border: 1px solid #AAAAAA !important;
+  border-radius: 10px !important;
+  font-size: 1rem !important;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+.login-form-card input:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.login-form-card button[type="submit"] {
+  width: 100% !important;
+  padding: 15px !important;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  margin: 10px 0 !important;
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4) !important;
+}
+
+.login-form-card button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+}
+
+.login-form-card button[type="submit"]:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.login-footer p {
+  color: #000000 !important;
+  margin-bottom: 10px !important;
+  font-weight: 600 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.register-link {
+  background: none !important;
+  border: none !important;
+  color: #ff6b35 !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  font-size: 1rem !important;
+  text-shadow: 0 2px 4px rgba(255, 107, 53, 0.3) !important;
+}
+
+.register-link:hover {
+  color: #ffd700 !important;
+  text-shadow: 0 2px 4px rgba(255, 215, 0, 0.5) !important;
+}
+
+.test-accounts {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px dashed rgba(255, 107, 53, 0.3);
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.test-accounts h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ff6b35;
+  margin: 0 0 15px 0;
+  text-align: center;
+}
+
+.test-account {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+}
+
+.test-account strong {
+  color: #333;
+  font-weight: 700;
 }
 .home-page-container {
   background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%) !important;
