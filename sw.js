@@ -1,12 +1,10 @@
-// Service Worker для Food Delivery PWA
-const CACHE_NAME = 'food-delivery-v2';
+// Service Worker для Push уведомлений
+const CACHE_NAME = 'food-delivery-v1';
 const urlsToCache = [
-  '/Food-Delivery/',
-  '/Food-Delivery/static/js/bundle.js',
-  '/Food-Delivery/static/css/main.css',
-  '/Food-Delivery/manifest.json',
-  '/Food-Delivery/logo192.png',
-  '/Food-Delivery/logo512.png'
+  '/',
+  '/static/js/bundle.js',
+  '/static/css/main.css',
+  '/manifest.json'
 ];
 
 // Установка Service Worker

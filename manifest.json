@@ -1,7 +1,6 @@
 {
-  "short_name": "Food Delivery",
-  "name": "Food Delivery Platform - Заказ еды онлайн",
-  "description": "Современная платформа доставки еды с AI помощником и умными уведомлениями",
+  "short_name": "React App",
+  "name": "Create React App Sample",
   "icons": [
     {
       "src": "favicon.ico",
@@ -11,30 +10,16 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any maskable"
+      "sizes": "192x192"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any maskable"
+      "sizes": "512x512"
     }
   ],
-  "start_url": "/Food-Delivery/",
-  "scope": "/Food-Delivery/",
+  "start_url": ".",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "theme_color": "#2ecc71",
-  "background_color": "#ffffff",
-  "lang": "ru",
-  "categories": ["food", "lifestyle", "shopping"],
-  "screenshots": [
-    {
-      "src": "logo512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
-  ]
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
 }
