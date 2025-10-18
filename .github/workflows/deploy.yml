@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: []  # Temporarily disabled
+    branches: [] # Temporarily disabled
   pull_request:
     branches: []
 
