@@ -1,6 +1,5 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Navigation from "./components/Navigation";
 import Home from "./components/Home";
 import Register from "./components/Register";
 import Login from "./components/Login";
@@ -34,12 +33,15 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import IconShowcase from "./components/IconShowcase";
 import OrderLifecycleTest from "./components/OrderLifecycleTest";
 import OrderTestMonitor from "./components/OrderTestMonitor";
 import TestShareNutrition from "./components/TestShareNutrition";
 import TestSmartTagging from "./components/TestSmartTagging";
+import SmartNotifications from "./components/SmartNotifications";
+import RealTimeAnalytics from "./components/RealTimeAnalytics";
 
 function ProtectedRoute({ children, requireAdmin = false }) {
   const token = localStorage.getItem("authToken");
@@ -67,15 +69,14 @@ function App() {
         <LanguageProvider>
           <ToastProvider>
             <AuthProvider>
-              <WebSocketProvider>
-                <Router>
+              <NotificationProvider>
+                <WebSocketProvider>
+                <Router basename="/Food-Delivery">
                 <div className="AppWrapper">
-                  {/* Навигация */}
-                  <Navigation />
-
         {/* Маршрутизация */}
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/Food-Delivery" element={<Home />} />
           <Route path="/guest/menu" element={<GuestMenu />} />
           
           {/* Поварские маршруты */}
@@ -273,8 +274,13 @@ function App() {
           <Route path="/test/smart-tagging" element={<TestSmartTagging />} />
         </Routes>
                 </div>
+                
+                {/* Новые компоненты */}
+                <SmartNotifications />
+                <RealTimeAnalytics />
               </Router>
-              </WebSocketProvider>
+                </WebSocketProvider>
+              </NotificationProvider>
             </AuthProvider>
           </ToastProvider>
         </LanguageProvider>
