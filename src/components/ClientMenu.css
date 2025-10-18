@@ -1,52 +1,127 @@
+/* Стили для улучшения кликабельности кнопок */
+.client-menu-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.client-menu-actions .nav-button {
+  min-height: 44px; /* Минимальная высота для лучшего клика */
+  min-width: 120px; /* Минимальная ширина */
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  user-select: none; /* Предотвращаем выделение текста при клике */
+  -webkit-tap-highlight-color: transparent; /* Убираем подсветку на мобильных */
+}
+
+.client-menu-actions .nav-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.client-menu-actions .nav-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Специальные стили для кнопки корзины */
+.client-menu-actions a[href="/client/cart"] {
+  text-decoration: none;
+  color: inherit;
+}
+
+.client-menu-actions a[href="/client/cart"]:hover {
+  text-decoration: none;
+}
+
+/* Специальные стили для кнопки быстрого заказа */
+.client-menu-actions button[onclick*="showQuickOrder"] {
+  background: linear-gradient(135deg, #ff9800, #f57c00) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.client-menu-actions button[onclick*="showQuickOrder"]:hover {
+  background: linear-gradient(135deg, #f57c00, #ef6c00) !important;
+}
+
+/* Центрирование последней карточки категории, если она одна в ряду */
+.categories-grid {
+  display: grid;
+  justify-items: center; /* Центрируем элементы по горизонтали */
+}
+
+.categories-grid .category-card:last-child:nth-child(5n + 1) {
+  grid-column: 1 / -1; /* Занимаем всю ширину */
+  max-width: 200px; /* Ограничиваем максимальную ширину */
+  justify-self: center; /* Центрируем элемент */
+}
+
 /* Мобильная адаптивность для ClientMenu */
 
 @media (max-width: 768px) {
   .client-menu-container {
     padding: 10px !important;
   }
-  
+
   .dishes-grid {
     grid-template-columns: 1fr !important;
     gap: 15px !important;
     padding: 0 10px !important;
   }
-  
+
   .categories-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px !important;
     padding: 0 10px !important;
   }
-  
+
   .category-card {
     padding: 15px !important;
   }
-  
+
   .category-card h3 {
     font-size: 14px !important;
   }
-  
+
   .dish-card {
     padding: 15px !important;
   }
-  
+
   .dish-card h3 {
     font-size: 16px !important;
   }
-  
+
   .dish-card p {
     font-size: 14px !important;
   }
-  
+
   .filters-content {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
-  
+
   .nav-buttons {
     flex-direction: column !important;
     gap: 10px !important;
   }
-  
+
+  .client-menu-actions {
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+
+  .client-menu-actions .nav-button {
+    width: 100% !important;
+    min-height: 48px !important;
+    font-size: 16px !important;
+  }
+
   .nav-buttons button {
     width: 100% !important;
   }
@@ -56,11 +131,11 @@
   .categories-grid {
     grid-template-columns: 1fr !important;
   }
-  
+
   .category-card {
     padding: 12px !important;
   }
-  
+
   .dish-card {
     padding: 12px !important;
   }
