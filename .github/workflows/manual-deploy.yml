@@ -3,7 +3,7 @@ name: Manual Deploy
 on:
   workflow_dispatch:  # Только ручной запуск
   push:
-    branches: [master]
+    branches: []  # Disabled
 
 jobs:
   deploy:
