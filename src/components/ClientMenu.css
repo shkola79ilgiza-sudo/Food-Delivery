@@ -52,13 +52,16 @@
 /* Центрирование последней карточки категории, если она одна в ряду */
 .categories-grid {
   display: grid;
-  justify-items: center; /* Центрируем элементы по горизонтали */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
 }
 
-.categories-grid .category-card:last-child:nth-child(5n + 1) {
+/* Центрируем только последнюю карточку, если она одна в ряду */
+.categories-grid .category-card:last-child {
   grid-column: 1 / -1; /* Занимаем всю ширину */
   max-width: 200px; /* Ограничиваем максимальную ширину */
-  justify-self: center; /* Центрируем элемент */
+  justify-self: center; /* Центрируем только этот элемент */
+  margin: 0 auto; /* Дополнительное центрирование */
 }
 
 /* Мобильная адаптивность для ClientMenu */
