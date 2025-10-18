@@ -1,11 +1,9 @@
 name: CI/CD Pipeline
 
 on:
+  workflow_dispatch:  # Только ручной запуск
   push:
-    branches:
-      - main
-      - develop
-      - master
+    branches: []  # Disabled
   pull_request:
     branches:
       - main
@@ -194,7 +192,7 @@ jobs:
           path: build/
 
       - name: 🚀 Deploy to staging
-        if: secrets.STAGING_SSH_KEY != ''
+        if: ${{ secrets.STAGING_SSH_KEY != '' && secrets.STAGING_HOST != '' && secrets.STAGING_USER != '' }}
         uses: easingthemes/ssh-deploy@v2
         env:
           SSH_PRIVATE_KEY: ${{ secrets.STAGING_SSH_KEY }}
@@ -204,7 +202,7 @@ jobs:
           TARGET: "/var/www/staging"
 
       - name: 🔄 Restart Nginx
-        if: secrets.STAGING_SSH_KEY != ''
+        if: ${{ secrets.STAGING_SSH_KEY != '' && secrets.STAGING_HOST != '' && secrets.STAGING_USER != '' }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.STAGING_HOST }}
@@ -215,8 +213,8 @@ jobs:
             echo "✅ Staging deployed successfully"
 
       - name: 💬 Notify Slack
+        if: ${{ secrets.SLACK_WEBHOOK != '' }}
         uses: 8398a7/action-slack@v3
-        if: always()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK || '' }}
         with:
@@ -263,7 +261,7 @@ jobs:
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
       - name: 🚀 Deploy to production
-        if: secrets.PRODUCTION_SSH_KEY != ''
+        if: ${{ secrets.PRODUCTION_SSH_KEY != '' && secrets.PRODUCTION_HOST != '' && secrets.PRODUCTION_USER != '' }}
         uses: easingthemes/ssh-deploy@v2
         env:
           SSH_PRIVATE_KEY: ${{ secrets.PRODUCTION_SSH_KEY }}
@@ -273,7 +271,7 @@ jobs:
           TARGET: "/var/www/production"
 
       - name: 🔄 Blue-Green Deployment
-        if: secrets.PRODUCTION_SSH_KEY != ''
+        if: ${{ secrets.PRODUCTION_SSH_KEY != '' && secrets.PRODUCTION_HOST != '' && secrets.PRODUCTION_USER != '' }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.PRODUCTION_HOST }}
@@ -294,6 +292,7 @@ jobs:
             echo "✅ Production deployed successfully"
 
       - name: 📊 Create Sentry release
+        if: ${{ secrets.SENTRY_AUTH_TOKEN != '' && secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' }}
         uses: getsentry/action-release@v1
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN || '' }}
@@ -304,8 +303,8 @@ jobs:
           version: ${{ github.sha }}
 
       - name: 💬 Notify Slack
+        if: ${{ secrets.SLACK_WEBHOOK != '' }}
         uses: 8398a7/action-slack@v3
-        if: always()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK || '' }}
         with:
@@ -313,7 +312,7 @@ jobs:
           text: "🚀 Production deployment completed"
 
       - name: 📧 Notify PagerDuty on failure
-        if: failure()
+        if: ${{ failure() && secrets.PAGERDUTY_KEY != '' }}
         uses: Entle/action-pagerduty-alert@v1
         with:
           pagerduty-integration-key: ${{ secrets.PAGERDUTY_KEY || '' }}
@@ -361,6 +360,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🔒 Run Snyk Security Scan
+        if: ${{ secrets.SNYK_TOKEN != '' }}
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
