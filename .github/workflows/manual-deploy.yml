@@ -1,28 +1,32 @@
-name: Ultra Simple Deploy
+name: Manual Deploy
 
 on:
+  workflow_dispatch:  # Только ручной запуск
   push:
-    branches: []  # Disabled
+    branches: [master]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
       
-      - name: Install and Build
-        run: |
-          npm install
-          npm run build
+      - name: Install
+        run: npm install
       
-      - name: Deploy
+      - name: Build
+        run: npm run build
+      
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
+          force_orphan: true
