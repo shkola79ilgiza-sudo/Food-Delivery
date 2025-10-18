@@ -11,7 +11,7 @@ on:
       - develop
 
 env:
-  NODE_VERSION: '18.x'
+  NODE_VERSION: "18.x"
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -22,30 +22,30 @@ jobs:
   lint:
     name: 🔍 Lint & Security
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-      
+
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: 📥 Install dependencies
         run: npm ci
-      
+
       - name: 🔍 Run ESLint
         run: npm run lint
         continue-on-error: true
-      
+
       - name: 🔒 Run security audit
         run: npm audit --audit-level=moderate
-      
+
       - name: 🔍 Check for vulnerabilities
         run: npm audit fix --dry-run
-      
+
       - name: 📊 Upload lint results
         uses: actions/upload-artifact@v4
         if: always()
@@ -60,32 +60,32 @@ jobs:
     name: 🧪 Unit Tests
     runs-on: ubuntu-latest
     needs: lint
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-      
+
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: 📥 Install dependencies
         run: npm ci
-      
+
       - name: 🧪 Run tests
         run: npm test -- --coverage --watchAll=false
         env:
           CI: true
-      
+
       - name: 📊 Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
-      
+
       - name: 📊 Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -100,27 +100,27 @@ jobs:
     name: 🏗️ Build Application
     runs-on: ubuntu-latest
     needs: [lint, test]
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-      
+
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: 📥 Install dependencies
         run: npm ci
-      
+
       - name: 🏗️ Build application
         run: npm run build
         env:
-          REACT_APP_API_BASE_URL: ${{ secrets.API_BASE_URL }}
-          REACT_APP_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          REACT_APP_API_BASE_URL: ${{ secrets.API_BASE_URL || 'https://api.example.com' }}
+          REACT_APP_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
           REACT_APP_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-      
+
       - name: 📦 Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -135,34 +135,34 @@ jobs:
     name: 🎭 E2E Tests
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-      
+
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: 📥 Install dependencies
         run: npm ci
-      
+
       - name: 📥 Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build
           path: build/
-      
+
       - name: 🎭 Install Playwright
         run: npx playwright install --with-deps
-      
+
       - name: 🎭 Run E2E tests
         run: npx playwright test
         env:
           CI: true
-      
+
       - name: 📊 Upload Playwright report
         uses: actions/upload-artifact@v4
         if: always()
@@ -181,18 +181,19 @@ jobs:
     environment:
       name: staging
       url: https://staging.fooddelivery.com
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-      
+
       - name: 📥 Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build
           path: build/
-      
+
       - name: 🚀 Deploy to staging
+        if: secrets.STAGING_SSH_KEY != ''
         uses: easingthemes/ssh-deploy@v2
         env:
           SSH_PRIVATE_KEY: ${{ secrets.STAGING_SSH_KEY }}
@@ -200,8 +201,9 @@ jobs:
           REMOTE_USER: ${{ secrets.STAGING_USER }}
           SOURCE: "build/"
           TARGET: "/var/www/staging"
-      
+
       - name: 🔄 Restart Nginx
+        if: secrets.STAGING_SSH_KEY != ''
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.STAGING_HOST }}
@@ -210,15 +212,15 @@ jobs:
           script: |
             sudo systemctl reload nginx
             echo "✅ Staging deployed successfully"
-      
+
       - name: 💬 Notify Slack
         uses: 8398a7/action-slack@v3
         if: always()
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK || '' }}
         with:
           status: ${{ job.status }}
-          text: 'Staging deployment completed'
+          text: "Staging deployment completed"
 
   # ============================================
   # JOB 6: Deploy to Production
@@ -231,35 +233,36 @@ jobs:
     environment:
       name: production
       url: https://fooddelivery.com
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-      
+
       - name: 📥 Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build
           path: build/
-      
+
       - name: 🏗️ Build Docker image
         run: |
           docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
           docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-      
+
       - name: 🔐 Login to Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: 🚀 Push Docker image
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-      
+
       - name: 🚀 Deploy to production
+        if: secrets.PRODUCTION_SSH_KEY != ''
         uses: easingthemes/ssh-deploy@v2
         env:
           SSH_PRIVATE_KEY: ${{ secrets.PRODUCTION_SSH_KEY }}
@@ -267,8 +270,9 @@ jobs:
           REMOTE_USER: ${{ secrets.PRODUCTION_USER }}
           SOURCE: "build/"
           TARGET: "/var/www/production"
-      
+
       - name: 🔄 Blue-Green Deployment
+        if: secrets.PRODUCTION_SSH_KEY != ''
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.PRODUCTION_HOST }}
@@ -279,39 +283,39 @@ jobs:
             docker-compose -f /opt/app/docker-compose.yml pull
             docker-compose -f /opt/app/docker-compose.yml up -d --no-deps --build app
             docker-compose -f /opt/app/docker-compose.yml exec app npm run migrate
-            
+
             # Health check
             sleep 10
             curl -f http://localhost:3000/health || exit 1
-            
+
             # Switch traffic
             sudo systemctl reload nginx
             echo "✅ Production deployed successfully"
-      
+
       - name: 📊 Create Sentry release
         uses: getsentry/action-release@v1
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN || '' }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG || '' }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT || '' }}
         with:
           environment: production
           version: ${{ github.sha }}
-      
+
       - name: 💬 Notify Slack
         uses: 8398a7/action-slack@v3
         if: always()
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK || '' }}
         with:
           status: ${{ job.status }}
-          text: '🚀 Production deployment completed'
-      
+          text: "🚀 Production deployment completed"
+
       - name: 📧 Notify PagerDuty on failure
         if: failure()
         uses: Entle/action-pagerduty-alert@v1
         with:
-          pagerduty-integration-key: ${{ secrets.PAGERDUTY_KEY }}
+          pagerduty-integration-key: ${{ secrets.PAGERDUTY_KEY || '' }}
           pagerduty-dedup-key: deployment-${{ github.sha }}
 
   # ============================================
@@ -322,11 +326,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy-staging
     if: github.ref == 'refs/heads/develop'
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-      
+
       - name: ⚡ Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v12
         with:
@@ -336,7 +340,7 @@ jobs:
             https://staging.fooddelivery.com/chef
           uploadArtifacts: true
           temporaryPublicStorage: true
-      
+
       - name: 📊 Upload performance results
         uses: actions/upload-artifact@v4
         with:
@@ -350,28 +354,27 @@ jobs:
     name: 🔒 Security Scan
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-      
+
       - name: 🔒 Run Snyk Security Scan
         uses: snyk/actions/node@master
         env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
         with:
           args: --severity-threshold=high
-      
+
       - name: 🔍 Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-      
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-results.sarif"
+
       - name: 📊 Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: 'trivy-results.sarif'
-
+          sarif_file: "trivy-results.sarif"
