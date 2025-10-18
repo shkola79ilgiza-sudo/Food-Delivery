@@ -1,6 +1,9 @@
-# Getting Started with Create React App
+# Food Delivery Frontend
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Deployment Status
+Last updated: $(date)
 
 ## Available Scripts
 

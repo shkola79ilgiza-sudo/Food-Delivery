@@ -13,8 +13,5 @@
     "main.c8942fab.js.map": "/Food-Delivery/static/js/main.c8942fab.js.map",
     "453.4b2abb2e.chunk.js.map": "/Food-Delivery/static/js/453.4b2abb2e.chunk.js.map"
   },
-  "entrypoints": [
-    "static/css/main.57f8821d.css",
-    "static/js/main.c8942fab.js"
-  ]
+  "entrypoints": ["static/css/main.57f8821d.css", "static/js/main.c8942fab.js"]
 }
