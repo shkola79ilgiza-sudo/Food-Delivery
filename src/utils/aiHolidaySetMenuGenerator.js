@@ -1,6 +1,6 @@
 /**
  * 🎄 AI-Конструктор Праздничных Сет-Меню
- * 
+ *
  * Генерирует готовые праздничные наборы блюд для поваров
  * на основе их существующего меню и предстоящих праздников.
  */
@@ -11,60 +11,66 @@ class AIHolidaySetMenuGenerator {
     this.holidays = {
       "Новый год": {
         date: "31.12",
-        keywords: ["оливье", "селедка под шубой", "мандарины", "шампанское", "холодец"],
+        keywords: [
+          "оливье",
+          "селедка под шубой",
+          "мандарины",
+          "шампанское",
+          "холодец",
+        ],
         targetAudience: "семья",
         avgBudget: 5000,
-        color: "#ff4444"
+        color: "#ff4444",
       },
       "8 Марта": {
         date: "08.03",
         keywords: ["торт", "десерт", "шампанское", "салат", "фрукты", "цветы"],
         targetAudience: "женщины",
         avgBudget: 3000,
-        color: "#ff69b4"
+        color: "#ff69b4",
       },
       "23 Февраля": {
         date: "23.02",
         keywords: ["мясо", "шашлык", "картофель", "соленья", "пиво", "закуски"],
         targetAudience: "мужчины",
         avgBudget: 3500,
-        color: "#4a90e2"
+        color: "#4a90e2",
       },
-      "Пасха": {
+      Пасха: {
         date: "variable",
         keywords: ["кулич", "пасха", "яйца", "творог", "сырная пасха"],
         targetAudience: "семья",
         avgBudget: 2500,
-        color: "#ffd700"
+        color: "#ffd700",
       },
       "День Победы": {
         date: "09.05",
         keywords: ["борщ", "пирожки", "каша", "компот", "традиционные блюда"],
         targetAudience: "пожилые, семья",
         avgBudget: 2000,
-        color: "#ff6b6b"
+        color: "#ff6b6b",
       },
-      "Масленица": {
+      Масленица: {
         date: "variable",
         keywords: ["блины", "икра", "сметана", "мёд", "варенье"],
         targetAudience: "семья",
         avgBudget: 1500,
-        color: "#ffaa00"
+        color: "#ffaa00",
       },
       "День Рождения": {
         date: "any",
         keywords: ["торт", "пицца", "салаты", "напитки", "закуски"],
         targetAudience: "любая",
         avgBudget: 4000,
-        color: "#9c27b0"
+        color: "#9c27b0",
       },
-      "Корпоратив": {
+      Корпоратив: {
         date: "any",
         keywords: ["фуршет", "канапе", "салаты", "горячее", "десерт"],
         targetAudience: "офис",
         avgBudget: 8000,
-        color: "#3f51b5"
-      }
+        color: "#3f51b5",
+      },
     };
 
     // Типы сет-меню по количеству персон
@@ -73,7 +79,7 @@ class AIHolidaySetMenuGenerator {
       family: { persons: 4, name: "Семейный набор", margin: 45 },
       party: { persons: 8, name: "Вечеринка", margin: 40 },
       corporate: { persons: 15, name: "Корпоративный", margin: 35 },
-      banquet: { persons: 30, name: "Банкет", margin: 30 }
+      banquet: { persons: 30, name: "Банкет", margin: 30 },
     };
   }
 
@@ -98,14 +104,19 @@ class AIHolidaySetMenuGenerator {
 
   /**
    * Генерация праздничного сет-меню с помощью AI
-   * 
+   *
    * @param {Array} chefDishes - блюда повара
    * @param {String} holiday - название праздника
    * @param {String} setType - тип набора (romantic, family, party, etc.)
    * @param {Object} options - дополнительные опции
    * @returns {Object} сгенерированное сет-меню
    */
-  async generateHolidaySet(chefDishes, holiday = null, setType = 'family', options = {}) {
+  async generateHolidaySet(
+    chefDishes,
+    holiday = null,
+    setType = "family",
+    options = {}
+  ) {
     try {
       // Определяем праздник
       const selectedHoliday = holiday || this.getUpcomingHoliday();
@@ -119,26 +130,30 @@ class AIHolidaySetMenuGenerator {
       console.log(`🎉 Генерация сет-меню для праздника: ${selectedHoliday}`);
 
       // Фильтруем блюда повара по релевантности празднику
-      const relevantDishes = this.filterDishesByHoliday(chefDishes, holidayData);
+      const relevantDishes = this.filterDishesByHoliday(
+        chefDishes,
+        holidayData
+      );
 
       if (relevantDishes.length === 0) {
         return {
           success: false,
-          error: "Недостаточно подходящих блюд для создания праздничного набора"
+          error:
+            "Недостаточно подходящих блюд для создания праздничного набора",
         };
       }
 
       // Генерируем композицию набора
       const setComposition = this.composeSet(
-        relevantDishes, 
-        setTypeData.persons, 
+        relevantDishes,
+        setTypeData.persons,
         holidayData,
         options
       );
 
       // Рассчитываем цену с маржой
       const pricing = this.calculateSetPricing(
-        setComposition, 
+        setComposition,
         setTypeData.margin,
         holidayData.avgBudget
       );
@@ -166,15 +181,14 @@ class AIHolidaySetMenuGenerator {
           tags: aiDescription.tags,
           promoText: aiDescription.promoText,
           validUntil: this.getHolidayDeadline(selectedHoliday),
-          color: holidayData.color
-        }
+          color: holidayData.color,
+        },
       };
-
     } catch (error) {
       console.error("❌ Ошибка генерации сет-меню:", error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -183,30 +197,45 @@ class AIHolidaySetMenuGenerator {
    * Фильтрация блюд по релевантности празднику
    */
   filterDishesByHoliday(dishes, holidayData) {
-    return dishes.map(dish => {
-      let relevanceScore = 0;
+    return dishes
+      .map((dish) => {
+        let relevanceScore = 0;
 
-      // Проверяем название и ингредиенты на ключевые слова
-      const dishText = `${dish.name} ${dish.description || ''} ${dish.ingredients || ''}`.toLowerCase();
+        // Проверяем название и ингредиенты на ключевые слова
+        const dishText = `${dish.name} ${dish.description || ""} ${
+          dish.ingredients || ""
+        }`.toLowerCase();
 
-      holidayData.keywords.forEach(keyword => {
-        if (dishText.includes(keyword.toLowerCase())) {
-          relevanceScore += 10;
-        }
-      });
+        holidayData.keywords.forEach((keyword) => {
+          if (dishText.includes(keyword.toLowerCase())) {
+            relevanceScore += 10;
+          }
+        });
 
-      // Бонус за категорию
-      if (dish.category === 'salads' && holidayData.keywords.includes('салат')) relevanceScore += 5;
-      if (dish.category === 'desserts' && holidayData.keywords.includes('десерт')) relevanceScore += 5;
-      if (dish.category === 'mainCourses' && holidayData.keywords.includes('мясо')) relevanceScore += 5;
+        // Бонус за категорию
+        if (
+          dish.category === "salads" &&
+          holidayData.keywords.includes("салат")
+        )
+          relevanceScore += 5;
+        if (
+          dish.category === "desserts" &&
+          holidayData.keywords.includes("десерт")
+        )
+          relevanceScore += 5;
+        if (
+          dish.category === "mainCourses" &&
+          holidayData.keywords.includes("мясо")
+        )
+          relevanceScore += 5;
 
-      return {
-        ...dish,
-        relevanceScore
-      };
-    })
-    .filter(dish => dish.relevanceScore > 0)
-    .sort((a, b) => b.relevanceScore - a.relevanceScore);
+        return {
+          ...dish,
+          relevanceScore,
+        };
+      })
+      .filter((dish) => dish.relevanceScore > 0)
+      .sort((a, b) => b.relevanceScore - a.relevanceScore);
   }
 
   /**
@@ -219,31 +248,31 @@ class AIHolidaySetMenuGenerator {
       mainCourses: Math.ceil(persons / 3), // 1 горячее на 3 человека
       desserts: Math.ceil(persons / 4), // 1 десерт на 4 человека
       appetizers: Math.ceil(persons / 5), // 1 закуска на 5 человек
-      beverages: Math.ceil(persons / 6) // 1 напиток на 6 человек
+      beverages: Math.ceil(persons / 6), // 1 напиток на 6 человек
     };
 
     // Формируем набор по категориям
-    Object.keys(categories).forEach(category => {
-      const categoryDishes = dishes.filter(d => d.category === category);
+    Object.keys(categories).forEach((category) => {
+      const categoryDishes = dishes.filter((d) => d.category === category);
       const needed = categories[category];
 
       for (let i = 0; i < needed && i < categoryDishes.length; i++) {
         composition.push({
           ...categoryDishes[i],
           quantity: 1,
-          portionsPerDish: Math.ceil(persons / needed)
+          portionsPerDish: Math.ceil(persons / needed),
         });
       }
     });
 
     // Если не хватает блюд, добавляем самые релевантные
     if (composition.length < 3) {
-      dishes.slice(0, 5 - composition.length).forEach(dish => {
-        if (!composition.find(d => d.id === dish.id)) {
+      dishes.slice(0, 5 - composition.length).forEach((dish) => {
+        if (!composition.find((d) => d.id === dish.id)) {
           composition.push({
             ...dish,
             quantity: 1,
-            portionsPerDish: Math.ceil(persons / 3)
+            portionsPerDish: Math.ceil(persons / 3),
           });
         }
       });
@@ -262,7 +291,7 @@ class AIHolidaySetMenuGenerator {
     let totalCarbs = 0;
     let totalFat = 0;
 
-    composition.forEach(item => {
+    composition.forEach((item) => {
       const itemCost = (item.price || 0) * (item.quantity || 1);
       totalCost += itemCost;
 
@@ -297,12 +326,16 @@ class AIHolidaySetMenuGenerator {
         totalCarbs,
         totalFat,
         perPerson: {
-          calories: Math.round(totalCalories / composition[0]?.portionsPerDish || 1),
-          protein: Math.round(totalProtein / composition[0]?.portionsPerDish || 1),
+          calories: Math.round(
+            totalCalories / composition[0]?.portionsPerDish || 1
+          ),
+          protein: Math.round(
+            totalProtein / composition[0]?.portionsPerDish || 1
+          ),
           carbs: Math.round(totalCarbs / composition[0]?.portionsPerDish || 1),
-          fat: Math.round(totalFat / composition[0]?.portionsPerDish || 1)
-        }
-      }
+          fat: Math.round(totalFat / composition[0]?.portionsPerDish || 1),
+        },
+      },
     };
   }
 
@@ -310,7 +343,7 @@ class AIHolidaySetMenuGenerator {
    * Генерация AI-описания набора
    */
   async generateAIDescription(holiday, composition, setTypeData, pricing) {
-    const dishNames = composition.map(d => d.name).join(', ');
+    const dishNames = composition.map((d) => d.name).join(", ");
     const persons = setTypeData.persons;
 
     // Симуляция AI (в реальности - вызов GPT/Gemini)
@@ -329,11 +362,11 @@ class AIHolidaySetMenuGenerator {
       "Новый год": `🎄 Новогодний Семейный Стол на ${persons} персон`,
       "8 Марта": `🌸 Весенний Набор к 8 Марта на ${persons} персон`,
       "23 Февраля": `🎖️ Мужской Набор к 23 Февраля на ${persons} персон`,
-      "Пасха": `🥚 Пасхальный Стол на ${persons} персон`,
+      Пасха: `🥚 Пасхальный Стол на ${persons} персон`,
       "День Победы": `🎗️ Праздничный Набор ко Дню Победы на ${persons} персон`,
-      "Масленица": `🥞 Масленичный Набор на ${persons} персон`,
+      Масленица: `🥞 Масленичный Набор на ${persons} персон`,
       "День Рождения": `🎂 Праздничный Набор на ${persons} персон`,
-      "Корпоратив": `🏢 Корпоративный Набор на ${persons} персон`
+      Корпоратив: `🏢 Корпоративный Набор на ${persons} персон`,
     };
 
     // Генерируем описание
@@ -341,11 +374,11 @@ class AIHolidaySetMenuGenerator {
       "Новый год": `Встречайте Новый год с нашим готовым праздничным столом! Включает ${composition.length} изысканных блюд: ${dishNames}. Все блюда свежеприготовленные, упакованы в праздничную упаковку. Экономия времени + скидка ${pricing.discount}%!`,
       "8 Марта": `Порадуйте любимых женщин! Готовый праздничный набор на ${persons} персон. В составе: ${dishNames}. Бесплатная доставка + праздничная упаковка. Специальная цена: ${pricing.discountedPrice}₽ вместо ${pricing.recommendedPrice}₽!`,
       "23 Февраля": `Мужской праздник требует мужского подхода! Сытный набор на ${persons} персон: ${dishNames}. Всё, что нужно для отличного вечера. Скидка ${pricing.discount}%!`,
-      "Пасха": `Светлый праздник Пасхи - светлые эмоции! Традиционный набор на ${persons} персон. В составе: ${dishNames}. Освящено с любовью, доставлено с заботой!`,
+      Пасха: `Светлый праздник Пасхи - светлые эмоции! Традиционный набор на ${persons} персон. В составе: ${dishNames}. Освящено с любовью, доставлено с заботой!`,
       "День Победы": `В память о великом подвиге! Традиционный набор на ${persons} персон: ${dishNames}. Специальная праздничная цена с уважением к ветеранам.`,
-      "Масленица": `Широкая Масленица на ${persons} персон! Блины и всё, что к ним нужно: ${dishNames}. Готово к столу - просто разогрей!`,
+      Масленица: `Широкая Масленица на ${persons} персон! Блины и всё, что к ним нужно: ${dishNames}. Готово к столу - просто разогрей!`,
       "День Рождения": `День Рождения - это легко! Готовый праздничный стол на ${persons} персон: ${dishNames}. Вам остается только пригласить гостей!`,
-      "Корпоратив": `Корпоративное мероприятие на ${persons} персон без хлопот! Профессиональный фуршет: ${dishNames}. Бесплатная доставка в офис + сервировка!`
+      Корпоратив: `Корпоративное мероприятие на ${persons} персон без хлопот! Профессиональный фуршет: ${dishNames}. Бесплатная доставка в офис + сервировка!`,
     };
 
     // Генерируем промо-текст
@@ -353,11 +386,11 @@ class AIHolidaySetMenuGenerator {
       "Новый год": `🎁 НОВОГОДНЯЯ АКЦИЯ! Закажите сет-меню до 28 декабря и получите бесплатное шампанское + праздничный декор стола!`,
       "8 Марта": `💐 К 8 Марта: Каждый заказ - с бесплатной открыткой и цветочной композицией! Только до 7 марта!`,
       "23 Февраля": `🎖️ Защитникам скидка! При заказе набора - бесплатная доставка + тост за героев!`,
-      "Пасха": `🕊️ Христос Воскресе! Специальная цена на пасхальные наборы + бесплатная корзина для кулича!`,
+      Пасха: `🕊️ Христос Воскресе! Специальная цена на пасхальные наборы + бесплатная корзина для кулича!`,
       "День Победы": `🎗️ Со светлым праздником! Скидка 9% на все наборы в честь Дня Победы!`,
-      "Масленица": `🔥 Масленичная неделя! Закажи набор и получи рецепт фирменных блинов от шеф-повара!`,
+      Масленица: `🔥 Масленичная неделя! Закажи набор и получи рецепт фирменных блинов от шеф-повара!`,
       "День Рождения": `🎈 Именинникам везёт! Скидка 15% при заказе за 3 дня + бесплатная свеча на торт!`,
-      "Корпоратив": `🏢 Для компаний от 15 человек - бесплатная доставка, сервировка и корпоративный чек!`
+      Корпоратив: `🏢 Для компаний от 15 человек - бесплатная доставка, сервировка и корпоративный чек!`,
     };
 
     // Генерируем теги
@@ -366,14 +399,18 @@ class AIHolidaySetMenuGenerator {
       `На ${persons} персон`,
       `Скидка ${pricing.discount}%`,
       "Готовый набор",
-      "Праздничная упаковка"
+      "Праздничная упаковка",
     ];
 
     return {
       name: names[holiday] || `Праздничный Набор на ${persons} персон`,
-      description: descriptions[holiday] || `Готовый праздничный стол на ${persons} персон. В составе: ${dishNames}. Всё включено!`,
-      promoText: promoTexts[holiday] || `🎉 Специальное предложение! Скидка ${pricing.discount}% на праздничные наборы!`,
-      tags: tags
+      description:
+        descriptions[holiday] ||
+        `Готовый праздничный стол на ${persons} персон. В составе: ${dishNames}. Всё включено!`,
+      promoText:
+        promoTexts[holiday] ||
+        `🎉 Специальное предложение! Скидка ${pricing.discount}% на праздничные наборы!`,
+      tags: tags,
     };
   }
 
@@ -382,19 +419,27 @@ class AIHolidaySetMenuGenerator {
    */
   getHolidayDeadline(holiday) {
     const holidayData = this.holidays[holiday];
-    if (!holidayData || holidayData.date === 'any' || holidayData.date === 'variable') {
+    if (
+      !holidayData ||
+      holidayData.date === "any" ||
+      holidayData.date === "variable"
+    ) {
       return null;
     }
 
-    const [day, month] = holidayData.date.split('.');
+    const [day, month] = holidayData.date.split(".");
     const currentYear = new Date().getFullYear();
-    const holidayDate = new Date(currentYear, parseInt(month) - 1, parseInt(day));
-    
+    const holidayDate = new Date(
+      currentYear,
+      parseInt(month) - 1,
+      parseInt(day)
+    );
+
     // За 2 дня до праздника
     const deadline = new Date(holidayDate);
     deadline.setDate(deadline.getDate() - 2);
 
-    return deadline.toLocaleDateString('ru-RU');
+    return deadline.toLocaleDateString("ru-RU");
   }
 
   /**
@@ -405,10 +450,15 @@ class AIHolidaySetMenuGenerator {
     const variants = [];
 
     // Генерируем варианты для разного количества персон
-    const types = ['romantic', 'family', 'party'];
+    const types = ["romantic", "family", "party"];
 
     for (const type of types) {
-      const variant = await this.generateHolidaySet(chefDishes, selectedHoliday, type, options);
+      const variant = await this.generateHolidaySet(
+        chefDishes,
+        selectedHoliday,
+        type,
+        options
+      );
       if (variant.success) {
         variants.push(variant.set);
       }
@@ -418,7 +468,7 @@ class AIHolidaySetMenuGenerator {
       success: true,
       holiday: selectedHoliday,
       variants: variants,
-      deadline: this.getHolidayDeadline(selectedHoliday)
+      deadline: this.getHolidayDeadline(selectedHoliday),
     };
   }
 
@@ -432,8 +482,8 @@ class AIHolidaySetMenuGenerator {
     const avgCalories = set.pricing.nutrition.perPerson.calories;
     if (avgCalories > 800) {
       tips.push({
-        type: 'warning',
-        message: `⚠️ Высокая калорийность (${avgCalories} ккал/чел). Рекомендуем добавить лёгкий салат или заменить одно блюдо.`
+        type: "warning",
+        message: `⚠️ Высокая калорийность (${avgCalories} ккал/чел). Рекомендуем добавить лёгкий салат или заменить одно блюдо.`,
       });
     }
 
@@ -441,34 +491,38 @@ class AIHolidaySetMenuGenerator {
     const holidayData = this.holidays[set.holiday];
     if (set.pricing.discountedPrice > holidayData.avgBudget * 1.2) {
       tips.push({
-        type: 'info',
-        message: `💰 Цена выше среднего бюджета на ${Math.round((set.pricing.discountedPrice / holidayData.avgBudget - 1) * 100)}%. Рекомендуем увеличить скидку или уменьшить порции.`
+        type: "info",
+        message: `💰 Цена выше среднего бюджета на ${Math.round(
+          (set.pricing.discountedPrice / holidayData.avgBudget - 1) * 100
+        )}%. Рекомендуем увеличить скидку или уменьшить порции.`,
       });
     }
 
     // Проверка разнообразия
     if (set.dishes.length < 4) {
       tips.push({
-        type: 'suggestion',
-        message: `💡 Добавьте ещё ${4 - set.dishes.length} блюдо(а) для большего разнообразия и привлекательности набора.`
+        type: "suggestion",
+        message: `💡 Добавьте ещё ${
+          4 - set.dishes.length
+        } блюдо(а) для большего разнообразия и привлекательности набора.`,
       });
     }
 
     // Проверка баланса БЖУ
     const protein = set.pricing.nutrition.perPerson.protein;
     const carbs = set.pricing.nutrition.perPerson.carbs;
-    
+
     if (protein < 20) {
       tips.push({
-        type: 'suggestion',
-        message: `🥩 Низкое содержание белка (${protein}г). Добавьте мясное или рыбное блюдо.`
+        type: "suggestion",
+        message: `🥩 Низкое содержание белка (${protein}г). Добавьте мясное или рыбное блюдо.`,
       });
     }
 
     if (carbs > 100) {
       tips.push({
-        type: 'warning',
-        message: `🍞 Много углеводов (${carbs}г). Рекомендуем сбалансировать набор овощами.`
+        type: "warning",
+        message: `🍞 Много углеводов (${carbs}г). Рекомендуем сбалансировать набор овощами.`,
       });
     }
 
@@ -479,9 +533,9 @@ class AIHolidaySetMenuGenerator {
    * Получить список всех доступных праздников
    */
   getAvailableHolidays() {
-    return Object.keys(this.holidays).map(name => ({
+    return Object.keys(this.holidays).map((name) => ({
       name,
-      ...this.holidays[name]
+      ...this.holidays[name],
     }));
   }
 
@@ -492,14 +546,17 @@ class AIHolidaySetMenuGenerator {
     const currentMonth = new Date().getMonth() + 1;
     const upcoming = [];
 
-    Object.keys(this.holidays).forEach(name => {
+    Object.keys(this.holidays).forEach((name) => {
       const holiday = this.holidays[name];
-      if (holiday.date !== 'any' && holiday.date !== 'variable') {
-        const [day, month] = holiday.date.split('.');
-        if (parseInt(month) === currentMonth || parseInt(month) === currentMonth + 1) {
+      if (holiday.date !== "any" && holiday.date !== "variable") {
+        const [month] = holiday.date.split("."); // day не используется
+        if (
+          parseInt(month) === currentMonth ||
+          parseInt(month) === currentMonth + 1
+        ) {
           upcoming.push({
             name,
-            ...holiday
+            ...holiday,
           });
         }
       }
@@ -512,4 +569,3 @@ class AIHolidaySetMenuGenerator {
 // Создаем и экспортируем экземпляр
 const aiHolidaySetMenuGenerator = new AIHolidaySetMenuGenerator();
 export default aiHolidaySetMenuGenerator;
-

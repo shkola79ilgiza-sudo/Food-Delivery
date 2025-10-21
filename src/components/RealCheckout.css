@@ -340,10 +340,6 @@ button[type="submit"]:disabled {
   display: flex;
   gap: 8px;
   align-items: stretch;
-  /* Добавляем отладочные стили */
-  border: 2px solid blue !important;
-  padding: 5px !important;
-  background: rgba(0, 0, 255, 0.1) !important;
 }
 
 .address-input-group input {
@@ -374,9 +370,6 @@ button[type="submit"]:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Добавляем отладочные стили */
-  border: 2px solid red !important;
-  box-shadow: 0 0 10px rgba(255, 0, 0, 0.5) !important;
 }
 
 .location-button:hover:not(:disabled) {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../contexts/ToastContext";
-import { placeOrder } from "../api/adapter";
+// import { placeOrder } from "../api/adapter"; // Не используется в этом компоненте
 import storageManager from "../utils/storageManager";
 
 const QuickOrder = ({ dishes = [], onClose }) => {
@@ -30,7 +30,7 @@ const QuickOrder = ({ dishes = [], onClose }) => {
   const { showSuccess, showError } = useToast();
 
   // Форматирование номера карты
-  const formatCardNumber = value => {
+  const formatCardNumber = (value) => {
     const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
     const matches = v.match(/\d{4,16}/g);
     const match = (matches && matches[0]) || "";
@@ -46,7 +46,7 @@ const QuickOrder = ({ dishes = [], onClose }) => {
   };
 
   // Форматирование срока действия карты
-  const formatExpiry = value => {
+  const formatExpiry = (value) => {
     const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
     if (v.length >= 2) {
       return v.substring(0, 2) + "/" + v.substring(2, 4);
@@ -66,7 +66,7 @@ const QuickOrder = ({ dishes = [], onClose }) => {
     setIsGettingLocation(true);
 
     navigator.geolocation.getCurrentPosition(
-      async position => {
+      async (position) => {
         try {
           const { latitude, longitude } = position.coords;
 
@@ -78,13 +78,13 @@ const QuickOrder = ({ dishes = [], onClose }) => {
           if (response.ok) {
             const data = await response.json();
             if (data.display_name) {
-              setDeliveryInfo(prev => ({
+              setDeliveryInfo((prev) => ({
                 ...prev,
                 address: data.display_name,
               }));
               showSuccess("Адрес определен автоматически!");
             } else {
-              setDeliveryInfo(prev => ({
+              setDeliveryInfo((prev) => ({
                 ...prev,
                 address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
               }));
@@ -92,7 +92,7 @@ const QuickOrder = ({ dishes = [], onClose }) => {
             }
           } else {
             // Fallback - используем координаты
-            setDeliveryInfo(prev => ({
+            setDeliveryInfo((prev) => ({
               ...prev,
               address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
             }));
@@ -101,7 +101,7 @@ const QuickOrder = ({ dishes = [], onClose }) => {
         } catch (error) {
           console.error("Ошибка получения адреса:", error);
           const { latitude, longitude } = position.coords;
-          setDeliveryInfo(prev => ({
+          setDeliveryInfo((prev) => ({
             ...prev,
             address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
           }));
@@ -110,7 +110,7 @@ const QuickOrder = ({ dishes = [], onClose }) => {
           setIsGettingLocation(false);
         }
       },
-      error => {
+      (error) => {
         setIsGettingLocation(false);
         switch (error.code) {
           case error.PERMISSION_DENIED:
@@ -164,10 +164,10 @@ const QuickOrder = ({ dishes = [], onClose }) => {
       }
 
       if (Object.keys(savedDelivery).length > 0) {
-        setDeliveryInfo(prev => ({ ...prev, ...savedDelivery }));
+        setDeliveryInfo((prev) => ({ ...prev, ...savedDelivery }));
       }
       if (Object.keys(savedPayment).length > 0) {
-        setPaymentInfo(prev => ({ ...prev, ...savedPayment }));
+        setPaymentInfo((prev) => ({ ...prev, ...savedPayment }));
       }
     } catch (err) {
       console.error(
@@ -180,52 +180,55 @@ const QuickOrder = ({ dishes = [], onClose }) => {
   }, [dishes]);
 
   // Функция безопасного сохранения в localStorage с защитой от переполнения
-  const safeSetItem = (key, value) => {
-    storageManager.safeSetItem(
-      key,
-      value,
-      () => {
-        // Успешно сохранено
-        console.log(`✅ Сохранено: ${key}`);
-      },
-      error => {
-        // Ошибка сохранения
-        console.error(`❌ Ошибка сохранения ${key}:`, error);
-        if (error.name === "QuotaExceededError") {
-          showError(
-            "Недостаточно места. Старые данные были очищены. Попробуйте ещё раз."
-          );
-        } else {
-          showError("Ошибка сохранения данных");
+  const safeSetItem = useCallback(
+    (key, value) => {
+      storageManager.safeSetItem(
+        key,
+        value,
+        () => {
+          // Успешно сохранено
+          console.log(`✅ Сохранено: ${key}`);
+        },
+        (error) => {
+          // Ошибка сохранения
+          console.error(`❌ Ошибка сохранения ${key}:`, error);
+          if (error.name === "QuotaExceededError") {
+            showError(
+              "Недостаточно места. Старые данные были очищены. Попробуйте ещё раз."
+            );
+          } else {
+            showError("Ошибка сохранения данных");
+          }
         }
-      }
-    );
-  };
+      );
+    },
+    [showError]
+  );
 
   // Сохраняем данные при изменении
   useEffect(() => {
     if (selectedDishes.length > 0) {
       safeSetItem("cart", JSON.stringify(selectedDishes));
     }
-  }, [selectedDishes]);
+  }, [selectedDishes, safeSetItem]);
 
   useEffect(() => {
     if (deliveryInfo.address) {
       safeSetItem("deliveryInfo", JSON.stringify(deliveryInfo));
     }
-  }, [deliveryInfo]);
+  }, [deliveryInfo, safeSetItem]);
 
   useEffect(() => {
     if (paymentInfo.method) {
       safeSetItem("paymentInfo", JSON.stringify(paymentInfo));
     }
-  }, [paymentInfo]);
+  }, [paymentInfo, safeSetItem]);
 
-  const addToCart = dish => {
-    setSelectedDishes(prev => {
-      const existing = prev.find(item => item.id === dish.id);
+  const addToCart = (dish) => {
+    setSelectedDishes((prev) => {
+      const existing = prev.find((item) => item.id === dish.id);
       if (existing) {
-        return prev.map(item =>
+        return prev.map((item) =>
           item.id === dish.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
@@ -233,8 +236,8 @@ const QuickOrder = ({ dishes = [], onClose }) => {
     });
   };
 
-  const removeFromCart = dishId => {
-    setSelectedDishes(prev => prev.filter(item => item.id !== dishId));
+  const removeFromCart = (dishId) => {
+    setSelectedDishes((prev) => prev.filter((item) => item.id !== dishId));
   };
 
   const updateQuantity = (dishId, quantity) => {
@@ -242,8 +245,8 @@ const QuickOrder = ({ dishes = [], onClose }) => {
       removeFromCart(dishId);
       return;
     }
-    setSelectedDishes(prev =>
-      prev.map(item => (item.id === dishId ? { ...item, quantity } : item))
+    setSelectedDishes((prev) =>
+      prev.map((item) => (item.id === dishId ? { ...item, quantity } : item))
     );
   };
 
@@ -301,7 +304,7 @@ const QuickOrder = ({ dishes = [], onClose }) => {
       };
 
       // Mock API call - имитируем задержку сети
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Создаем mock результат
       const mockResult = {
@@ -437,7 +440,7 @@ const QuickOrder = ({ dishes = [], onClose }) => {
           <h3>🍽️ Выберите блюда</h3>
           <div className="dishes-grid">
             {Array.isArray(dishes) && dishes.length > 0 ? (
-              dishes.slice(0, 6).map(dish => (
+              dishes.slice(0, 6).map((dish) => (
                 <div key={dish.id} className="dish-card">
                   <div className="dish-info">
                     <h4>{dish.name}</h4>
@@ -469,7 +472,7 @@ const QuickOrder = ({ dishes = [], onClose }) => {
           <div className="cart-section">
             <h3>🛒 Ваш заказ</h3>
             <div className="cart-items">
-              {selectedDishes.map(item => (
+              {selectedDishes.map((item) => (
                 <div key={item.id} className="cart-item">
                   <div className="item-info">
                     <span className="item-name">{item.name}</span>
@@ -512,9 +515,9 @@ const QuickOrder = ({ dishes = [], onClose }) => {
                 name="deliveryMethod"
                 value="delivery"
                 checked={deliveryInfo.method === "delivery"}
-                onChange={e => {
+                onChange={(e) => {
                   console.log("Delivery selected:", e.target.value);
-                  setDeliveryInfo(prev => ({
+                  setDeliveryInfo((prev) => ({
                     ...prev,
                     method: e.target.value,
                   }));
@@ -528,9 +531,9 @@ const QuickOrder = ({ dishes = [], onClose }) => {
                 name="deliveryMethod"
                 value="pickup"
                 checked={deliveryInfo.method === "pickup"}
-                onChange={e => {
+                onChange={(e) => {
                   console.log("Pickup selected:", e.target.value);
-                  setDeliveryInfo(prev => ({
+                  setDeliveryInfo((prev) => ({
                     ...prev,
                     method: e.target.value,
                   }));
@@ -547,8 +550,8 @@ const QuickOrder = ({ dishes = [], onClose }) => {
                   type="text"
                   placeholder="Адрес доставки"
                   value={deliveryInfo.address}
-                  onChange={e =>
-                    setDeliveryInfo(prev => ({
+                  onChange={(e) =>
+                    setDeliveryInfo((prev) => ({
                       ...prev,
                       address: e.target.value,
                     }))
@@ -576,8 +579,8 @@ const QuickOrder = ({ dishes = [], onClose }) => {
             <div className="date-time-row">
               <select
                 value={deliveryInfo.date}
-                onChange={e =>
-                  setDeliveryInfo(prev => ({ ...prev, date: e.target.value }))
+                onChange={(e) =>
+                  setDeliveryInfo((prev) => ({ ...prev, date: e.target.value }))
                 }
                 className="date-select"
               >
@@ -587,8 +590,8 @@ const QuickOrder = ({ dishes = [], onClose }) => {
 
               <select
                 value={deliveryInfo.time}
-                onChange={e =>
-                  setDeliveryInfo(prev => ({ ...prev, time: e.target.value }))
+                onChange={(e) =>
+                  setDeliveryInfo((prev) => ({ ...prev, time: e.target.value }))
                 }
                 className="time-select"
               >
@@ -601,8 +604,8 @@ const QuickOrder = ({ dishes = [], onClose }) => {
           <textarea
             placeholder="Комментарий к заказу (необязательно)"
             value={deliveryInfo.comment}
-            onChange={e =>
-              setDeliveryInfo(prev => ({ ...prev, comment: e.target.value }))
+            onChange={(e) =>
+              setDeliveryInfo((prev) => ({ ...prev, comment: e.target.value }))
             }
             className="comment-input"
           />
@@ -618,9 +621,12 @@ const QuickOrder = ({ dishes = [], onClose }) => {
                 name="paymentMethod"
                 value="card"
                 checked={paymentInfo.method === "card"}
-                onChange={e => {
+                onChange={(e) => {
                   console.log("Card payment selected:", e.target.value);
-                  setPaymentInfo(prev => ({ ...prev, method: e.target.value }));
+                  setPaymentInfo((prev) => ({
+                    ...prev,
+                    method: e.target.value,
+                  }));
                 }}
               />
               <span>💳 Банковская карта</span>
@@ -631,9 +637,12 @@ const QuickOrder = ({ dishes = [], onClose }) => {
                 name="paymentMethod"
                 value="cash"
                 checked={paymentInfo.method === "cash"}
-                onChange={e => {
+                onChange={(e) => {
                   console.log("Cash payment selected:", e.target.value);
-                  setPaymentInfo(prev => ({ ...prev, method: e.target.value }));
+                  setPaymentInfo((prev) => ({
+                    ...prev,
+                    method: e.target.value,
+                  }));
                 }}
               />
               <span>💵 Наличными при получении</span>
@@ -649,8 +658,8 @@ const QuickOrder = ({ dishes = [], onClose }) => {
                   type="text"
                   placeholder="Номер карты"
                   value={paymentInfo.cardData.number}
-                  onChange={e =>
-                    setPaymentInfo(prev => ({
+                  onChange={(e) =>
+                    setPaymentInfo((prev) => ({
                       ...prev,
                       cardData: {
                         ...prev.cardData,
@@ -666,8 +675,8 @@ const QuickOrder = ({ dishes = [], onClose }) => {
                   type="text"
                   placeholder="MM/YY"
                   value={paymentInfo.cardData.expiry}
-                  onChange={e =>
-                    setPaymentInfo(prev => ({
+                  onChange={(e) =>
+                    setPaymentInfo((prev) => ({
                       ...prev,
                       cardData: {
                         ...prev.cardData,
@@ -685,8 +694,8 @@ const QuickOrder = ({ dishes = [], onClose }) => {
                   type="text"
                   placeholder="CVV"
                   value={paymentInfo.cardData.cvv}
-                  onChange={e =>
-                    setPaymentInfo(prev => ({
+                  onChange={(e) =>
+                    setPaymentInfo((prev) => ({
                       ...prev,
                       cardData: {
                         ...prev.cardData,
@@ -704,8 +713,8 @@ const QuickOrder = ({ dishes = [], onClose }) => {
                   type="text"
                   placeholder="Имя держателя"
                   value={paymentInfo.cardData.holderName}
-                  onChange={e =>
-                    setPaymentInfo(prev => ({
+                  onChange={(e) =>
+                    setPaymentInfo((prev) => ({
                       ...prev,
                       cardData: {
                         ...prev.cardData,

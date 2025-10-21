@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AdminFinance = () => {
   const [financeData, setFinanceData] = useState({
@@ -8,132 +8,161 @@ const AdminFinance = () => {
     chefEarnings: 0,
     monthlyRevenue: [],
     topChefs: [],
-    recentTransactions: []
+    recentTransactions: [],
   });
   const [loading, setLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [selectedPeriod, setSelectedPeriod] = useState("month");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Проверка авторизации
-    const token = localStorage.getItem('authToken');
-    const role = localStorage.getItem('role');
-    
-    if (!token || role !== 'admin') {
-      navigate('/admin/login');
-      return;
-    }
-
-    loadFinanceData();
-  }, [navigate, selectedPeriod]);
-
-  const loadFinanceData = () => {
+  const loadFinanceData = useCallback(() => {
     setLoading(true);
-    
+
     // Загружаем заказы
-    const orders = JSON.parse(localStorage.getItem('clientOrders') || '[]');
-    const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
-    const chefs = users.filter(user => user.role === 'chef');
-    
+    const orders = JSON.parse(localStorage.getItem("clientOrders") || "[]");
+    const users = JSON.parse(localStorage.getItem("allUsers") || "[]");
+    const chefs = users.filter((user) => user.role === "chef");
+
     // Фильтруем заказы по периоду
     const now = new Date();
     let filteredOrders = orders;
-    
-    if (selectedPeriod === 'week') {
+
+    if (selectedPeriod === "week") {
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      filteredOrders = orders.filter(order => new Date(order.createdAt) >= weekAgo);
-    } else if (selectedPeriod === 'month') {
+      filteredOrders = orders.filter(
+        (order) => new Date(order.createdAt) >= weekAgo
+      );
+    } else if (selectedPeriod === "month") {
       const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      filteredOrders = orders.filter(order => new Date(order.createdAt) >= monthAgo);
-    } else if (selectedPeriod === 'year') {
+      filteredOrders = orders.filter(
+        (order) => new Date(order.createdAt) >= monthAgo
+      );
+    } else if (selectedPeriod === "year") {
       const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-      filteredOrders = orders.filter(order => new Date(order.createdAt) >= yearAgo);
+      filteredOrders = orders.filter(
+        (order) => new Date(order.createdAt) >= yearAgo
+      );
     }
-    
+
     // Рассчитываем общую статистику
-    const totalRevenue = filteredOrders.reduce((sum, order) => sum + (order.payment?.total || 0), 0);
-    const totalCommission = filteredOrders.reduce((sum, order) => sum + (order.payment?.commission || 0), 0);
+    const totalRevenue = filteredOrders.reduce(
+      (sum, order) => sum + (order.payment?.total || 0),
+      0
+    );
+    const totalCommission = filteredOrders.reduce(
+      (sum, order) => sum + (order.payment?.commission || 0),
+      0
+    );
     const chefEarnings = totalRevenue - totalCommission;
-    
+
     // Рассчитываем месячную выручку
     const monthlyRevenue = calculateMonthlyRevenue(filteredOrders);
-    
+
     // Топ поваров по выручке
-    const chefStats = chefs.map(chef => {
-      const chefOrders = filteredOrders.filter(order => order.chefId === chef.email);
-      const chefRevenue = chefOrders.reduce((sum, order) => sum + (order.payment?.total || 0), 0);
-      const chefCommission = chefOrders.reduce((sum, order) => sum + (order.payment?.commission || 0), 0);
-      
-      return {
-        ...chef,
-        totalOrders: chefOrders.length,
-        revenue: chefRevenue,
-        commission: chefCommission,
-        earnings: chefRevenue - chefCommission
-      };
-    }).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-    
+    const chefStats = chefs
+      .map((chef) => {
+        const chefOrders = filteredOrders.filter(
+          (order) => order.chefId === chef.email
+        );
+        const chefRevenue = chefOrders.reduce(
+          (sum, order) => sum + (order.payment?.total || 0),
+          0
+        );
+        const chefCommission = chefOrders.reduce(
+          (sum, order) => sum + (order.payment?.commission || 0),
+          0
+        );
+
+        return {
+          ...chef,
+          totalOrders: chefOrders.length,
+          revenue: chefRevenue,
+          commission: chefCommission,
+          earnings: chefRevenue - chefCommission,
+        };
+      })
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
     // Последние транзакции
     const recentTransactions = filteredOrders
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 10)
-      .map(order => ({
+      .map((order) => ({
         id: order.id,
-        chef: chefs.find(chef => chef.email === order.chefId)?.name || 'Неизвестно',
+        chef:
+          chefs.find((chef) => chef.email === order.chefId)?.name ||
+          "Неизвестно",
         amount: order.payment?.total || 0,
         commission: order.payment?.commission || 0,
         date: order.createdAt,
-        status: order.status
+        status: order.status,
       }));
-    
+
     setFinanceData({
       totalRevenue,
       totalCommission,
       chefEarnings,
       monthlyRevenue,
       topChefs: chefStats,
-      recentTransactions
+      recentTransactions,
     });
-    
+
     setLoading(false);
-  };
+  }, [selectedPeriod]);
+
+  useEffect(() => {
+    // Проверка авторизации
+    const token = localStorage.getItem("authToken");
+    const role = localStorage.getItem("role");
+
+    if (!token || role !== "admin") {
+      navigate("/admin/login");
+      return;
+    }
+
+    loadFinanceData();
+  }, [navigate, selectedPeriod, loadFinanceData]);
 
   const calculateMonthlyRevenue = (orders) => {
     const monthlyData = {};
-    
-    orders.forEach(order => {
+
+    orders.forEach((order) => {
       const date = new Date(order.createdAt);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      
+      const monthKey = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}`;
+
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = {
           month: monthKey,
           revenue: 0,
           commission: 0,
-          orders: 0
+          orders: 0,
         };
       }
-      
+
       monthlyData[monthKey].revenue += order.payment?.total || 0;
       monthlyData[monthKey].commission += order.payment?.commission || 0;
       monthlyData[monthKey].orders += 1;
     });
-    
-    return Object.values(monthlyData).sort((a, b) => a.month.localeCompare(b.month));
+
+    return Object.values(monthlyData).sort((a, b) =>
+      a.month.localeCompare(b.month)
+    );
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatCurrency = (amount) => {
-    return amount.toLocaleString('ru-RU') + ' ₽';
+    return amount.toLocaleString("ru-RU") + " ₽";
   };
 
   if (loading) {
@@ -149,8 +178,8 @@ const AdminFinance = () => {
       <div className="page-header">
         <h1>💰 Финансовые отчеты</h1>
         <div className="header-actions">
-          <select 
-            value={selectedPeriod} 
+          <select
+            value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
             className="period-selector"
           >
@@ -171,7 +200,9 @@ const AdminFinance = () => {
           <div className="stat-icon">💰</div>
           <div className="stat-content">
             <h3>Общая выручка</h3>
-            <p className="stat-number">{formatCurrency(financeData.totalRevenue)}</p>
+            <p className="stat-number">
+              {formatCurrency(financeData.totalRevenue)}
+            </p>
           </div>
         </div>
 
@@ -179,12 +210,16 @@ const AdminFinance = () => {
           <div className="stat-icon">💳</div>
           <div className="stat-content">
             <h3>Комиссия платформы</h3>
-            <p className="stat-number">{formatCurrency(financeData.totalCommission)}</p>
+            <p className="stat-number">
+              {formatCurrency(financeData.totalCommission)}
+            </p>
             <p className="stat-percentage">
-              {financeData.totalRevenue > 0 
-                ? `${((financeData.totalCommission / financeData.totalRevenue) * 100).toFixed(1)}%`
-                : '0%'
-              }
+              {financeData.totalRevenue > 0
+                ? `${(
+                    (financeData.totalCommission / financeData.totalRevenue) *
+                    100
+                  ).toFixed(1)}%`
+                : "0%"}
             </p>
           </div>
         </div>
@@ -193,7 +228,9 @@ const AdminFinance = () => {
           <div className="stat-icon">👨‍🍳</div>
           <div className="stat-content">
             <h3>Заработок поваров</h3>
-            <p className="stat-number">{formatCurrency(financeData.chefEarnings)}</p>
+            <p className="stat-number">
+              {formatCurrency(financeData.chefEarnings)}
+            </p>
           </div>
         </div>
       </div>
@@ -211,16 +248,24 @@ const AdminFinance = () => {
               {financeData.topChefs.map((chef, index) => (
                 <div key={chef.email} className="chef-ranking">
                   <div className="ranking-position">
-                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                    {index === 0
+                      ? "🥇"
+                      : index === 1
+                      ? "🥈"
+                      : index === 2
+                      ? "🥉"
+                      : `#${index + 1}`}
                   </div>
                   <div className="chef-info">
-                    <h4>{chef.name || 'Не указано'}</h4>
+                    <h4>{chef.name || "Не указано"}</h4>
                     <p className="chef-email">{chef.email}</p>
                   </div>
                   <div className="chef-stats">
                     <div className="stat">
                       <span className="stat-label">Выручка:</span>
-                      <span className="stat-value">{formatCurrency(chef.revenue)}</span>
+                      <span className="stat-value">
+                        {formatCurrency(chef.revenue)}
+                      </span>
                     </div>
                     <div className="stat">
                       <span className="stat-label">Заказов:</span>
@@ -228,7 +273,9 @@ const AdminFinance = () => {
                     </div>
                     <div className="stat">
                       <span className="stat-label">Заработок:</span>
-                      <span className="stat-value">{formatCurrency(chef.earnings)}</span>
+                      <span className="stat-value">
+                        {formatCurrency(chef.earnings)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -258,7 +305,7 @@ const AdminFinance = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {financeData.recentTransactions.map(transaction => (
+                  {financeData.recentTransactions.map((transaction) => (
                     <tr key={transaction.id}>
                       <td>#{transaction.id}</td>
                       <td>{transaction.chef}</td>
@@ -266,10 +313,16 @@ const AdminFinance = () => {
                       <td>{formatCurrency(transaction.commission)}</td>
                       <td>{formatDate(transaction.date)}</td>
                       <td>
-                        <span className={`status-badge status-${transaction.status}`}>
-                          {transaction.status === 'delivered' ? 'Доставлен' : 
-                           transaction.status === 'pending' ? 'Ожидает' : 
-                           transaction.status === 'cancelled' ? 'Отменен' : transaction.status}
+                        <span
+                          className={`status-badge status-${transaction.status}`}
+                        >
+                          {transaction.status === "delivered"
+                            ? "Доставлен"
+                            : transaction.status === "pending"
+                            ? "Ожидает"
+                            : transaction.status === "cancelled"
+                            ? "Отменен"
+                            : transaction.status}
                         </span>
                       </td>
                     </tr>
@@ -285,17 +338,21 @@ const AdminFinance = () => {
           <div className="finance-section">
             <h2>📈 Месячная статистика</h2>
             <div className="monthly-stats">
-              {financeData.monthlyRevenue.map(month => (
+              {financeData.monthlyRevenue.map((month) => (
                 <div key={month.month} className="month-card">
                   <h4>{month.month}</h4>
                   <div className="month-stats">
                     <div className="stat">
                       <span className="stat-label">Выручка:</span>
-                      <span className="stat-value">{formatCurrency(month.revenue)}</span>
+                      <span className="stat-value">
+                        {formatCurrency(month.revenue)}
+                      </span>
                     </div>
                     <div className="stat">
                       <span className="stat-label">Комиссия:</span>
-                      <span className="stat-value">{formatCurrency(month.commission)}</span>
+                      <span className="stat-value">
+                        {formatCurrency(month.commission)}
+                      </span>
                     </div>
                     <div className="stat">
                       <span className="stat-label">Заказов:</span>

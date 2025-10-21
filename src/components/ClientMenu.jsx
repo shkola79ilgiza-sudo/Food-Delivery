@@ -83,12 +83,12 @@ const ClientMenu = () => {
   // Используем WebSocket для уведомлений клиента
   const { unreadCount, joinRoom, leaveRoom, addNotification } =
     useNotifications("client");
-  const navigate = useNavigate();
   const { t } = useLanguage();
   const { showSuccess, showError } = useToast();
+  const navigate = useNavigate();
 
   // Функция для переключения между разделами
-  const switchToSection = section => {
+  const switchToSection = (section) => {
     // Закрываем все разделы
     setShowCookingRequests(false);
     setShowHelpGuestRequests(false);
@@ -130,7 +130,7 @@ const ClientMenu = () => {
 
   // Слушаем события уведомлений
   useEffect(() => {
-    const handleNotificationAdded = event => {
+    const handleNotificationAdded = (event) => {
       // Перезагружаем уведомления
       const clientId = localStorage.getItem("clientId") || "demo_client";
       joinRoom(clientId);
@@ -216,7 +216,7 @@ const ClientMenu = () => {
       setCart(savedCart);
     };
 
-    const handleStorageChange = e => {
+    const handleStorageChange = (e) => {
       if (e.key === "cart") {
         console.log("ClientMenu: Cart changed in localStorage, reloading...");
         const savedCart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -343,7 +343,7 @@ const ClientMenu = () => {
   }, [navigate]);
 
   // Функция для про☕ерки диабетических блюд
-  const isDiabeticFriendly = dish => {
+  const isDiabeticFriendly = (dish) => {
     if (!diabeticFilter) return true;
 
     const carbs = dish.carbs || 0;
@@ -359,7 +359,7 @@ const ClientMenu = () => {
   };
 
   // Расширенная функция фильтрации
-  const isDishMatchingFilters = dish => {
+  const isDishMatchingFilters = (dish) => {
     // Диабетический фильтр
     if (diabeticFilter && !isDiabeticFriendly(dish)) {
       return false;
@@ -387,7 +387,7 @@ const ClientMenu = () => {
 
     // Фильтр по ☕ремени пригото☕ления
     if (cookingTimeFilter !== "all") {
-      const timeFilter = cookingTimes.find(t => t.id === cookingTimeFilter);
+      const timeFilter = cookingTimes.find((t) => t.id === cookingTimeFilter);
       if (timeFilter) {
         const dishCookingTime = dish.cookingTime || 30; // По умолчанию 30 минут
         if (timeFilter.min && dishCookingTime < timeFilter.min) {
@@ -402,7 +402,7 @@ const ClientMenu = () => {
     // Фильтр по аллергенам (исключаем блюда с выбранными аллергенами)
     if (allergenFilter.length > 0) {
       const dishAllergens = dish.allergens || [];
-      const hasExcludedAllergen = allergenFilter.some(allergen =>
+      const hasExcludedAllergen = allergenFilter.some((allergen) =>
         dishAllergens.includes(allergen)
       );
       if (hasExcludedAllergen) {
@@ -435,7 +435,7 @@ const ClientMenu = () => {
 
     // Фильтр по остроте
     if (spiceLevelFilter !== "all") {
-      const spiceLevel = spiceLevels.find(s => s.id === spiceLevelFilter);
+      const spiceLevel = spiceLevels.find((s) => s.id === spiceLevelFilter);
       if (spiceLevel && (dish.spiceLevel || 0) !== spiceLevel.level) {
         return false;
       }
@@ -486,7 +486,7 @@ const ClientMenu = () => {
   // Отладочная информация убрана для предот☕ращения бесконечных ререндеро☕
 
   // Обработчик ☕ыбора категории
-  const handleCategorySelect = category => {
+  const handleCategorySelect = (category) => {
     // Если это фермерский рынок, переходим на отдельную страницу
     if (category.id === "farmers_market") {
       navigate("/client/farmers-market");
@@ -514,7 +514,7 @@ const ClientMenu = () => {
   };
 
   // Обработчик клика на блюдо для гото☕ки с продуктами клиента
-  const handleCookingRequest = dish => {
+  const handleCookingRequest = (dish) => {
     if (dish.clientCooking) {
       setSelectedCookingDish(dish);
       setShowCookingRequest(true);
@@ -522,7 +522,7 @@ const ClientMenu = () => {
   };
 
   // Обработчик отпра☕ки запроса на гото☕ку
-  const handleCookingRequestSubmit = async requestData => {
+  const handleCookingRequestSubmit = async (requestData) => {
     try {
       console.log("Cooking request submitted:", requestData);
       // Здесь будет отпра☕ка запроса на гото☕ку
@@ -537,7 +537,7 @@ const ClientMenu = () => {
   };
 
   // Обработчик клика на блюдо для помощи гостям
-  const handleHelpGuestRequest = dish => {
+  const handleHelpGuestRequest = (dish) => {
     if (dish.helpGuest) {
       setSelectedHelpGuestDish(dish);
       setShowHelpGuestRequest(true);
@@ -545,7 +545,7 @@ const ClientMenu = () => {
   };
 
   // Обработчик отпра☕ки запроса помощи гостям
-  const handleHelpGuestRequestSubmit = async requestData => {
+  const handleHelpGuestRequestSubmit = async (requestData) => {
     try {
       // Создаем запрос на помощь гостям
       const helpRequest = {
@@ -637,7 +637,7 @@ const ClientMenu = () => {
   };
 
   // Обработчик клика на блюдо для мастер-класса
-  const handleMasterClassRequest = dish => {
+  const handleMasterClassRequest = (dish) => {
     if (dish.masterClass) {
       setSelectedMasterClassDish(dish);
       setShowMasterClassRequest(true);
@@ -645,7 +645,7 @@ const ClientMenu = () => {
   };
 
   // Обработчик отпра☕ки запроса мастер-класса
-  const handleMasterClassRequestSubmit = async requestData => {
+  const handleMasterClassRequestSubmit = async (requestData) => {
     try {
       console.log("Master class request submitted:", requestData);
       // Здесь будет отпра☕ка запроса на мастер-класс
@@ -660,7 +660,7 @@ const ClientMenu = () => {
   };
 
   // Обработчик изменения сортиро☕ки
-  const handleSortChange = e => {
+  const handleSortChange = (e) => {
     setSortBy(e.target.value);
   };
 
@@ -678,12 +678,12 @@ const ClientMenu = () => {
         y: rect.top + rect.height / 2,
       };
 
-      setAnimatingItems(prev => [...prev, animatingItem]);
+      setAnimatingItems((prev) => [...prev, animatingItem]);
 
       // Удаляем анимируемый элемент через 1.2 секунды
       setTimeout(() => {
-        setAnimatingItems(prev =>
-          prev.filter(item => item.id !== animatingItem.id)
+        setAnimatingItems((prev) =>
+          prev.filter((item) => item.id !== animatingItem.id)
         );
       }, 1200);
 
@@ -701,12 +701,12 @@ const ClientMenu = () => {
     const currentCart = JSON.parse(localStorage.getItem("cart") || "[]");
 
     // Про☕еряем, есть ли уже такое блюдо ☕ корзине
-    const existingItem = currentCart.find(item => item.id === dish.id);
+    const existingItem = currentCart.find((item) => item.id === dish.id);
 
     let updatedCart;
     if (existingItem) {
       // У☕еличи☕аем количест☕о сущест☕ующего блюда
-      updatedCart = currentCart.map(item =>
+      updatedCart = currentCart.map((item) =>
         item.id === dish.id ? { ...item, quantity: item.quantity + 1 } : item
       );
     } else {
@@ -882,15 +882,15 @@ const ClientMenu = () => {
   };
 
   // Функции поиска
-  const handleSearch = query => {
+  const handleSearch = (query) => {
     setSearchQuery(query);
     if (query.trim()) {
       const filtered = dishes.filter(
-        dish =>
+        (dish) =>
           dish.name.toLowerCase().includes(query.toLowerCase()) ||
           dish.description.toLowerCase().includes(query.toLowerCase())
       );
-      setSearchSuggestions(filtered.map(dish => dish.name));
+      setSearchSuggestions(filtered.map((dish) => dish.name));
     } else {
       setSearchSuggestions([]);
     }
@@ -902,10 +902,10 @@ const ClientMenu = () => {
   };
 
   // Функции избранного
-  const toggleFavorite = dishId => {
-    setFavorites(prev => {
+  const toggleFavorite = (dishId) => {
+    setFavorites((prev) => {
       const newFavorites = prev.includes(dishId)
-        ? prev.filter(id => id !== dishId)
+        ? prev.filter((id) => id !== dishId)
         : [...prev, dishId];
       localStorage.setItem("favorites", JSON.stringify(newFavorites));
       return newFavorites;
@@ -952,23 +952,23 @@ const ClientMenu = () => {
     setReviews(savedReviews);
   };
 
-  const saveReviews = newReviews => {
+  const saveReviews = (newReviews) => {
     localStorage.setItem("dishReviews", JSON.stringify(newReviews));
     setReviews(newReviews);
   };
 
-  const handleSubmitReview = async review => {
+  const handleSubmitReview = async (review) => {
     const newReviews = [...reviews, review];
     saveReviews(newReviews);
 
     // Обновляем рейтинг блюда
-    const dishReviews = newReviews.filter(r => r.dishId === review.dishId);
+    const dishReviews = newReviews.filter((r) => r.dishId === review.dishId);
     const averageRating =
       dishReviews.reduce((sum, r) => sum + r.rating, 0) / dishReviews.length;
 
     // Обновляем рейтинг в блюде
-    setDishes(prevDishes =>
-      prevDishes.map(dish =>
+    setDishes((prevDishes) =>
+      prevDishes.map((dish) =>
         dish.id === review.dishId
           ? { ...dish, rating: averageRating, reviewCount: dishReviews.length }
           : dish
@@ -978,11 +978,11 @@ const ClientMenu = () => {
     showSuccess("Спасибо за ваш отзыв!");
   };
 
-  const getDishReviews = dishId => {
-    return reviews.filter(review => review.dishId === dishId);
+  const getDishReviews = (dishId) => {
+    return reviews.filter((review) => review.dishId === dishId);
   };
 
-  const getDishRating = dishId => {
+  const getDishRating = (dishId) => {
     const dishReviews = getDishReviews(dishId);
     if (dishReviews.length === 0) return 0;
     return (
@@ -1070,8 +1070,19 @@ const ClientMenu = () => {
             <AnimatedIcon name="refresh" size={20} animation="rotate" />
             Восстановить блюда
           </button>
-          <Link
-            to="/client/cart"
+          <button
+            id="cart-button"
+            onClick={() => {
+              console.log("🛒 Cart button clicked");
+              console.log("🛒 Current hostname:", window.location.hostname);
+              // Принудительно обновляем корзину перед переходом
+              const savedCart = JSON.parse(
+                localStorage.getItem("cart") || "[]"
+              );
+              setCart(savedCart);
+              // Используем navigate для обеих сред
+              navigate("/client/cart");
+            }}
             className={`modern-button light nav-button ${
               cartPulsing ? "cart-pulse" : ""
             }`}
@@ -1081,6 +1092,7 @@ const ClientMenu = () => {
               gap: "6px",
               position: "relative",
               marginRight: "15px",
+              zIndex: 10,
             }}
           >
             <AnimatedIcon name="shopping" size={20} animation="bounce" />
@@ -1109,11 +1121,10 @@ const ClientMenu = () => {
                 {cartItemsCount}
               </span>
             )}
-          </Link>
+          </button>
           <button
-            onClick={e => {
-              e.preventDefault();
-              e.stopPropagation();
+            id="quick-order-button"
+            onClick={() => {
               console.log('⚡ Клик по кнопке "Быстрый заказ"');
               console.log(
                 "⚡ Текущее состояние showQuickOrder:",
@@ -1143,16 +1154,16 @@ const ClientMenu = () => {
               fontWeight: "bold",
               boxShadow: "0 2px 8px rgba(255, 152, 0, 0.3)",
               transition: "all 0.3s ease",
-              zIndex: 1000,
+              zIndex: 1,
               position: "relative",
               marginLeft: "15px",
             }}
-            onMouseEnter={e => {
+            onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-2px)";
               e.currentTarget.style.boxShadow =
                 "0 4px 12px rgba(255, 152, 0, 0.5)";
             }}
-            onMouseLeave={e => {
+            onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
               e.currentTarget.style.boxShadow =
                 "0 2px 8px rgba(255, 152, 0, 0.3)";
@@ -1162,9 +1173,8 @@ const ClientMenu = () => {
             Быстрый заказ
           </button>
           <button
-            onClick={e => {
-              e.preventDefault();
-              e.stopPropagation();
+            onClick={() => {
+              console.log("🔔 Notifications button clicked");
               setShowClientNotifications(!showClientNotifications);
             }}
             className={`modern-button light nav-button ${
@@ -1240,7 +1250,10 @@ const ClientMenu = () => {
             Тест уведомлений
           </button>
           <button
-            onClick={() => setShowCookingRequests(!showCookingRequests)}
+            onClick={() => {
+              console.log("👨‍🍳 Cooking requests button clicked");
+              setShowCookingRequests(!showCookingRequests);
+            }}
             className={`modern-button light nav-button ${
               showCookingRequests ? "active" : ""
             }`}
@@ -1250,9 +1263,8 @@ const ClientMenu = () => {
             Мои запросы
           </button>
           <button
-            onClick={e => {
-              e.preventDefault();
-              e.stopPropagation();
+            onClick={() => {
+              console.log("🩺 Diabetic menu button clicked");
               setShowDiabeticMenu(!showDiabeticMenu);
             }}
             className={`modern-button light nav-button ${
@@ -1293,22 +1305,30 @@ const ClientMenu = () => {
             Мои запросы на помощь
           </button>
           <div className="client-menu-nav">
-            <Link
-              to="/client/orders"
+            <button
+              onClick={() => {
+                console.log("📋 Orders button clicked");
+                // Используем navigate для обеих сред
+                navigate("/client/orders");
+              }}
               className="modern-button light nav-button"
               style={{ display: "flex", alignItems: "center", gap: "6px" }}
             >
               <AnimatedIcon name="orders" size={20} animation="bounce" />
               {t.orders}
-            </Link>
-            <Link
-              to="/client/profile"
+            </button>
+            <button
+              onClick={() => {
+                console.log("👤 Profile button clicked");
+                // Используем navigate для обеих сред
+                navigate("/client/profile");
+              }}
               className="modern-button light nav-button"
               style={{ display: "flex", alignItems: "center", gap: "6px" }}
             >
               <AnimatedIcon name="profile" size={20} animation="float" />
               {t.profile}
-            </Link>
+            </button>
             <button
               onClick={handleLogout}
               className="modern-button red nav-button"
@@ -1346,12 +1366,12 @@ const ClientMenu = () => {
                   boxShadow: "0 4px 15px rgba(102, 126, 234, 0.4)",
                   transition: "all 0.3s ease",
                 }}
-                onMouseEnter={e => {
+                onMouseEnter={(e) => {
                   e.target.style.transform = "translateY(-2px)";
                   e.target.style.boxShadow =
                     "0 6px 20px rgba(102, 126, 234, 0.6)";
                 }}
-                onMouseLeave={e => {
+                onMouseLeave={(e) => {
                   e.target.style.transform = "translateY(0)";
                   e.target.style.boxShadow =
                     "0 4px 15px rgba(102, 126, 234, 0.4)";
@@ -1415,13 +1435,13 @@ const ClientMenu = () => {
                 onSearch={handleSearch}
                 onClear={handleSearchClear}
                 suggestions={searchSuggestions}
-                onSuggestionSelect={suggestion => {
+                onSuggestionSelect={(suggestion) => {
                   setSearchQuery(suggestion);
                   // Найти блюдо по наз☕анию и перейти к его категории
-                  const dish = dishes.find(d => d.name === suggestion);
+                  const dish = dishes.find((d) => d.name === suggestion);
                   if (dish) {
                     const category = categories.find(
-                      c => c.id === dish.category
+                      (c) => c.id === dish.category
                     );
                     if (category) {
                       setSelectedCategory(category);
@@ -1528,7 +1548,7 @@ const ClientMenu = () => {
                     </label>
                     <select
                       value={cuisineFilter}
-                      onChange={e => setCuisineFilter(e.target.value)}
+                      onChange={(e) => setCuisineFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -1537,7 +1557,7 @@ const ClientMenu = () => {
                         fontSize: "14px",
                       }}
                     >
-                      {cuisines.map(cuisine => (
+                      {cuisines.map((cuisine) => (
                         <option key={cuisine.id} value={cuisine.id}>
                           {cuisine.name}
                         </option>
@@ -1559,7 +1579,7 @@ const ClientMenu = () => {
                     </label>
                     <select
                       value={dietFilter}
-                      onChange={e => setDietFilter(e.target.value)}
+                      onChange={(e) => setDietFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -1568,7 +1588,7 @@ const ClientMenu = () => {
                         fontSize: "14px",
                       }}
                     >
-                      {diets.map(diet => (
+                      {diets.map((diet) => (
                         <option key={diet.id} value={diet.id}>
                           {diet.name}
                         </option>
@@ -1590,7 +1610,7 @@ const ClientMenu = () => {
                     </label>
                     <select
                       value={cookingTimeFilter}
-                      onChange={e => setCookingTimeFilter(e.target.value)}
+                      onChange={(e) => setCookingTimeFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -1599,7 +1619,7 @@ const ClientMenu = () => {
                         fontSize: "14px",
                       }}
                     >
-                      {cookingTimes.map(time => (
+                      {cookingTimes.map((time) => (
                         <option key={time.id} value={time.id}>
                           {time.name}
                         </option>
@@ -1629,8 +1649,8 @@ const ClientMenu = () => {
                       <input
                         type="number"
                         value={priceRange.min}
-                        onChange={e =>
-                          setPriceRange(prev => ({
+                        onChange={(e) =>
+                          setPriceRange((prev) => ({
                             ...prev,
                             min: parseInt(e.target.value) || 0,
                           }))
@@ -1648,8 +1668,8 @@ const ClientMenu = () => {
                       <input
                         type="number"
                         value={priceRange.max}
-                        onChange={e =>
-                          setPriceRange(prev => ({
+                        onChange={(e) =>
+                          setPriceRange((prev) => ({
                             ...prev,
                             max: parseInt(e.target.value) || 5000,
                           }))
@@ -1696,7 +1716,7 @@ const ClientMenu = () => {
                         <input
                           type="checkbox"
                           checked={halalFilter}
-                          onChange={e => setHalalFilter(e.target.checked)}
+                          onChange={(e) => setHalalFilter(e.target.checked)}
                         />
                         🕌 Халяль
                       </label>
@@ -1711,7 +1731,7 @@ const ClientMenu = () => {
                         <input
                           type="checkbox"
                           checked={diabeticFilter}
-                          onChange={e => setDiabeticFilter(e.target.checked)}
+                          onChange={(e) => setDiabeticFilter(e.target.checked)}
                         />
                         🩺 Диабетическое меню
                       </label>
@@ -1738,7 +1758,7 @@ const ClientMenu = () => {
                         gap: "8px",
                       }}
                     >
-                      {allergens.map(allergen => (
+                      {allergens.map((allergen) => (
                         <label
                           key={allergen.id}
                           style={{
@@ -1751,7 +1771,7 @@ const ClientMenu = () => {
                           <input
                             type="checkbox"
                             checked={allergenFilter.includes(allergen.id)}
-                            onChange={e => {
+                            onChange={(e) => {
                               if (e.target.checked) {
                                 setAllergenFilter([
                                   ...allergenFilter,
@@ -1760,7 +1780,7 @@ const ClientMenu = () => {
                               } else {
                                 setAllergenFilter(
                                   allergenFilter.filter(
-                                    id => id !== allergen.id
+                                    (id) => id !== allergen.id
                                   )
                                 );
                               }
@@ -1790,7 +1810,7 @@ const ClientMenu = () => {
                       max="5"
                       step="0.5"
                       value={ratingFilter}
-                      onChange={e =>
+                      onChange={(e) =>
                         setRatingFilter(parseFloat(e.target.value))
                       }
                       style={{ width: "100%" }}
@@ -1819,7 +1839,7 @@ const ClientMenu = () => {
                       <input
                         type="number"
                         value={calorieFilter.min}
-                        onChange={e =>
+                        onChange={(e) =>
                           setCalorieFilter({
                             ...calorieFilter,
                             min: parseInt(e.target.value) || 0,
@@ -1838,7 +1858,7 @@ const ClientMenu = () => {
                       <input
                         type="number"
                         value={calorieFilter.max}
-                        onChange={e =>
+                        onChange={(e) =>
                           setCalorieFilter({
                             ...calorieFilter,
                             max: parseInt(e.target.value) || 2000,
@@ -1871,7 +1891,7 @@ const ClientMenu = () => {
                     <input
                       type="text"
                       value={ingredientFilter}
-                      onChange={e => setIngredientFilter(e.target.value)}
+                      onChange={(e) => setIngredientFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -1897,7 +1917,7 @@ const ClientMenu = () => {
                     </label>
                     <select
                       value={spiceLevelFilter}
-                      onChange={e => setSpiceLevelFilter(e.target.value)}
+                      onChange={(e) => setSpiceLevelFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -1906,7 +1926,7 @@ const ClientMenu = () => {
                         fontSize: "14px",
                       }}
                     >
-                      {spiceLevels.map(level => (
+                      {spiceLevels.map((level) => (
                         <option key={level.id} value={level.id}>
                           {level.name}
                         </option>
@@ -1944,7 +1964,9 @@ const ClientMenu = () => {
                         <input
                           type="checkbox"
                           checked={vegetarianFilter}
-                          onChange={e => setVegetarianFilter(e.target.checked)}
+                          onChange={(e) =>
+                            setVegetarianFilter(e.target.checked)
+                          }
                         />
                         🥬 Только вегетарианские
                       </label>
@@ -1959,7 +1981,7 @@ const ClientMenu = () => {
                         <input
                           type="checkbox"
                           checked={veganFilter}
-                          onChange={e => setVeganFilter(e.target.checked)}
+                          onChange={(e) => setVeganFilter(e.target.checked)}
                         />
                         🌱 Только веганские
                       </label>
@@ -1980,7 +2002,7 @@ const ClientMenu = () => {
                     </label>
                     <select
                       value={sortBy}
-                      onChange={e => setSortBy(e.target.value)}
+                      onChange={(e) => setSortBy(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -2043,12 +2065,12 @@ const ClientMenu = () => {
                   gap: "10px",
                   margin: "0 auto",
                 }}
-                onMouseEnter={e => {
+                onMouseEnter={(e) => {
                   e.target.style.transform = "translateY(-2px)";
                   e.target.style.boxShadow =
                     "0 12px 35px rgba(102, 126, 234, 0.4)";
                 }}
-                onMouseLeave={e => {
+                onMouseLeave={(e) => {
                   e.target.style.transform = "translateY(0)";
                   e.target.style.boxShadow =
                     "0 8px 25px rgba(102, 126, 234, 0.3)";
@@ -2067,7 +2089,7 @@ const ClientMenu = () => {
                 marginTop: "20px",
               }}
             >
-              {categories.map(category => (
+              {categories.map((category) => (
                 <div
                   key={category.id}
                   className="category-card"
@@ -2128,7 +2150,7 @@ const ClientMenu = () => {
                       : "0 4px 15px rgba(23, 162, 184, 0.4)",
                     transition: "all 0.3s ease",
                   }}
-                  onMouseEnter={e => {
+                  onMouseEnter={(e) => {
                     e.target.style.transform = "translateY(-2px)";
                     if (showOrderAnalysis) {
                       e.target.style.boxShadow =
@@ -2138,7 +2160,7 @@ const ClientMenu = () => {
                         "0 6px 20px rgba(23, 162, 184, 0.6)";
                     }
                   }}
-                  onMouseLeave={e => {
+                  onMouseLeave={(e) => {
                     e.target.style.transform = "translateY(0)";
                     if (showOrderAnalysis) {
                       e.target.style.boxShadow =
@@ -2176,7 +2198,7 @@ const ClientMenu = () => {
                     pointerEvents: "auto",
                     zIndex: 10,
                   }}
-                  onMouseEnter={e => {
+                  onMouseEnter={(e) => {
                     e.target.style.transform = "translateY(-2px)";
                     if (showHolidayAnalytics) {
                       e.target.style.boxShadow =
@@ -2186,7 +2208,7 @@ const ClientMenu = () => {
                         "0 6px 20px rgba(40, 167, 69, 0.6)";
                     }
                   }}
-                  onMouseLeave={e => {
+                  onMouseLeave={(e) => {
                     e.target.style.transform = "translateY(0)";
                     if (showHolidayAnalytics) {
                       e.target.style.boxShadow =
@@ -2261,7 +2283,7 @@ const ClientMenu = () => {
                     <input
                       type="checkbox"
                       checked={diabeticFilter}
-                      onChange={e => setDiabeticFilter(e.target.checked)}
+                      onChange={(e) => setDiabeticFilter(e.target.checked)}
                     />
                     🩺 {t.diabeticMenu.filter}
                   </label>
@@ -2282,7 +2304,7 @@ const ClientMenu = () => {
                         <input
                           type="checkbox"
                           checked={hideHighSugar}
-                          onChange={e => setHideHighSugar(e.target.checked)}
+                          onChange={(e) => setHideHighSugar(e.target.checked)}
                         />
                         🚫 {t.diabeticMenu.hideHighSugar}
                       </label>
@@ -2294,7 +2316,7 @@ const ClientMenu = () => {
                         <input
                           type="number"
                           value={maxCarbs}
-                          onChange={e => setMaxCarbs(Number(e.target.value))}
+                          onChange={(e) => setMaxCarbs(Number(e.target.value))}
                           min="0"
                           max="100"
                           style={{
@@ -2313,7 +2335,7 @@ const ClientMenu = () => {
                         <input
                           type="number"
                           value={maxSugar}
-                          onChange={e => setMaxSugar(Number(e.target.value))}
+                          onChange={(e) => setMaxSugar(Number(e.target.value))}
                           min="0"
                           max="50"
                           style={{
@@ -2352,7 +2374,7 @@ const ClientMenu = () => {
                 marginTop: "20px",
               }}
             >
-              {sortedDishes.map(dish => (
+              {sortedDishes.map((dish) => (
                 <div
                   key={dish.id}
                   className="dish-card"
@@ -2381,7 +2403,7 @@ const ClientMenu = () => {
                         className={`favorite-button ${
                           favorites.includes(dish.id) ? "active" : ""
                         }`}
-                        onClick={e => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           toggleFavorite(dish.id);
                         }}
@@ -2395,7 +2417,7 @@ const ClientMenu = () => {
                       </button>
                       <button
                         className="qr-button"
-                        onClick={e => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           navigate(
                             `/dish/${
@@ -2409,7 +2431,7 @@ const ClientMenu = () => {
                       </button>
                       <button
                         className="quick-add-button"
-                        onClick={e => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           addToCart(dish, e);
                         }}
@@ -2430,12 +2452,12 @@ const ClientMenu = () => {
                           boxShadow: "0 4px 12px rgba(76, 175, 80, 0.3)",
                           transition: "all 0.2s ease",
                         }}
-                        onMouseEnter={e => {
+                        onMouseEnter={(e) => {
                           e.target.style.transform = "scale(1.1)";
                           e.target.style.boxShadow =
                             "0 6px 16px rgba(76, 175, 80, 0.4)";
                         }}
-                        onMouseLeave={e => {
+                        onMouseLeave={(e) => {
                           e.target.style.transform = "scale(1)";
                           e.target.style.boxShadow =
                             "0 4px 12px rgba(76, 175, 80, 0.3)";
@@ -2543,7 +2565,7 @@ const ClientMenu = () => {
 
                     <div className="dish-meta">
                       <span className="dish-category">
-                        {categories.find(cat => cat.id === dish.category)
+                        {categories.find((cat) => cat.id === dish.category)
                           ?.name || dish.category}
                       </span>
                       <span className="dish-price">{dish.price} ₽</span>
@@ -2580,7 +2602,7 @@ const ClientMenu = () => {
                         </span>
                       </div>
                       <button
-                        onClick={e => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           setSelectedDishForReview(dish);
                           setShowReviewModal(true);
@@ -2597,12 +2619,12 @@ const ClientMenu = () => {
                           fontWeight: "bold",
                           transition: "all 0.2s ease",
                         }}
-                        onMouseEnter={e => {
+                        onMouseEnter={(e) => {
                           e.target.style.transform = "scale(1.05)";
                           e.target.style.boxShadow =
                             "0 4px 12px rgba(102, 126, 234, 0.4)";
                         }}
-                        onMouseLeave={e => {
+                        onMouseLeave={(e) => {
                           e.target.style.transform = "scale(1)";
                           e.target.style.boxShadow = "none";
                         }}
@@ -2610,7 +2632,7 @@ const ClientMenu = () => {
                         ⭐ Отзыв
                       </button>
                       <button
-                        onClick={e => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           setSelectedChatbotDish(dish);
                           setShowAIChatbot(true);
@@ -2630,12 +2652,12 @@ const ClientMenu = () => {
                           alignItems: "center",
                           gap: "4px",
                         }}
-                        onMouseEnter={e => {
+                        onMouseEnter={(e) => {
                           e.target.style.transform = "scale(1.05)";
                           e.target.style.boxShadow =
                             "0 4px 12px rgba(33, 150, 243, 0.4)";
                         }}
-                        onMouseLeave={e => {
+                        onMouseLeave={(e) => {
                           e.target.style.transform = "scale(1)";
                           e.target.style.boxShadow = "none";
                         }}
@@ -2647,7 +2669,7 @@ const ClientMenu = () => {
 
                     {/* Количество в корзине и управление */}
                     {(() => {
-                      const cartItem = cart.find(item => item.id === dish.id);
+                      const cartItem = cart.find((item) => item.id === dish.id);
                       return cartItem ? (
                         <div
                           style={{
@@ -2678,9 +2700,9 @@ const ClientMenu = () => {
                             }}
                           >
                             <button
-                              onClick={e => {
+                              onClick={(e) => {
                                 e.stopPropagation();
-                                const updatedCart = cart.map(item =>
+                                const updatedCart = cart.map((item) =>
                                   item.id === dish.id
                                     ? {
                                         ...item,
@@ -2717,9 +2739,9 @@ const ClientMenu = () => {
                               -
                             </button>
                             <button
-                              onClick={e => {
+                              onClick={(e) => {
                                 e.stopPropagation();
-                                const updatedCart = cart.map(item =>
+                                const updatedCart = cart.map((item) =>
                                   item.id === dish.id
                                     ? { ...item, quantity: item.quantity + 1 }
                                     : item
@@ -2915,7 +2937,7 @@ const ClientMenu = () => {
                     ) : (
                       <button
                         className="add-to-cart-button"
-                        onClick={e => {
+                        onClick={(e) => {
                           addToCart(dish, e);
                         }}
                         style={{
@@ -2944,7 +2966,7 @@ const ClientMenu = () => {
       )}
 
       {/* Анимируемые элементы */}
-      {animatingItems.map(item => (
+      {animatingItems.map((item) => (
         <div
           key={item.id}
           className="animating-item"
@@ -3101,7 +3123,7 @@ const ClientMenu = () => {
       {/* Диабетическое меню - модальное окно */}
       {showDiabeticMenu && (
         <div
-          onClick={e => {
+          onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowDiabeticMenu(false);
             }
@@ -3159,11 +3181,11 @@ const ClientMenu = () => {
                   boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
                   transition: "all 0.2s ease",
                 }}
-                onMouseEnter={e => {
+                onMouseEnter={(e) => {
                   e.target.style.transform = "scale(1.1)";
                   e.target.style.background = "#c82333";
                 }}
-                onMouseLeave={e => {
+                onMouseLeave={(e) => {
                   e.target.style.transform = "scale(1)";
                   e.target.style.background = "#dc3545";
                 }}
@@ -3207,11 +3229,11 @@ const ClientMenu = () => {
                     transition: "all 0.2s ease",
                     backdropFilter: "blur(10px)",
                   }}
-                  onMouseEnter={e => {
+                  onMouseEnter={(e) => {
                     e.target.style.background = "rgba(255,255,255,0.3)";
                     e.target.style.transform = "scale(1.05)";
                   }}
-                  onMouseLeave={e => {
+                  onMouseLeave={(e) => {
                     e.target.style.background = "rgba(255,255,255,0.2)";
                     e.target.style.transform = "scale(1)";
                   }}
@@ -3243,7 +3265,7 @@ const ClientMenu = () => {
             {/* Содержимое */}
             <div style={{ padding: "0" }}>
               <DiabeticMenuSection
-                dishes={dishes.filter(dish => dish.diabeticFriendly === true)}
+                dishes={dishes.filter((dish) => dish.diabeticFriendly === true)}
               />
             </div>
           </div>
@@ -3253,7 +3275,7 @@ const ClientMenu = () => {
       {/* Мои запросы на готовку - модальное окно */}
       {showCookingRequests && (
         <div
-          onClick={e => {
+          onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowCookingRequests(false);
             }
@@ -3311,11 +3333,11 @@ const ClientMenu = () => {
                   boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
                   transition: "all 0.2s ease",
                 }}
-                onMouseEnter={e => {
+                onMouseEnter={(e) => {
                   e.target.style.transform = "scale(1.1)";
                   e.target.style.background = "#c82333";
                 }}
-                onMouseLeave={e => {
+                onMouseLeave={(e) => {
                   e.target.style.transform = "scale(1)";
                   e.target.style.background = "#dc3545";
                 }}
@@ -3359,11 +3381,11 @@ const ClientMenu = () => {
                     transition: "all 0.2s ease",
                     backdropFilter: "blur(10px)",
                   }}
-                  onMouseEnter={e => {
+                  onMouseEnter={(e) => {
                     e.target.style.background = "rgba(255,255,255,0.3)";
                     e.target.style.transform = "scale(1.05)";
                   }}
-                  onMouseLeave={e => {
+                  onMouseLeave={(e) => {
                     e.target.style.background = "rgba(255,255,255,0.2)";
                     e.target.style.transform = "scale(1)";
                   }}
@@ -3403,7 +3425,7 @@ const ClientMenu = () => {
       {/* Запросы на помощь гостям - модальное окно */}
       {showHelpGuestRequests && (
         <div
-          onClick={e => {
+          onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowHelpGuestRequests(false);
             }
@@ -3461,11 +3483,11 @@ const ClientMenu = () => {
                   boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
                   transition: "all 0.2s ease",
                 }}
-                onMouseEnter={e => {
+                onMouseEnter={(e) => {
                   e.target.style.transform = "scale(1.1)";
                   e.target.style.background = "#c82333";
                 }}
-                onMouseLeave={e => {
+                onMouseLeave={(e) => {
                   e.target.style.transform = "scale(1)";
                   e.target.style.background = "#dc3545";
                 }}
@@ -3509,11 +3531,11 @@ const ClientMenu = () => {
                     transition: "all 0.2s ease",
                     backdropFilter: "blur(10px)",
                   }}
-                  onMouseEnter={e => {
+                  onMouseEnter={(e) => {
                     e.target.style.background = "rgba(255,255,255,0.3)";
                     e.target.style.transform = "scale(1.05)";
                   }}
-                  onMouseLeave={e => {
+                  onMouseLeave={(e) => {
                     e.target.style.background = "rgba(255,255,255,0.2)";
                     e.target.style.transform = "scale(1)";
                   }}
@@ -3553,7 +3575,7 @@ const ClientMenu = () => {
       {/* Уведомления клиента - модальное окно */}
       {showClientNotifications && (
         <div
-          onClick={e => {
+          onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowClientNotifications(false);
             }
@@ -3611,11 +3633,11 @@ const ClientMenu = () => {
                   boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
                   transition: "all 0.2s ease",
                 }}
-                onMouseEnter={e => {
+                onMouseEnter={(e) => {
                   e.target.style.transform = "scale(1.1)";
                   e.target.style.background = "#c82333";
                 }}
-                onMouseLeave={e => {
+                onMouseLeave={(e) => {
                   e.target.style.transform = "scale(1)";
                   e.target.style.background = "#dc3545";
                 }}
@@ -3659,11 +3681,11 @@ const ClientMenu = () => {
                     transition: "all 0.2s ease",
                     backdropFilter: "blur(10px)",
                   }}
-                  onMouseEnter={e => {
+                  onMouseEnter={(e) => {
                     e.target.style.background = "rgba(255,255,255,0.3)";
                     e.target.style.transform = "scale(1.05)";
                   }}
-                  onMouseLeave={e => {
+                  onMouseLeave={(e) => {
                     e.target.style.background = "rgba(255,255,255,0.2)";
                     e.target.style.transform = "scale(1)";
                   }}
@@ -3719,7 +3741,7 @@ const ClientMenu = () => {
       {/* Модальное окно AI-рекомендаций */}
       {showAIRecommendations && (
         <div
-          onClick={e => {
+          onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowAIRecommendations(false);
             }
@@ -3777,11 +3799,11 @@ const ClientMenu = () => {
                   boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
                   transition: "all 0.2s ease",
                 }}
-                onMouseEnter={e => {
+                onMouseEnter={(e) => {
                   e.target.style.transform = "scale(1.1)";
                   e.target.style.background = "#c82333";
                 }}
-                onMouseLeave={e => {
+                onMouseLeave={(e) => {
                   e.target.style.transform = "scale(1)";
                   e.target.style.background = "#dc3545";
                 }}
@@ -3825,11 +3847,11 @@ const ClientMenu = () => {
                     transition: "all 0.2s ease",
                     backdropFilter: "blur(10px)",
                   }}
-                  onMouseEnter={e => {
+                  onMouseEnter={(e) => {
                     e.target.style.background = "rgba(255,255,255,0.3)";
                     e.target.style.transform = "scale(1.05)";
                   }}
-                  onMouseLeave={e => {
+                  onMouseLeave={(e) => {
                     e.target.style.background = "rgba(255,255,255,0.2)";
                     e.target.style.transform = "scale(1)";
                   }}
@@ -3862,8 +3884,10 @@ const ClientMenu = () => {
             <div style={{ padding: "20px" }}>
               <AIRecommendations
                 dishes={dishes}
-                onDishSelect={dish => {
-                  const category = categories.find(c => c.id === dish.category);
+                onDishSelect={(dish) => {
+                  const category = categories.find(
+                    (c) => c.id === dish.category
+                  );
                   if (category) {
                     setShowAIRecommendations(false);
                     handleCategorySelect(category);
@@ -3911,7 +3935,7 @@ const ClientMenu = () => {
                 ),
                 isDiabetic: diabeticFilter,
               }}
-              onEscalateToChef={data => {
+              onEscalateToChef={(data) => {
                 console.log("Escalating to chef:", data);
                 // Здесь можно интегрировать с ClientChefChat
                 navigate(

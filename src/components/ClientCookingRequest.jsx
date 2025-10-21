@@ -1,61 +1,65 @@
-import React, { useState } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import React, { useState } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const ClientCookingRequest = ({ dish, onClose, onRequestSubmit }) => {
-  const { t } = useLanguage();
+  // const { t } = useLanguage(); // Не используется в текущей реализации
   const [formData, setFormData] = useState({
     products: [],
-    description: '',
-    preferredTime: '',
-    budget: '',
-    specialRequests: '',
-    contactPhone: '',
-    address: ''
+    description: "",
+    preferredTime: "",
+    budget: "",
+    specialRequests: "",
+    contactPhone: "",
+    address: "",
   });
   const [uploadedImages, setUploadedImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    const newImages = files.map(file => ({
+    const newImages = files.map((file) => ({
       id: Date.now() + Math.random(),
       file,
-      preview: URL.createObjectURL(file)
+      preview: URL.createObjectURL(file),
     }));
-    setUploadedImages(prev => [...prev, ...newImages]);
+    setUploadedImages((prev) => [...prev, ...newImages]);
   };
 
   const removeImage = (imageId) => {
-    setUploadedImages(prev => prev.filter(img => img.id !== imageId));
+    setUploadedImages((prev) => prev.filter((img) => img.id !== imageId));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       const requestData = {
         dishId: dish.id,
         chefId: dish.chefId,
         ...formData,
-        images: uploadedImages.map(img => img.file),
-        type: dish.isMasterClass ? 'master_class' : dish.isConsultation ? 'consultation' : 'cooking',
+        images: uploadedImages.map((img) => img.file),
+        type: dish.isMasterClass
+          ? "master_class"
+          : dish.isConsultation
+          ? "consultation"
+          : "cooking",
         estimatedTime: dish.estimatedTime,
-        minOrderValue: dish.minOrderValue
+        minOrderValue: dish.minOrderValue,
       };
-      
+
       await onRequestSubmit(requestData);
       onClose();
     } catch (error) {
-      console.error('Error submitting cooking request:', error);
+      console.error("Error submitting cooking request:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -64,15 +68,20 @@ const ClientCookingRequest = ({ dish, onClose, onRequestSubmit }) => {
   return (
     <div className="client-cooking-modal">
       <div className="client-cooking-overlay" onClick={onClose}>
-        <div className="client-cooking-content" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="client-cooking-content"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="client-cooking-header">
             <h2>🍳 {dish.name}</h2>
-            <button className="close-button" onClick={onClose}>×</button>
+            <button className="close-button" onClick={onClose}>
+              ×
+            </button>
           </div>
-          
+
           <div className="client-cooking-body">
             <p className="dish-description">{dish.description}</p>
-            
+
             <form onSubmit={handleSubmit} className="cooking-request-form">
               {/* Загрузка фото продуктов */}
               <div className="form-group">
@@ -86,10 +95,15 @@ const ClientCookingRequest = ({ dish, onClose, onRequestSubmit }) => {
                 />
                 {uploadedImages.length > 0 && (
                   <div className="uploaded-images">
-                    {uploadedImages.map(img => (
+                    {uploadedImages.map((img) => (
                       <div key={img.id} className="image-preview">
                         <img src={img.preview} alt="Product" />
-                        <button type="button" onClick={() => removeImage(img.id)}>×</button>
+                        <button
+                          type="button"
+                          onClick={() => removeImage(img.id)}
+                        >
+                          ×
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -189,8 +203,12 @@ const ClientCookingRequest = ({ dish, onClose, onRequestSubmit }) => {
                 <button type="button" onClick={onClose} className="cancel-btn">
                   Отмена
                 </button>
-                <button type="submit" disabled={isSubmitting} className="submit-btn">
-                  {isSubmitting ? 'Отправляем...' : 'Отправить запрос'}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="submit-btn"
+                >
+                  {isSubmitting ? "Отправляем..." : "Отправить запрос"}
                 </button>
               </div>
             </form>

@@ -1,50 +1,53 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useDebounce } from '../hooks/useDebounce';
-import { useLanguage } from '../contexts/LanguageContext';
-import './SmartSearch.css';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useDebounce } from "../hooks/useDebounce";
+import { useLanguage } from "../contexts/LanguageContext";
+import "./SmartSearch.css";
 
-const SmartSearch = ({ 
-  data = [], 
-  searchFields = [], 
-  onResults = () => {}, 
+const SmartSearch = ({
+  data = [],
+  searchFields = [],
+  onResults = () => {},
   placeholder = "Поиск...",
   minLength = 2,
   maxResults = 10,
-  showSuggestions = true
+  showSuggestions = true,
 }) => {
   const { t } = useLanguage();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  
+
   const debouncedQuery = useDebounce(query, 300);
 
   // Функция поиска
-  const searchData = (searchQuery, items, fields) => {
-    if (!searchQuery || searchQuery.length < minLength) return [];
-    
-    const query = searchQuery.toLowerCase().trim();
-    
-    return items.filter(item => {
-      return fields.some(field => {
-        const value = getNestedValue(item, field);
-        return value && value.toString().toLowerCase().includes(query);
+  const searchData = useCallback(
+    (searchQuery, items, fields) => {
+      if (!searchQuery || searchQuery.length < minLength) return [];
+
+      const query = searchQuery.toLowerCase().trim();
+
+      return items.filter((item) => {
+        return fields.some((field) => {
+          const value = getNestedValue(item, field);
+          return value && value.toString().toLowerCase().includes(query);
+        });
       });
-    });
-  };
+    },
+    [minLength]
+  );
 
   // Получение вложенного значения по пути
   const getNestedValue = (obj, path) => {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
+    return path.split(".").reduce((current, key) => current?.[key], obj);
   };
 
   // Мемоизированные результаты поиска
   const searchResults = useMemo(() => {
     if (!debouncedQuery || debouncedQuery.length < minLength) return [];
-    
+
     const results = searchData(debouncedQuery, data, searchFields);
     return results.slice(0, maxResults);
-  }, [debouncedQuery, data, searchFields, minLength, maxResults]);
+  }, [debouncedQuery, data, searchFields, minLength, maxResults, searchData]);
 
   // Обработка изменений запроса
   useEffect(() => {
@@ -56,23 +59,23 @@ const SmartSearch = ({
     if (!isOpen) return;
 
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
-        setHighlightedIndex(prev => 
+        setHighlightedIndex((prev) =>
           prev < searchResults.length - 1 ? prev + 1 : prev
         );
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
-        setHighlightedIndex(prev => prev > 0 ? prev - 1 : -1);
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1));
         break;
-      case 'Enter':
+      case "Enter":
         e.preventDefault();
         if (highlightedIndex >= 0 && searchResults[highlightedIndex]) {
           handleSelect(searchResults[highlightedIndex]);
         }
         break;
-      case 'Escape':
+      case "Escape":
         setIsOpen(false);
         setHighlightedIndex(-1);
         break;
@@ -81,7 +84,7 @@ const SmartSearch = ({
 
   // Выбор элемента
   const handleSelect = (item) => {
-    setQuery(item.name || item.title || '');
+    setQuery(item.name || item.title || "");
     setIsOpen(false);
     setHighlightedIndex(-1);
     onResults([item]);
@@ -90,14 +93,18 @@ const SmartSearch = ({
   // Подсветка текста
   const highlightText = (text, query) => {
     if (!query) return text;
-    
-    const regex = new RegExp(`(${query})`, 'gi');
+
+    const regex = new RegExp(`(${query})`, "gi");
     const parts = text.split(regex);
-    
-    return parts.map((part, index) => 
+
+    return parts.map((part, index) =>
       regex.test(part) ? (
-        <mark key={index} className="highlight">{part}</mark>
-      ) : part
+        <mark key={index} className="highlight">
+          {part}
+        </mark>
+      ) : (
+        part
+      )
     );
   };
 
@@ -126,31 +133,23 @@ const SmartSearch = ({
             <div
               key={item.id || index}
               className={`search-result-item ${
-                index === highlightedIndex ? 'highlighted' : ''
+                index === highlightedIndex ? "highlighted" : ""
               }`}
               onClick={() => handleSelect(item)}
               onMouseEnter={() => setHighlightedIndex(index)}
             >
               <div className="result-content">
                 <h4>
-                  {highlightText(item.name || item.title || '', debouncedQuery)}
+                  {highlightText(item.name || item.title || "", debouncedQuery)}
                 </h4>
                 {item.description && (
-                  <p>
-                    {highlightText(item.description, debouncedQuery)}
-                  </p>
+                  <p>{highlightText(item.description, debouncedQuery)}</p>
                 )}
                 {item.category && (
-                  <span className="result-category">
-                    {item.category}
-                  </span>
+                  <span className="result-category">{item.category}</span>
                 )}
               </div>
-              {item.price && (
-                <div className="result-price">
-                  {item.price} ₽
-                </div>
-              )}
+              {item.price && <div className="result-price">{item.price} ₽</div>}
             </div>
           ))}
         </div>

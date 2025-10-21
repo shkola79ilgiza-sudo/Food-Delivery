@@ -1,9 +1,7 @@
-/**
- * 🔒 SECURE API Client с httpOnly cookies
- * Production-ready version с защитой от XSS
- */
+import { navigateTo } from "../utils/navigation";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:3001/api";
 
 // ❌ УДАЛЕНО: localStorage для токенов
 // ✅ ТОКЕНЫ ТЕПЕРЬ В httpOnly cookies (управляются сервером)
@@ -11,7 +9,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:300
 // Базовый fetch с автоматической отправкой cookies
 const fetchAPI = async (endpoint, options = {}) => {
   const headers = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...options.headers,
   };
 
@@ -19,13 +17,14 @@ const fetchAPI = async (endpoint, options = {}) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
-      credentials: 'include', // 🔒 Автоматически отправляет httpOnly cookies
+      credentials: "include", // 🔒 Автоматически отправляет httpOnly cookies
     });
 
     // Проверяем, есть ли тело ответа
-    const contentType = response.headers.get('content-type');
-    const hasJsonContent = contentType && contentType.includes('application/json');
-    
+    const contentType = response.headers.get("content-type");
+    const hasJsonContent =
+      contentType && contentType.includes("application/json");
+
     const data = hasJsonContent ? await response.json() : {};
 
     if (!response.ok) {
@@ -38,25 +37,25 @@ const fetchAPI = async (endpoint, options = {}) => {
           return fetchAPI(endpoint, options);
         } else {
           // Токен не удалось обновить - редирект на логин
-          window.location.href = '/login';
-          throw new Error('Сессия истекла');
+          navigateTo("/login");
+          throw new Error("Сессия истекла");
         }
       }
-      
+
       throw new Error(data.message || `Ошибка ${response.status}`);
     }
 
     return data;
   } catch (error) {
-    console.error('API Error:', error);
-    
+    console.error("API Error:", error);
+
     // Интеграция с Sentry (добавим позже)
     if (window.Sentry) {
       window.Sentry.captureException(error, {
         tags: { api_endpoint: endpoint },
       });
     }
-    
+
     throw error;
   }
 };
@@ -65,13 +64,13 @@ const fetchAPI = async (endpoint, options = {}) => {
 const refreshAccessToken = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include', // Отправляет refresh token cookie
+      method: "POST",
+      credentials: "include", // Отправляет refresh token cookie
     });
-    
+
     return response.ok;
   } catch (error) {
-    console.error('Token refresh failed:', error);
+    console.error("Token refresh failed:", error);
     return false;
   }
 };
@@ -85,35 +84,35 @@ export const authAPI = {
   register: async (userData) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(userData),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Ошибка регистрации');
+        throw new Error(data.message || "Ошибка регистрации");
       }
-      
+
       // ✅ Токены автоматически установлены в cookies сервером
       return data;
     } catch (error) {
-      console.error('Register API Error:', error);
+      console.error("Register API Error:", error);
       throw error;
     }
   },
 
   // Логин
   login: async (email, password) => {
-    const data = await fetchAPI('/auth/login', {
-      method: 'POST',
+    const data = await fetchAPI("/auth/login", {
+      method: "POST",
       body: JSON.stringify({ email, password }),
     });
-    
+
     // ✅ Токены автоматически установлены в cookies сервером
     return data;
   },
@@ -121,28 +120,28 @@ export const authAPI = {
   // Логаут
   logout: async () => {
     try {
-      await fetchAPI('/auth/logout', {
-        method: 'POST',
+      await fetchAPI("/auth/logout", {
+        method: "POST",
       });
-      
+
       // Редирект на главную
-      window.location.href = '/';
+      navigateTo("/");
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
       // Редирект даже при ошибке
-      window.location.href = '/';
+      navigateTo("/");
     }
   },
 
   // Получить текущего пользователя
   getMe: async () => {
-    return await fetchAPI('/users/me');
+    return await fetchAPI("/users/me");
   },
 
   // Обновить профиль
   updateProfile: async (profileData) => {
-    return await fetchAPI('/users/me', {
-      method: 'PUT',
+    return await fetchAPI("/users/me", {
+      method: "PUT",
       body: JSON.stringify(profileData),
     });
   },
@@ -161,7 +160,7 @@ export const dishesAPI = {
   // Получить все блюда
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    return await fetchAPI(`/dishes${queryString ? '?' + queryString : ''}`);
+    return await fetchAPI(`/dishes${queryString ? "?" + queryString : ""}`);
   },
 
   // Получить блюдо по ID
@@ -171,13 +170,13 @@ export const dishesAPI = {
 
   // Получить популярные блюда
   getPopular: async () => {
-    return await fetchAPI('/dishes/popular');
+    return await fetchAPI("/dishes/popular");
   },
 
   // Создать блюдо
   create: async (dishData) => {
-    return await fetchAPI('/dishes', {
-      method: 'POST',
+    return await fetchAPI("/dishes", {
+      method: "POST",
       body: JSON.stringify(dishData),
     });
   },
@@ -185,7 +184,7 @@ export const dishesAPI = {
   // Обновить блюдо
   update: async (id, dishData) => {
     return await fetchAPI(`/dishes/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(dishData),
     });
   },
@@ -193,7 +192,7 @@ export const dishesAPI = {
   // Удалить блюдо
   delete: async (id) => {
     return await fetchAPI(`/dishes/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   },
 
@@ -210,20 +209,20 @@ export const dishesAPI = {
 export const ordersAPI = {
   // Создать заказ
   create: async (orderData) => {
-    return await fetchAPI('/orders', {
-      method: 'POST',
+    return await fetchAPI("/orders", {
+      method: "POST",
       body: JSON.stringify(orderData),
     });
   },
 
   // Получить заказы клиента
   getClientOrders: async () => {
-    return await fetchAPI('/orders/client');
+    return await fetchAPI("/orders/client");
   },
 
   // Получить заказы повара
   getChefOrders: async () => {
-    return await fetchAPI('/orders/chef');
+    return await fetchAPI("/orders/chef");
   },
 
   // Получить заказ по ID
@@ -234,7 +233,7 @@ export const ordersAPI = {
   // Обновить статус заказа
   updateStatus: async (id, status) => {
     return await fetchAPI(`/orders/${id}/status`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ status }),
     });
   },
@@ -242,7 +241,7 @@ export const ordersAPI = {
   // Отменить заказ
   cancel: async (id, reason) => {
     return await fetchAPI(`/orders/${id}/cancel`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ reason }),
     });
   },
@@ -255,8 +254,8 @@ export const ordersAPI = {
 export const paymentsAPI = {
   // Создать платеж
   create: async (paymentData) => {
-    return await fetchAPI('/payments', {
-      method: 'POST',
+    return await fetchAPI("/payments", {
+      method: "POST",
       body: JSON.stringify(paymentData),
     });
   },
@@ -269,7 +268,7 @@ export const paymentsAPI = {
   // Вернуть платеж
   refund: async (paymentId, amount, reason) => {
     return await fetchAPI(`/payments/${paymentId}/refund`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ amount, reason }),
     });
   },
@@ -283,7 +282,7 @@ export const chefsAPI = {
   // Получить всех поваров
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    return await fetchAPI(`/chefs${queryString ? '?' + queryString : ''}`);
+    return await fetchAPI(`/chefs${queryString ? "?" + queryString : ""}`);
   },
 
   // Получить повара по ID
@@ -293,8 +292,8 @@ export const chefsAPI = {
 
   // Обновить профиль повара
   updateProfile: async (chefData) => {
-    return await fetchAPI('/chefs/profile', {
-      method: 'PUT',
+    return await fetchAPI("/chefs/profile", {
+      method: "PUT",
       body: JSON.stringify(chefData),
     });
   },
@@ -307,8 +306,8 @@ export const chefsAPI = {
 export const reviewsAPI = {
   // Создать отзыв
   create: async (reviewData) => {
-    return await fetchAPI('/reviews', {
-      method: 'POST',
+    return await fetchAPI("/reviews", {
+      method: "POST",
       body: JSON.stringify(reviewData),
     });
   },
@@ -331,17 +330,19 @@ export const reviewsAPI = {
 export const analyticsAPI = {
   // Получить статистику повара
   getChefStats: async () => {
-    return await fetchAPI('/analytics/chef');
+    return await fetchAPI("/analytics/chef");
   },
 
   // Получить популярные блюда
-  getPopularDishes: async (period = '7d') => {
+  getPopularDishes: async (period = "7d") => {
     return await fetchAPI(`/analytics/popular-dishes?period=${period}`);
   },
 
   // Получить статистику заказов
   getOrderStats: async (startDate, endDate) => {
-    return await fetchAPI(`/analytics/orders?start=${startDate}&end=${endDate}`);
+    return await fetchAPI(
+      `/analytics/orders?start=${startDate}&end=${endDate}`
+    );
   },
 };
 
@@ -352,20 +353,20 @@ export const analyticsAPI = {
 export const notificationsAPI = {
   // Получить уведомления
   getAll: async () => {
-    return await fetchAPI('/notifications');
+    return await fetchAPI("/notifications");
   },
 
   // Отметить как прочитанное
   markAsRead: async (notificationId) => {
     return await fetchAPI(`/notifications/${notificationId}/read`, {
-      method: 'PATCH',
+      method: "PATCH",
     });
   },
 
   // Отметить все как прочитанные
   markAllAsRead: async () => {
-    return await fetchAPI('/notifications/read-all', {
-      method: 'PATCH',
+    return await fetchAPI("/notifications/read-all", {
+      method: "PATCH",
     });
   },
 };
@@ -381,4 +382,3 @@ export default {
   analytics: analyticsAPI,
   notifications: notificationsAPI,
 };
-

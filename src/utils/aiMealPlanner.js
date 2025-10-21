@@ -12,7 +12,7 @@ class AIMealPlanner {
         carbs: 180,
         fat: 60,
         fiber: 25,
-        priority: ['low_calorie', 'high_protein', 'high_fiber']
+        priority: ["low_calorie", "high_protein", "high_fiber"],
       },
       muscle_gain: {
         calories: 2500,
@@ -20,7 +20,7 @@ class AIMealPlanner {
         carbs: 300,
         fat: 80,
         fiber: 30,
-        priority: ['high_protein', 'high_calorie', 'balanced']
+        priority: ["high_protein", "high_calorie", "balanced"],
       },
       healthy: {
         calories: 2200,
@@ -28,7 +28,7 @@ class AIMealPlanner {
         carbs: 250,
         fat: 70,
         fiber: 28,
-        priority: ['balanced', 'natural', 'variety']
+        priority: ["balanced", "natural", "variety"],
       },
       diabetic_friendly: {
         calories: 2000,
@@ -36,7 +36,7 @@ class AIMealPlanner {
         carbs: 200,
         fat: 65,
         fiber: 30,
-        priority: ['low_gi', 'high_fiber', 'low_sugar']
+        priority: ["low_gi", "high_fiber", "low_sugar"],
       },
       keto: {
         calories: 1800,
@@ -44,24 +44,32 @@ class AIMealPlanner {
         carbs: 50,
         fat: 140,
         fiber: 20,
-        priority: ['high_fat', 'low_carb', 'moderate_protein']
-      }
+        priority: ["high_fat", "low_carb", "moderate_protein"],
+      },
     };
 
     this.mealTimes = {
       breakfast: { calories: 0.25, protein: 0.25, carbs: 0.3, fat: 0.2 },
       lunch: { calories: 0.35, protein: 0.35, carbs: 0.35, fat: 0.35 },
       dinner: { calories: 0.3, protein: 0.3, carbs: 0.25, fat: 0.3 },
-      snack: { calories: 0.1, protein: 0.1, carbs: 0.1, fat: 0.15 }
+      snack: { calories: 0.1, protein: 0.1, carbs: 0.1, fat: 0.15 },
     };
 
     this.allergies = {
-      gluten: ['пшеница', 'рожь', 'ячмень', 'овёс', 'хлеб', 'макароны', 'мука'],
-      dairy: ['молоко', 'сыр', 'творог', 'йогурт', 'сметана', 'масло', 'сливки'],
-      nuts: ['орехи', 'миндаль', 'фундук', 'грецкий', 'арахис'],
-      seafood: ['рыба', 'креветки', 'краб', 'мидии', 'лосось', 'тунец'],
-      eggs: ['яйца', 'яичный', 'белок', 'желток'],
-      soy: ['соя', 'тофу', 'соевый', 'эдамаме']
+      gluten: ["пшеница", "рожь", "ячмень", "овёс", "хлеб", "макароны", "мука"],
+      dairy: [
+        "молоко",
+        "сыр",
+        "творог",
+        "йогурт",
+        "сметана",
+        "масло",
+        "сливки",
+      ],
+      nuts: ["орехи", "миндаль", "фундук", "грецкий", "арахис"],
+      seafood: ["рыба", "креветки", "краб", "мидии", "лосось", "тунец"],
+      eggs: ["яйца", "яичный", "белок", "желток"],
+      soy: ["соя", "тофу", "соевый", "эдамаме"],
     };
   }
 
@@ -72,44 +80,65 @@ class AIMealPlanner {
    */
   async generateMealPlan(params = {}) {
     const {
-      goal = 'healthy',
+      goal = "healthy",
       allergies = [],
       preferences = [],
       availableDishes = [],
-      budget = 'medium',
-      cookingTime = 'medium'
+      // budget = 'medium', // Не используется в текущей реализации
+      // cookingTime = 'medium' // Не используется в текущей реализации
     } = params;
 
-    console.log('🍽️ Starting AI Meal Planning...', { goal, allergies, preferences });
+    console.log("🍽️ Starting AI Meal Planning...", {
+      goal,
+      allergies,
+      preferences,
+    });
 
     try {
       // 1. Получаем цели питания
-      const nutritionGoal = this.nutritionGoals[goal] || this.nutritionGoals.healthy;
-      console.log('📊 Nutrition goal:', nutritionGoal);
+      const nutritionGoal =
+        this.nutritionGoals[goal] || this.nutritionGoals.healthy;
+      console.log("📊 Nutrition goal:", nutritionGoal);
 
       // 2. Фильтруем блюда по аллергиям и предпочтениям
-      const filteredDishes = this.filterDishes(availableDishes, allergies, preferences);
-      console.log(`🍽️ Filtered dishes: ${filteredDishes.length} from ${availableDishes.length}`);
+      const filteredDishes = this.filterDishes(
+        availableDishes,
+        allergies,
+        preferences
+      );
+      console.log(
+        `🍽️ Filtered dishes: ${filteredDishes.length} from ${availableDishes.length}`
+      );
 
       if (filteredDishes.length === 0) {
-        throw new Error('Нет доступных блюд после фильтрации по аллергиям/предпочтениям');
+        throw new Error(
+          "Нет доступных блюд после фильтрации по аллергиям/предпочтениям"
+        );
       }
 
       // 3. Классифицируем блюда по типам
       const classifiedDishes = this.classifyDishes(filteredDishes);
-      console.log('🏷️ Classified dishes:', Object.keys(classifiedDishes));
+      console.log("🏷️ Classified dishes:", Object.keys(classifiedDishes));
 
       // 4. Генерируем план на 3 дня
-      const mealPlan = await this.createThreeDayPlan(classifiedDishes, nutritionGoal, goal);
-      console.log('📅 Generated meal plan:', mealPlan);
+      const mealPlan = await this.createThreeDayPlan(
+        classifiedDishes,
+        nutritionGoal,
+        goal
+      );
+      console.log("📅 Generated meal plan:", mealPlan);
 
       // 5. Добавляем рекомендации и альтернативы
-      const enhancedPlan = await this.enhancePlanWithAI(mealPlan, goal, nutritionGoal);
-      console.log('✨ Enhanced plan with AI recommendations');
+      const enhancedPlan = await this.enhancePlanWithAI(
+        mealPlan,
+        goal,
+        nutritionGoal
+      );
+      console.log("✨ Enhanced plan with AI recommendations");
 
       return enhancedPlan;
     } catch (error) {
-      console.error('❌ Error generating meal plan:', error);
+      console.error("❌ Error generating meal plan:", error);
       throw error;
     }
   }
@@ -118,13 +147,15 @@ class AIMealPlanner {
    * Фильтрует блюда по аллергиям и предпочтениям
    */
   filterDishes(dishes, allergies = [], preferences = []) {
-    return dishes.filter(dish => {
+    return dishes.filter((dish) => {
       // Проверяем аллергии
-      const hasAllergy = allergies.some(allergy => {
+      const hasAllergy = allergies.some((allergy) => {
         const allergyKeywords = this.allergies[allergy] || [allergy];
-        return allergyKeywords.some(keyword => 
-          dish.name.toLowerCase().includes(keyword.toLowerCase()) ||
-          (dish.ingredients && dish.ingredients.toLowerCase().includes(keyword.toLowerCase()))
+        return allergyKeywords.some(
+          (keyword) =>
+            dish.name.toLowerCase().includes(keyword.toLowerCase()) ||
+            (dish.ingredients &&
+              dish.ingredients.toLowerCase().includes(keyword.toLowerCase()))
         );
       });
 
@@ -134,10 +165,10 @@ class AIMealPlanner {
       }
 
       // Проверяем предпочтения (если указаны "только вегетарианские", "только халяль" и т.д.)
-      const hasPreference = preferences.some(pref => {
-        if (pref === 'vegetarian' && dish.meat) return false;
-        if (pref === 'vegan' && (dish.meat || dish.dairy)) return false;
-        if (pref === 'halal' && dish.alcohol) return false;
+      const hasPreference = preferences.some((pref) => {
+        if (pref === "vegetarian" && dish.meat) return false;
+        if (pref === "vegan" && (dish.meat || dish.dairy)) return false;
+        if (pref === "halal" && dish.alcohol) return false;
         return true;
       });
 
@@ -164,33 +195,50 @@ class AIMealPlanner {
       low_gi: [],
       diabetic_friendly: [],
       vegetarian: [],
-      vegan: []
+      vegan: [],
     };
 
-    dishes.forEach(dish => {
+    dishes.forEach((dish) => {
       const name = dish.name.toLowerCase();
-      const ingredients = (dish.ingredients || '').toLowerCase();
+      // const ingredients = (dish.ingredients || '').toLowerCase(); // Не используется в текущей реализации
 
       // По времени приема пищи
-      if (name.includes('каша') || name.includes('омлет') || name.includes('творог') || 
-          name.includes('йогурт') || name.includes('блины') || name.includes('тост')) {
+      if (
+        name.includes("каша") ||
+        name.includes("омлет") ||
+        name.includes("творог") ||
+        name.includes("йогурт") ||
+        name.includes("блины") ||
+        name.includes("тост")
+      ) {
         classified.breakfast.push(dish);
       }
-      
-      if (name.includes('суп') || name.includes('борщ') || name.includes('щи') || 
-          name.includes('бульон')) {
+
+      if (
+        name.includes("суп") ||
+        name.includes("борщ") ||
+        name.includes("щи") ||
+        name.includes("бульон")
+      ) {
         classified.lunch.push(dish);
         classified.soups.push(dish);
       }
-      
-      if (name.includes('салат') || name.includes('овощи')) {
+
+      if (name.includes("салат") || name.includes("овощи")) {
         classified.lunch.push(dish);
         classified.salads.push(dish);
       }
-      
-      if (name.includes('мясо') || name.includes('рыба') || name.includes('курица') || 
-          name.includes('говядина') || name.includes('свинина') || name.includes('плов') || 
-          name.includes('паста') || name.includes('паста')) {
+
+      if (
+        name.includes("мясо") ||
+        name.includes("рыба") ||
+        name.includes("курица") ||
+        name.includes("говядина") ||
+        name.includes("свинина") ||
+        name.includes("плов") ||
+        name.includes("паста") ||
+        name.includes("паста")
+      ) {
         classified.dinner.push(dish);
         classified.main_courses.push(dish);
       }
@@ -199,11 +247,11 @@ class AIMealPlanner {
       if (dish.dishCalories && dish.dishCalories < 300) {
         classified.low_calorie.push(dish);
       }
-      
+
       if (dish.dishProtein && dish.dishProtein > 20) {
         classified.high_protein.push(dish);
       }
-      
+
       if (dish.dishCarbs && dish.dishCarbs > 30) {
         classified.high_fiber.push(dish);
       }
@@ -230,7 +278,7 @@ class AIMealPlanner {
    * Создает план питания на 3 дня
    */
   async createThreeDayPlan(classifiedDishes, nutritionGoal, goal) {
-    const days = ['Понедельник', 'Вторник', 'Среда'];
+    const days = ["Понедельник", "Вторник", "Среда"];
     const mealPlan = {
       goal: goal,
       totalCalories: nutritionGoal.calories * 3,
@@ -241,24 +289,32 @@ class AIMealPlanner {
       summary: {
         averageCaloriesPerDay: nutritionGoal.calories,
         varietyScore: 0,
-        nutritionBalance: 0
-      }
+        nutritionBalance: 0,
+      },
     };
 
     for (let i = 0; i < days.length; i++) {
-      const day = await this.createDayPlan(classifiedDishes, nutritionGoal, goal, i);
+      const day = await this.createDayPlan(
+        classifiedDishes,
+        nutritionGoal,
+        goal,
+        i
+      );
       mealPlan.days.push({
         day: days[i],
         date: this.getDateString(i),
         meals: day.meals,
         totals: day.totals,
-        score: day.score
+        score: day.score,
       });
     }
 
     // Рассчитываем общие метрики
     mealPlan.summary.varietyScore = this.calculateVarietyScore(mealPlan.days);
-    mealPlan.summary.nutritionBalance = this.calculateNutritionBalance(mealPlan.days, nutritionGoal);
+    mealPlan.summary.nutritionBalance = this.calculateNutritionBalance(
+      mealPlan.days,
+      nutritionGoal
+    );
 
     return mealPlan;
   }
@@ -271,7 +327,7 @@ class AIMealPlanner {
       breakfast: null,
       lunch: null,
       dinner: null,
-      snack: null
+      snack: null,
     };
 
     const dayTotals = {
@@ -279,19 +335,21 @@ class AIMealPlanner {
       protein: 0,
       carbs: 0,
       fat: 0,
-      fiber: 0
+      fiber: 0,
     };
 
     // Выбираем блюда для каждого приема пищи
     for (const mealTime of Object.keys(dayMeals)) {
-      const targetCalories = nutritionGoal.calories * this.mealTimes[mealTime].calories;
-      const targetProtein = nutritionGoal.protein * this.mealTimes[mealTime].protein;
-      
+      const targetCalories =
+        nutritionGoal.calories * this.mealTimes[mealTime].calories;
+      const targetProtein =
+        nutritionGoal.protein * this.mealTimes[mealTime].protein;
+
       const selectedDish = this.selectDishForMeal(
-        classifiedDishes, 
-        mealTime, 
-        targetCalories, 
-        targetProtein, 
+        classifiedDishes,
+        mealTime,
+        targetCalories,
+        targetProtein,
         goal,
         dayIndex
       );
@@ -311,48 +369,61 @@ class AIMealPlanner {
     return {
       meals: dayMeals,
       totals: dayTotals,
-      score: score
+      score: score,
     };
   }
 
   /**
    * Выбирает блюдо для конкретного приема пищи
    */
-  selectDishForMeal(classifiedDishes, mealTime, targetCalories, targetProtein, goal, dayIndex) {
+  selectDishForMeal(
+    classifiedDishes,
+    mealTime,
+    targetCalories,
+    targetProtein,
+    goal,
+    dayIndex
+  ) {
     let candidates = [];
 
     // Определяем кандидатов в зависимости от времени приема пищи
     switch (mealTime) {
-      case 'breakfast':
+      case "breakfast":
         candidates = [
           ...classifiedDishes.breakfast,
-          ...classifiedDishes.low_calorie.filter(d => d.dishCalories < 400)
+          ...classifiedDishes.low_calorie.filter((d) => d.dishCalories < 400),
         ];
         break;
-      case 'lunch':
+      case "lunch":
         candidates = [
           ...classifiedDishes.soups,
           ...classifiedDishes.salads,
-          ...classifiedDishes.lunch
+          ...classifiedDishes.lunch,
         ];
         break;
-      case 'dinner':
+      case "dinner":
         candidates = [
           ...classifiedDishes.main_courses,
           ...classifiedDishes.dinner,
-          ...classifiedDishes.high_protein
+          ...classifiedDishes.high_protein,
         ];
         break;
-      case 'snack':
+      case "snack":
         candidates = [
-          ...classifiedDishes.low_calorie.filter(d => d.dishCalories < 200)
+          ...classifiedDishes.low_calorie.filter((d) => d.dishCalories < 200),
         ];
+        break;
+      default:
+        // Обработка неизвестного времени приема пищи
+        candidates = classifiedDishes.main_courses;
         break;
     }
 
     // Фильтруем по целям питания
-    if (goal === 'diabetic_friendly') {
-      candidates = candidates.filter(d => classifiedDishes.diabetic_friendly.includes(d));
+    if (goal === "diabetic_friendly") {
+      candidates = candidates.filter((d) =>
+        classifiedDishes.diabetic_friendly.includes(d)
+      );
     }
 
     // Добавляем разнообразие по дням
@@ -360,8 +431,16 @@ class AIMealPlanner {
 
     // Выбираем лучшее блюдо по калориям и белкам
     const bestDish = candidates.reduce((best, current) => {
-      const bestScore = this.calculateDishScore(best, targetCalories, targetProtein);
-      const currentScore = this.calculateDishScore(current, targetCalories, targetProtein);
+      const bestScore = this.calculateDishScore(
+        best,
+        targetCalories,
+        targetProtein
+      );
+      const currentScore = this.calculateDishScore(
+        current,
+        targetCalories,
+        targetProtein
+      );
       return currentScore > bestScore ? current : best;
     }, candidates[0]);
 
@@ -374,9 +453,9 @@ class AIMealPlanner {
   addVarietyByDay(candidates, dayIndex, mealTime) {
     // Простая логика разнообразия - можно улучшить
     const varietyOffset = dayIndex * 2;
-    return candidates.slice(varietyOffset % candidates.length).concat(
-      candidates.slice(0, varietyOffset % candidates.length)
-    );
+    return candidates
+      .slice(varietyOffset % candidates.length)
+      .concat(candidates.slice(0, varietyOffset % candidates.length));
   }
 
   /**
@@ -389,8 +468,10 @@ class AIMealPlanner {
     const protein = dish.dishProtein || 0;
 
     // Оценка на основе близости к целевым значениям
-    const caloriesScore = 1 - Math.abs(calories - targetCalories) / targetCalories;
-    const proteinScore = 1 - Math.abs(protein - targetProtein) / Math.max(targetProtein, 1);
+    const caloriesScore =
+      1 - Math.abs(calories - targetCalories) / targetCalories;
+    const proteinScore =
+      1 - Math.abs(protein - targetProtein) / Math.max(targetProtein, 1);
 
     return (caloriesScore + proteinScore) / 2;
   }
@@ -399,12 +480,23 @@ class AIMealPlanner {
    * Рассчитывает оценку дня
    */
   calculateDayScore(dayTotals, nutritionGoal) {
-    const caloriesScore = 1 - Math.abs(dayTotals.calories - nutritionGoal.calories) / nutritionGoal.calories;
-    const proteinScore = 1 - Math.abs(dayTotals.protein - nutritionGoal.protein) / nutritionGoal.protein;
-    const carbsScore = 1 - Math.abs(dayTotals.carbs - nutritionGoal.carbs) / nutritionGoal.carbs;
-    const fatScore = 1 - Math.abs(dayTotals.fat - nutritionGoal.fat) / nutritionGoal.fat;
+    const caloriesScore =
+      1 -
+      Math.abs(dayTotals.calories - nutritionGoal.calories) /
+        nutritionGoal.calories;
+    const proteinScore =
+      1 -
+      Math.abs(dayTotals.protein - nutritionGoal.protein) /
+        nutritionGoal.protein;
+    const carbsScore =
+      1 - Math.abs(dayTotals.carbs - nutritionGoal.carbs) / nutritionGoal.carbs;
+    const fatScore =
+      1 - Math.abs(dayTotals.fat - nutritionGoal.fat) / nutritionGoal.fat;
 
-    return Math.max(0, (caloriesScore + proteinScore + carbsScore + fatScore) / 4 * 100);
+    return Math.max(
+      0,
+      ((caloriesScore + proteinScore + carbsScore + fatScore) / 4) * 100
+    );
   }
 
   /**
@@ -412,8 +504,8 @@ class AIMealPlanner {
    */
   calculateVarietyScore(days) {
     const allDishes = [];
-    days.forEach(day => {
-      Object.values(day.meals).forEach(meal => {
+    days.forEach((day) => {
+      Object.values(day.meals).forEach((meal) => {
         if (meal) allDishes.push(meal.name);
       });
     });
@@ -426,13 +518,18 @@ class AIMealPlanner {
    * Рассчитывает баланс питания
    */
   calculateNutritionBalance(days, nutritionGoal) {
-    const avgCalories = days.reduce((sum, day) => sum + day.totals.calories, 0) / days.length;
-    const avgProtein = days.reduce((sum, day) => sum + day.totals.protein, 0) / days.length;
+    const avgCalories =
+      days.reduce((sum, day) => sum + day.totals.calories, 0) / days.length;
+    const avgProtein =
+      days.reduce((sum, day) => sum + day.totals.protein, 0) / days.length;
 
-    const caloriesBalance = 1 - Math.abs(avgCalories - nutritionGoal.calories) / nutritionGoal.calories;
-    const proteinBalance = 1 - Math.abs(avgProtein - nutritionGoal.protein) / nutritionGoal.protein;
+    const caloriesBalance =
+      1 -
+      Math.abs(avgCalories - nutritionGoal.calories) / nutritionGoal.calories;
+    const proteinBalance =
+      1 - Math.abs(avgProtein - nutritionGoal.protein) / nutritionGoal.protein;
 
-    return Math.max(0, (caloriesBalance + proteinBalance) / 2 * 100);
+    return Math.max(0, ((caloriesBalance + proteinBalance) / 2) * 100);
   }
 
   /**
@@ -441,11 +538,14 @@ class AIMealPlanner {
   async enhancePlanWithAI(mealPlan, goal, nutritionGoal) {
     try {
       // Генерируем AI-рекомендации
-      const aiRecommendations = await this.generateAIRecommendations(mealPlan, goal);
-      
+      const aiRecommendations = await this.generateAIRecommendations(
+        mealPlan,
+        goal
+      );
+
       // Добавляем альтернативы
       const alternatives = this.generateAlternatives(mealPlan);
-      
+
       // Создаем итоговый план
       const enhancedPlan = {
         ...mealPlan,
@@ -454,12 +554,12 @@ class AIMealPlanner {
         tips: this.generateTips(goal),
         shoppingList: this.generateShoppingList(mealPlan),
         prepTime: this.estimatePrepTime(mealPlan),
-        cost: this.estimateCost(mealPlan)
+        cost: this.estimateCost(mealPlan),
       };
 
       return enhancedPlan;
     } catch (error) {
-      console.error('❌ Error enhancing plan with AI:', error);
+      console.error("❌ Error enhancing plan with AI:", error);
       return mealPlan;
     }
   }
@@ -471,37 +571,44 @@ class AIMealPlanner {
     const recommendations = [];
 
     // Анализируем баланс питания
-    const avgScore = mealPlan.days.reduce((sum, day) => sum + day.score, 0) / mealPlan.days.length;
-    
+    const avgScore =
+      mealPlan.days.reduce((sum, day) => sum + day.score, 0) /
+      mealPlan.days.length;
+
     if (avgScore < 70) {
       recommendations.push({
-        type: 'warning',
-        icon: '⚠️',
-        title: 'Несбалансированное питание',
-        message: `Средняя оценка дня: ${avgScore.toFixed(1)}/100. Рекомендуем добавить больше белка или овощей.`,
-        action: 'Добавить белковые блюда и овощи'
+        type: "warning",
+        icon: "⚠️",
+        title: "Несбалансированное питание",
+        message: `Средняя оценка дня: ${avgScore.toFixed(
+          1
+        )}/100. Рекомендуем добавить больше белка или овощей.`,
+        action: "Добавить белковые блюда и овощи",
       });
     }
 
     // Анализируем разнообразие
     if (mealPlan.summary.varietyScore < 60) {
       recommendations.push({
-        type: 'info',
-        icon: '🔄',
-        title: 'Мало разнообразия',
-        message: `Показатель разнообразия: ${mealPlan.summary.varietyScore.toFixed(1)}%. Попробуйте разные типы блюд.`,
-        action: 'Замените повторяющиеся блюда на альтернативы'
+        type: "info",
+        icon: "🔄",
+        title: "Мало разнообразия",
+        message: `Показатель разнообразия: ${mealPlan.summary.varietyScore.toFixed(
+          1
+        )}%. Попробуйте разные типы блюд.`,
+        action: "Замените повторяющиеся блюда на альтернативы",
       });
     }
 
     // Целевые рекомендации
-    if (goal === 'weight_loss') {
+    if (goal === "weight_loss") {
       recommendations.push({
-        type: 'success',
-        icon: '💪',
-        title: 'Отличный план для похудения',
-        message: 'План включает много овощей и белка. Не забывайте про физические упражнения!',
-        action: 'Добавьте 30 минут кардио в день'
+        type: "success",
+        icon: "💪",
+        title: "Отличный план для похудения",
+        message:
+          "План включает много овощей и белка. Не забывайте про физические упражнения!",
+        action: "Добавьте 30 минут кардио в день",
       });
     }
 
@@ -521,7 +628,7 @@ class AIMealPlanner {
             day: day.day,
             mealTime: mealTime,
             current: meal.name,
-            alternatives: this.findAlternativeDishes(meal, mealTime)
+            alternatives: this.findAlternativeDishes(meal, mealTime),
           });
         }
       });
@@ -536,13 +643,13 @@ class AIMealPlanner {
   findAlternativeDishes(currentMeal, mealTime) {
     // Простая логика поиска альтернатив
     const alternatives = [];
-    
-    if (currentMeal.name.toLowerCase().includes('курица')) {
-      alternatives.push('Рыба на пару', 'Говядина на гриле', 'Тофу с овощами');
-    } else if (currentMeal.name.toLowerCase().includes('рис')) {
-      alternatives.push('Гречка', 'Булгур', 'Киноа');
-    } else if (currentMeal.name.toLowerCase().includes('салат')) {
-      alternatives.push('Овощной суп', 'Тушеные овощи', 'Овощи на гриле');
+
+    if (currentMeal.name.toLowerCase().includes("курица")) {
+      alternatives.push("Рыба на пару", "Говядина на гриле", "Тофу с овощами");
+    } else if (currentMeal.name.toLowerCase().includes("рис")) {
+      alternatives.push("Гречка", "Булгур", "Киноа");
+    } else if (currentMeal.name.toLowerCase().includes("салат")) {
+      alternatives.push("Овощной суп", "Тушеные овощи", "Овощи на гриле");
     }
 
     return alternatives.slice(0, 3); // Максимум 3 альтернативы
@@ -554,25 +661,25 @@ class AIMealPlanner {
   generateTips(goal) {
     const tips = {
       weight_loss: [
-        'Пейте воду перед едой для снижения аппетита',
-        'Ешьте медленно, тщательно пережевывая пищу',
-        'Избегайте перекусов между основными приемами пищи'
+        "Пейте воду перед едой для снижения аппетита",
+        "Ешьте медленно, тщательно пережевывая пищу",
+        "Избегайте перекусов между основными приемами пищи",
       ],
       muscle_gain: [
-        'Ешьте белок в течение 30 минут после тренировки',
-        'Разделите приемы пищи на 5-6 раз в день',
-        'Не забывайте про углеводы для энергии'
+        "Ешьте белок в течение 30 минут после тренировки",
+        "Разделите приемы пищи на 5-6 раз в день",
+        "Не забывайте про углеводы для энергии",
       ],
       healthy: [
-        'Включайте в каждый прием пищи овощи',
-        'Пейте 8 стаканов воды в день',
-        'Ограничьте потребление сахара и соли'
+        "Включайте в каждый прием пищи овощи",
+        "Пейте 8 стаканов воды в день",
+        "Ограничьте потребление сахара и соли",
       ],
       diabetic_friendly: [
-        'Контролируйте размер порций',
-        'Ешьте в одно и то же время каждый день',
-        'Избегайте продуктов с высоким гликемическим индексом'
-      ]
+        "Контролируйте размер порций",
+        "Ешьте в одно и то же время каждый день",
+        "Избегайте продуктов с высоким гликемическим индексом",
+      ],
     };
 
     return tips[goal] || tips.healthy;
@@ -584,11 +691,13 @@ class AIMealPlanner {
   generateShoppingList(mealPlan) {
     const ingredients = new Map();
 
-    mealPlan.days.forEach(day => {
-      Object.values(day.meals).forEach(meal => {
+    mealPlan.days.forEach((day) => {
+      Object.values(day.meals).forEach((meal) => {
         if (meal && meal.ingredients) {
-          const mealIngredients = meal.ingredients.split(',').map(ing => ing.trim());
-          mealIngredients.forEach(ingredient => {
+          const mealIngredients = meal.ingredients
+            .split(",")
+            .map((ing) => ing.trim());
+          mealIngredients.forEach((ingredient) => {
             if (ingredient) {
               const count = ingredients.get(ingredient) || 0;
               ingredients.set(ingredient, count + 1);
@@ -601,7 +710,7 @@ class AIMealPlanner {
     return Array.from(ingredients.entries()).map(([ingredient, count]) => ({
       ingredient,
       count,
-      category: this.categorizeIngredient(ingredient)
+      category: this.categorizeIngredient(ingredient),
     }));
   }
 
@@ -610,17 +719,33 @@ class AIMealPlanner {
    */
   categorizeIngredient(ingredient) {
     const name = ingredient.toLowerCase();
-    
-    if (name.includes('мясо') || name.includes('курица') || name.includes('рыба')) {
-      return 'Мясо и рыба';
-    } else if (name.includes('овощ') || name.includes('картофель') || name.includes('морковь')) {
-      return 'Овощи';
-    } else if (name.includes('молоко') || name.includes('сыр') || name.includes('творог')) {
-      return 'Молочные продукты';
-    } else if (name.includes('хлеб') || name.includes('мука') || name.includes('рис')) {
-      return 'Зерновые';
+
+    if (
+      name.includes("мясо") ||
+      name.includes("курица") ||
+      name.includes("рыба")
+    ) {
+      return "Мясо и рыба";
+    } else if (
+      name.includes("овощ") ||
+      name.includes("картофель") ||
+      name.includes("морковь")
+    ) {
+      return "Овощи";
+    } else if (
+      name.includes("молоко") ||
+      name.includes("сыр") ||
+      name.includes("творог")
+    ) {
+      return "Молочные продукты";
+    } else if (
+      name.includes("хлеб") ||
+      name.includes("мука") ||
+      name.includes("рис")
+    ) {
+      return "Зерновые";
     } else {
-      return 'Прочее';
+      return "Прочее";
     }
   }
 
@@ -631,13 +756,16 @@ class AIMealPlanner {
     let totalTime = 0;
     let mealCount = 0;
 
-    mealPlan.days.forEach(day => {
-      Object.values(day.meals).forEach(meal => {
+    mealPlan.days.forEach((day) => {
+      Object.values(day.meals).forEach((meal) => {
         if (meal) {
           // Простая оценка времени приготовления
-          if (meal.name.toLowerCase().includes('суп') || meal.name.toLowerCase().includes('борщ')) {
+          if (
+            meal.name.toLowerCase().includes("суп") ||
+            meal.name.toLowerCase().includes("борщ")
+          ) {
             totalTime += 60; // 1 час для супов
-          } else if (meal.name.toLowerCase().includes('салат')) {
+          } else if (meal.name.toLowerCase().includes("салат")) {
             totalTime += 15; // 15 минут для салатов
           } else {
             totalTime += 30; // 30 минут для основных блюд
@@ -650,7 +778,7 @@ class AIMealPlanner {
     return {
       totalMinutes: totalTime,
       averagePerMeal: Math.round(totalTime / Math.max(mealCount, 1)),
-      totalHours: Math.round(totalTime / 60 * 10) / 10
+      totalHours: Math.round((totalTime / 60) * 10) / 10,
     };
   }
 
@@ -661,8 +789,8 @@ class AIMealPlanner {
     let totalCost = 0;
     let mealCount = 0;
 
-    mealPlan.days.forEach(day => {
-      Object.values(day.meals).forEach(meal => {
+    mealPlan.days.forEach((day) => {
+      Object.values(day.meals).forEach((meal) => {
         if (meal && meal.price) {
           totalCost += meal.price;
           mealCount++;
@@ -673,7 +801,7 @@ class AIMealPlanner {
     return {
       totalCost: totalCost,
       averagePerMeal: Math.round(totalCost / Math.max(mealCount, 1)),
-      averagePerDay: Math.round(totalCost / mealPlan.days.length)
+      averagePerDay: Math.round(totalCost / mealPlan.days.length),
     };
   }
 
@@ -684,11 +812,11 @@ class AIMealPlanner {
     const today = new Date();
     const targetDate = new Date(today);
     targetDate.setDate(today.getDate() + dayIndex);
-    
-    return targetDate.toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      weekday: 'long'
+
+    return targetDate.toLocaleDateString("ru-RU", {
+      day: "numeric",
+      month: "long",
+      weekday: "long",
     });
   }
 }

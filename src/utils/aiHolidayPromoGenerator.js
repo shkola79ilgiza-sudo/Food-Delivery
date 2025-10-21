@@ -1,6 +1,6 @@
 /**
  * 🖼️ AI-Генератор Праздничных Промо-Текстов
- * 
+ *
  * Создаёт продающие тексты для праздничных акций, баннеров и промо.
  */
 
@@ -12,50 +12,50 @@ class AIHolidayPromoGenerator {
         emotions: ["волшебство", "семейное тепло", "новые начинания", "сказка"],
         cta: ["Встречайте", "Подарите", "Закажите сейчас", "Не упустите"],
         tone: "festive",
-        urgency: "high"
+        urgency: "high",
       },
       "8 Марта": {
         emotions: ["нежность", "забота", "красота", "любовь"],
         cta: ["Порадуйте", "Удивите", "Позаботьтесь", "Подарите радость"],
         tone: "gentle",
-        urgency: "medium"
+        urgency: "medium",
       },
       "23 Февраля": {
         emotions: ["мужество", "сила", "благодарность", "уважение"],
         cta: ["Поздравьте", "Угостите", "Отметьте", "Закажите"],
         tone: "confident",
-        urgency: "medium"
+        urgency: "medium",
       },
-      "Пасха": {
+      Пасха: {
         emotions: ["светлость", "традиция", "духовность", "обновление"],
         cta: ["Отпразднуйте", "Разделите", "Встречайте", "Соберитесь"],
         tone: "spiritual",
-        urgency: "low"
+        urgency: "low",
       },
       "День Победы": {
         emotions: ["гордость", "память", "уважение", "благодарность"],
         cta: ["Почтите память", "Отметьте", "Соберитесь", "Вспомните"],
         tone: "respectful",
-        urgency: "low"
+        urgency: "low",
       },
-      "Масленица": {
+      Масленица: {
         emotions: ["веселье", "традиция", "изобилие", "радость"],
         cta: ["Отпразднуйте", "Попробуйте", "Закажите", "Насладитесь"],
         tone: "cheerful",
-        urgency: "medium"
+        urgency: "medium",
       },
       "День Рождения": {
         emotions: ["радость", "праздник", "веселье", "счастье"],
         cta: ["Закажите", "Удивите", "Порадуйте", "Отпразднуйте"],
         tone: "joyful",
-        urgency: "high"
+        urgency: "high",
       },
-      "Корпоратив": {
+      Корпоратив: {
         emotions: ["успех", "командный дух", "профессионализм", "достижения"],
         cta: ["Организуйте", "Закажите", "Обеспечьте", "Удивите коллег"],
         tone: "professional",
-        urgency: "medium"
-      }
+        urgency: "medium",
+      },
     };
 
     // Формулы продающих заголовков
@@ -63,13 +63,13 @@ class AIHolidayPromoGenerator {
       "{CTA} {emotion} {праздник}! {benefit}",
       "{праздник}: {benefit} + {bonus}!",
       "{urgency}! {CTA} {блюдо} к {праздник}",
-      "Только к {праздник}: {benefit} - {скидка}%!"
+      "Только к {праздник}: {benefit} - {скидка}%!",
     ];
   }
 
   /**
    * Генерация промо-текста для конкретного блюда/набора
-   * 
+   *
    * @param {Object} dish - блюдо или набор
    * @param {String} holiday - праздник
    * @param {Object} options - опции генерации
@@ -77,11 +77,11 @@ class AIHolidayPromoGenerator {
    */
   generatePromoText(dish, holiday, options = {}) {
     const holidayData = this.emotionalTriggers[holiday];
-    
+
     if (!holidayData) {
       return {
         success: false,
-        error: "Неизвестный праздник"
+        error: "Неизвестный праздник",
       };
     }
 
@@ -97,7 +97,7 @@ class AIHolidayPromoGenerator {
       success: true,
       variants: variants,
       holiday: holiday,
-      tone: holidayData.tone
+      tone: holidayData.tone,
     };
   }
 
@@ -105,12 +105,13 @@ class AIHolidayPromoGenerator {
    * Генерация одного варианта промо-текста
    */
   generateSingleVariant(dish, holiday, holidayData, variantIndex) {
-    const emotion = holidayData.emotions[variantIndex % holidayData.emotions.length];
+    const emotion =
+      holidayData.emotions[variantIndex % holidayData.emotions.length];
     const cta = holidayData.cta[variantIndex % holidayData.cta.length];
 
     // Генерируем заголовок
     let headline = "";
-    
+
     switch (variantIndex) {
       case 0:
         // Формула 1: Эмоция + Действие
@@ -118,19 +119,30 @@ class AIHolidayPromoGenerator {
         break;
       case 1:
         // Формула 2: Срочность + Выгода
-        headline = `${this.getUrgencyPrefix(holidayData.urgency)} ${dish.name || 'Праздничный набор'} к ${holiday}`;
+        headline = `${this.getUrgencyPrefix(holidayData.urgency)} ${
+          dish.name || "Праздничный набор"
+        } к ${holiday}`;
         break;
       case 2:
         // Формула 3: Праздник + Скидка
         const discount = dish.discount || 15;
-        headline = `${holiday}: ${dish.name || 'Специальное предложение'} - Скидка ${discount}%!`;
+        headline = `${holiday}: ${
+          dish.name || "Специальное предложение"
+        } - Скидка ${discount}%!`;
         break;
       default:
-        headline = `${cta} ${dish.name || 'наш праздничный набор'} к ${holiday}!`;
+        headline = `${cta} ${
+          dish.name || "наш праздничный набор"
+        } к ${holiday}!`;
     }
 
     // Генерируем описание
-    const description = this.generateDescription(dish, holiday, holidayData, variantIndex);
+    const description = this.generateDescription(
+      dish,
+      holiday,
+      holidayData,
+      variantIndex
+    );
 
     // Генерируем CTA (Call To Action)
     const ctaText = this.generateCTA(dish, holiday, holidayData, variantIndex);
@@ -140,7 +152,7 @@ class AIHolidayPromoGenerator {
       description: description,
       cta: ctaText,
       variant: variantIndex + 1,
-      length: headline.length + description.length
+      length: headline.length + description.length,
     };
   }
 
@@ -154,21 +166,35 @@ class AIHolidayPromoGenerator {
 
     const templates = [
       // Вариант 1: Фокус на качестве
-      `${dish.description || 'Наше фирменное блюдо'} - идеальный выбор для ${holiday}! ` +
-      `Готовим с любовью специально для вас. ` +
-      `${persons > 1 ? `На ${persons} персон` : 'Порция'} всего за ${price}₽. ` +
-      `Экономьте ${discount}% и получайте удовольствие!`,
+      `${
+        dish.description || "Наше фирменное блюдо"
+      } - идеальный выбор для ${holiday}! ` +
+        `Готовим с любовью специально для вас. ` +
+        `${
+          persons > 1 ? `На ${persons} персон` : "Порция"
+        } всего за ${price}₽. ` +
+        `Экономьте ${discount}% и получайте удовольствие!`,
 
       // Вариант 2: Фокус на удобстве
-      `Не тратьте время на готовку - закажите ${dish.name || 'наш праздничный набор'}! ` +
-      `Всё включено, всё готово. ${persons > 1 ? `${persons} персон накормлены` : 'Вкусно и сытно'}. ` +
-      `Специальная цена к ${holiday}: ${price}₽ (обычно дороже на ${discount}%). ` +
-      `Доставка в праздничной упаковке!`,
+      `Не тратьте время на готовку - закажите ${
+        dish.name || "наш праздничный набор"
+      }! ` +
+        `Всё включено, всё готово. ${
+          persons > 1 ? `${persons} персон накормлены` : "Вкусно и сытно"
+        }. ` +
+        `Специальная цена к ${holiday}: ${price}₽ (обычно дороже на ${discount}%). ` +
+        `Доставка в праздничной упаковке!`,
 
       // Вариант 3: Фокус на эмоциях
-      `${holiday} - это время для близких! Создайте незабываемую атмосферу с нашим ${dish.name || 'праздничным набором'}. ` +
-      `${dish.dishes?.length || 1} блюд${dish.dishes?.length > 1 ? 'а' : 'о'}, ${persons} счастливых гостей, ` +
-      `0 хлопот. Цена праздника: всего ${price}₽ вместо ${Math.round(price * (1 + discount / 100))}₽!`
+      `${holiday} - это время для близких! Создайте незабываемую атмосферу с нашим ${
+        dish.name || "праздничным набором"
+      }. ` +
+        `${dish.dishes?.length || 1} блюд${
+          dish.dishes?.length > 1 ? "а" : "о"
+        }, ${persons} счастливых гостей, ` +
+        `0 хлопот. Цена праздника: всего ${price}₽ вместо ${Math.round(
+          price * (1 + discount / 100)
+        )}₽!`,
     ];
 
     return templates[variantIndex % templates.length];
@@ -182,8 +208,8 @@ class AIHolidayPromoGenerator {
 
     const ctas = [
       deadline ? `⏰ Заказать до ${deadline}` : `🎁 Заказать сейчас`,
-      `🚀 Забронировать ${dish.name || 'набор'}`,
-      `💝 Оформить праздничный заказ`
+      `🚀 Забронировать ${dish.name || "набор"}`,
+      `💝 Оформить праздничный заказ`,
     ];
 
     return ctas[variantIndex % ctas.length];
@@ -197,11 +223,11 @@ class AIHolidayPromoGenerator {
       "Новый год": "🎄",
       "8 Марта": "🌸",
       "23 Февраля": "🎖️",
-      "Пасха": "🥚",
+      Пасха: "🥚",
       "День Победы": "🎗️",
-      "Масленица": "🥞",
+      Масленица: "🥞",
       "День Рождения": "🎂",
-      "Корпоратив": "🏢"
+      Корпоратив: "🏢",
     };
 
     return emojis[holiday] || "🎉";
@@ -212,62 +238,63 @@ class AIHolidayPromoGenerator {
    */
   getUrgencyPrefix(urgency) {
     switch (urgency) {
-      case 'high':
-        return '🔥 ТОЛЬКО СЕГОДНЯ:';
-      case 'medium':
-        return '⏰ Осталось мало времени!';
-      case 'low':
-        return '✨ Специальное предложение:';
+      case "high":
+        return "🔥 ТОЛЬКО СЕГОДНЯ:";
+      case "medium":
+        return "⏰ Осталось мало времени!";
+      case "low":
+        return "✨ Специальное предложение:";
       default:
-        return '🎉';
+        return "🎉";
     }
   }
 
   /**
    * Генерация баннера для социальных сетей
    */
-  generateSocialMediaBanner(dish, holiday, platform = 'instagram') {
+  generateSocialMediaBanner(dish, holiday, platform = "instagram") {
     const holidayData = this.emotionalTriggers[holiday];
-    
+
     const platformFormats = {
       instagram: {
         maxLength: 150,
         hashtagCount: 5,
-        emojiDensity: 'high'
+        emojiDensity: "high",
       },
       facebook: {
         maxLength: 300,
         hashtagCount: 3,
-        emojiDensity: 'medium'
+        emojiDensity: "medium",
       },
       vk: {
         maxLength: 200,
         hashtagCount: 4,
-        emojiDensity: 'medium'
-      }
+        emojiDensity: "medium",
+      },
     };
 
     const format = platformFormats[platform];
-    
+
     const emoji = this.getEmoji(holiday);
     const cta = holidayData.cta[0];
     const emotion = holidayData.emotions[0];
 
-    const text = `${emoji} ${cta} ${emotion} ${holiday}!\n\n` +
-      `${dish.name || 'Праздничный набор'} - ` +
-      `${dish.persons || 1} персон${dish.persons > 1 ? '' : 'а'}\n` +
+    const text =
+      `${emoji} ${cta} ${emotion} ${holiday}!\n\n` +
+      `${dish.name || "Праздничный набор"} - ` +
+      `${dish.persons || 1} персон${dish.persons > 1 ? "" : "а"}\n` +
       `💰 Всего ${dish.pricing?.discountedPrice || dish.price}₽ ` +
       `(скидка ${dish.pricing?.discount || 15}%)\n\n` +
-      `${dish.promoText || 'Торопитесь - количество ограничено!'}\n\n`;
+      `${dish.promoText || "Торопитесь - количество ограничено!"}\n\n`;
 
     // Добавляем хештеги
     const hashtags = this.generateHashtags(holiday, dish, format.hashtagCount);
-    
+
     return {
-      text: text + hashtags.join(' '),
+      text: text + hashtags.join(" "),
       platform: platform,
       length: text.length,
-      hashtags: hashtags
+      hashtags: hashtags,
     };
   }
 
@@ -276,16 +303,16 @@ class AIHolidayPromoGenerator {
    */
   generateHashtags(holiday, dish, count) {
     const allHashtags = [
-      `#${holiday.replace(/\s/g, '')}`,
-      '#fooddelivery',
-      '#доставкаеды',
-      '#праздничныйстол',
-      '#готовыйстол',
-      `#набор${holiday.replace(/\s/g, '')}`,
-      '#акция',
-      '#скидка',
-      '#заказать',
-      '#праздник'
+      `#${holiday.replace(/\s/g, "")}`,
+      "#fooddelivery",
+      "#доставкаеды",
+      "#праздничныйстол",
+      "#готовыйстол",
+      `#набор${holiday.replace(/\s/g, "")}`,
+      "#акция",
+      "#скидка",
+      "#заказать",
+      "#праздник",
     ];
 
     // Возвращаем нужное количество
@@ -295,8 +322,8 @@ class AIHolidayPromoGenerator {
   /**
    * Генерация email-рассылки
    */
-  generateEmailPromo(dish, holiday, recipientName = 'Уважаемый клиент') {
-    const holidayData = this.emotionalTriggers[holiday];
+  generateEmailPromo(dish, holiday, recipientName = "Уважаемый клиент") {
+    // const holidayData = this.emotionalTriggers[holiday]; // Не используется в текущей реализации
     const emoji = this.getEmoji(holiday);
 
     const subject = `${emoji} Специальное предложение к ${holiday}!`;
@@ -306,19 +333,32 @@ class AIHolidayPromoGenerator {
 
       ${holiday} совсем скоро, и мы подготовили для вас специальное предложение!
 
-      ${emoji} ${dish.name || 'Праздничный набор'}
+      ${emoji} ${dish.name || "Праздничный набор"}
       
-      ${dish.description || 'Готовый праздничный стол без хлопот!'}
+      ${dish.description || "Готовый праздничный стол без хлопот!"}
 
       📦 В составе:
-      ${dish.dishes ? dish.dishes.map(d => `• ${d.name} (${d.portionsPerDish} порций)`).join('\n      ') : '• Всё необходимое для праздника'}
+      ${
+        dish.dishes
+          ? dish.dishes
+              .map((d) => `• ${d.name} (${d.portionsPerDish} порций)`)
+              .join("\n      ")
+          : "• Всё необходимое для праздника"
+      }
 
-      💰 Цена: ${dish.pricing?.discountedPrice || dish.price}₽ (вместо ${dish.pricing?.recommendedPrice || Math.round((dish.pricing?.discountedPrice || dish.price) * 1.15)}₽)
-      💝 Ваша экономия: ${dish.pricing?.savings || Math.round((dish.price || 0) * 0.15)}₽
+      💰 Цена: ${dish.pricing?.discountedPrice || dish.price}₽ (вместо ${
+      dish.pricing?.recommendedPrice ||
+      Math.round((dish.pricing?.discountedPrice || dish.price) * 1.15)
+    }₽)
+      💝 Ваша экономия: ${
+        dish.pricing?.savings || Math.round((dish.price || 0) * 0.15)
+      }₽
       
-      ${dish.promoText || '🎁 При заказе до конца недели - бесплатная доставка!'}
+      ${
+        dish.promoText || "🎁 При заказе до конца недели - бесплатная доставка!"
+      }
 
-      ⏰ Успейте заказать до ${dish.validUntil || 'конца акции'}!
+      ⏰ Успейте заказать до ${dish.validUntil || "конца акции"}!
 
       С уважением,
       Команда FoodDelivery
@@ -327,7 +367,7 @@ class AIHolidayPromoGenerator {
     return {
       subject: subject,
       body: body.trim(),
-      holiday: holiday
+      holiday: holiday,
     };
   }
 
@@ -340,9 +380,15 @@ class AIHolidayPromoGenerator {
     const discount = dish.pricing?.discount || 15;
 
     const templates = [
-      `${emoji} ${holiday}! ${dish.name || 'Праздничный набор'} всего ${price}₽ (скидка ${discount}%). Заказ: [ссылка]`,
-      `${emoji} К ${holiday}: ${dish.name || 'Готовый стол'} - ${price}₽. Успейте до ${dish.validUntil || 'праздника'}! [ссылка]`,
-      `${emoji} Спец.цена к ${holiday}: ${dish.name || 'Набор'} ${price}₽ (-${discount}%). Заказ: [ссылка]`
+      `${emoji} ${holiday}! ${
+        dish.name || "Праздничный набор"
+      } всего ${price}₽ (скидка ${discount}%). Заказ: [ссылка]`,
+      `${emoji} К ${holiday}: ${
+        dish.name || "Готовый стол"
+      } - ${price}₽. Успейте до ${dish.validUntil || "праздника"}! [ссылка]`,
+      `${emoji} Спец.цена к ${holiday}: ${
+        dish.name || "Набор"
+      } ${price}₽ (-${discount}%). Заказ: [ссылка]`,
     ];
 
     return templates[Math.floor(Math.random() * templates.length)];
@@ -356,10 +402,12 @@ class AIHolidayPromoGenerator {
 
     return {
       title: `${emoji} ${holiday} уже близко!`,
-      body: `${dish.name || 'Праздничный набор'} со скидкой ${dish.pricing?.discount || 15}% - всего ${dish.pricing?.discountedPrice || dish.price}₽!`,
+      body: `${dish.name || "Праздничный набор"} со скидкой ${
+        dish.pricing?.discount || 15
+      }% - всего ${dish.pricing?.discountedPrice || dish.price}₽!`,
       action: "Заказать",
       icon: emoji,
-      urgency: this.emotionalTriggers[holiday]?.urgency || 'medium'
+      urgency: this.emotionalTriggers[holiday]?.urgency || "medium",
     };
   }
 
@@ -369,9 +417,9 @@ class AIHolidayPromoGenerator {
   generateFullMarketingKit(dish, holiday) {
     const variants = this.generatePromoText(dish, holiday);
     const socialBanners = {
-      instagram: this.generateSocialMediaBanner(dish, holiday, 'instagram'),
-      facebook: this.generateSocialMediaBanner(dish, holiday, 'facebook'),
-      vk: this.generateSocialMediaBanner(dish, holiday, 'vk')
+      instagram: this.generateSocialMediaBanner(dish, holiday, "instagram"),
+      facebook: this.generateSocialMediaBanner(dish, holiday, "facebook"),
+      vk: this.generateSocialMediaBanner(dish, holiday, "vk"),
     };
     const email = this.generateEmailPromo(dish, holiday);
     const sms = this.generateSMS(dish, holiday);
@@ -386,7 +434,7 @@ class AIHolidayPromoGenerator {
       sms: sms,
       push: push,
       downloadable: {
-        format: 'json',
+        format: "json",
         data: {
           holiday,
           dish: dish.name,
@@ -395,18 +443,18 @@ class AIHolidayPromoGenerator {
           socialBanners,
           email,
           sms,
-          push
-        }
-      }
+          push,
+        },
+      },
     };
   }
 
   /**
    * A/B тестирование: какой вариант сработает лучше
    */
-  predictBestVariant(variants, targetAudience = 'all') {
+  predictBestVariant(variants, targetAudience = "all") {
     // Симуляция AI-предсказания на основе длины, эмоций и CTA
-    
+
     const scores = variants.map((variant, idx) => {
       let score = 0;
 
@@ -421,16 +469,20 @@ class AIHolidayPromoGenerator {
       if (/скидка|%|-\d+%/i.test(variant.headline)) score += 20;
 
       // Наличие срочности
-      if (/только|сегодня|осталось|успейте/i.test(variant.headline)) score += 15;
+      if (/только|сегодня|осталось|успейте/i.test(variant.headline))
+        score += 15;
 
       // Эмодзи
-      const emojiCount = (variant.headline.match(/[\u{1F300}-\u{1F9FF}]/gu) || []).length;
+      const emojiCount = (
+        variant.headline.match(/[\u{1F300}-\u{1F9FF}]/gu) || []
+      ).length;
       score += Math.min(emojiCount * 5, 15);
 
       return {
         ...variant,
         predictedScore: score,
-        recommendation: score > 40 ? 'Отлично!' : score > 25 ? 'Хорошо' : 'Можно улучшить'
+        recommendation:
+          score > 40 ? "Отлично!" : score > 25 ? "Хорошо" : "Можно улучшить",
       };
     });
 
@@ -440,7 +492,7 @@ class AIHolidayPromoGenerator {
     return {
       bestVariant: scores[0],
       allVariants: scores,
-      recommendation: `AI рекомендует вариант ${scores[0].variant}: самый высокий прогнозируемый CTR`
+      recommendation: `AI рекомендует вариант ${scores[0].variant}: самый высокий прогнозируемый CTR`,
     };
   }
 
@@ -448,58 +500,58 @@ class AIHolidayPromoGenerator {
    * Генерация визуального баннера (текстовое описание для дизайнера)
    */
   generateBannerDesignBrief(dish, holiday) {
-    const holidayData = this.emotionalTriggers[holiday];
+    // const holidayData = this.emotionalTriggers[holiday]; // Не используется в текущей реализации
     const color = this.getHolidayColor(holiday);
 
     return {
       layout: {
-        size: '1200x628px (стандарт для соцсетей)',
-        orientation: 'horizontal'
+        size: "1200x628px (стандарт для соцсетей)",
+        orientation: "horizontal",
       },
       colors: {
         primary: color,
         secondary: this.getComplementaryColor(color),
-        background: '#ffffff'
+        background: "#ffffff",
       },
       typography: {
         headline: {
           text: `${this.getEmoji(holiday)} ${holiday}`,
-          font: 'Montserrat Bold',
-          size: '48px',
-          color: color
+          font: "Montserrat Bold",
+          size: "48px",
+          color: color,
         },
         subheadline: {
-          text: dish.name || 'Праздничный набор',
-          font: 'Montserrat Regular',
-          size: '32px',
-          color: '#333'
+          text: dish.name || "Праздничный набор",
+          font: "Montserrat Regular",
+          size: "32px",
+          color: "#333",
         },
         price: {
           text: `${dish.pricing?.discountedPrice || dish.price}₽`,
-          font: 'Montserrat Black',
-          size: '64px',
-          color: color
+          font: "Montserrat Black",
+          size: "64px",
+          color: color,
         },
         discount: {
           text: `-${dish.pricing?.discount || 15}%`,
-          font: 'Montserrat Bold',
-          size: '36px',
-          color: '#ff4444',
-          background: '#fff',
-          badge: true
-        }
+          font: "Montserrat Bold",
+          size: "36px",
+          color: "#ff4444",
+          background: "#fff",
+          badge: true,
+        },
       },
       images: {
-        main: dish.photo || 'праздничный стол',
+        main: dish.photo || "праздничный стол",
         background: `праздничный паттерн (${holiday})`,
-        decorations: [`${this.getEmoji(holiday)}`, 'конфетти', 'звёзды']
+        decorations: [`${this.getEmoji(holiday)}`, "конфетти", "звёзды"],
       },
       cta: {
-        text: 'ЗАКАЗАТЬ СЕЙЧАС',
-        style: 'button',
+        text: "ЗАКАЗАТЬ СЕЙЧАС",
+        style: "button",
         color: color,
-        position: 'bottom-right'
-      }
+        position: "bottom-right",
+      },
     };
   }
 
@@ -511,11 +563,11 @@ class AIHolidayPromoGenerator {
       "Новый год": "#ff4444",
       "8 Марта": "#ff69b4",
       "23 Февраля": "#4a90e2",
-      "Пасха": "#ffd700",
+      Пасха: "#ffd700",
       "День Победы": "#ff6b6b",
-      "Масленица": "#ffaa00",
+      Масленица: "#ffaa00",
       "День Рождения": "#9c27b0",
-      "Корпоратив": "#3f51b5"
+      Корпоратив: "#3f51b5",
     };
 
     return colors[holiday] || "#2196f3";
@@ -534,7 +586,7 @@ class AIHolidayPromoGenerator {
       "#ff6b6b": "#6bffff",
       "#ffaa00": "#00aaff",
       "#9c27b0": "#27b09c",
-      "#3f51b5": "#b5513f"
+      "#3f51b5": "#b5513f",
     };
 
     return complementary[primaryColor] || "#ffffff";
@@ -543,5 +595,5 @@ class AIHolidayPromoGenerator {
 
 // Экспортируем класс и экземпляр
 export { AIHolidayPromoGenerator };
-export default new AIHolidayPromoGenerator();
-
+const aiHolidayPromoGenerator = new AIHolidayPromoGenerator();
+export default aiHolidayPromoGenerator;

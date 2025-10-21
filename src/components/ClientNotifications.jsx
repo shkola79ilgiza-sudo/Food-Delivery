@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '../contexts/ToastContext';
 
 const ClientNotifications = ({ onClose, onSwitchToSection }) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Не используется в текущей реализации
   const { showSuccess } = useToast();
   
   // Используем хук для уведомлений с обработкой ошибок
@@ -18,10 +18,10 @@ const ClientNotifications = ({ onClose, onSwitchToSection }) => {
   } = useNotifications('client');
 
   // Обработка ошибок
-  const handleError = (error) => {
-    console.error('ClientNotifications error:', error);
-    showSuccess('Произошла ошибка. Попробуйте обновить страницу.');
-  };
+  // const handleError = (error) => {
+  //   console.error('ClientNotifications error:', error);
+  //   showSuccess('Произошла ошибка. Попробуйте обновить страницу.');
+  // }; // Не используется в текущей реализации
 
   // Обработка клавиши Escape для закрытия модального окна
   useEffect(() => {
